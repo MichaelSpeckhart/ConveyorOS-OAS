@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "conveyoros-oas",
+        "title": "White Conveyors OAS",
         "width": 800,
         "height": 600,
         "devtools": true
