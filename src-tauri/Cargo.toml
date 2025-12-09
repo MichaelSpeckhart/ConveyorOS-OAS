@@ -27,4 +27,5 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread", "net"] }
 melsec_mc = "0.4.13"
 rs-melsec = "0.1.0"
 chrono = { version = "0.4", features = ["serde"] }
-
+diesel = { version = "2.2.0", features = ["postgres"] }
+dotenvy = "0.15"
