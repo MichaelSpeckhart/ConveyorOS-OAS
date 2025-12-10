@@ -2,10 +2,14 @@ use std::{fmt, str::FromStr};
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Local};
 
-
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
+pub enum add_item_errors {
+    EmptyField { field: &'static str },
+    InvalidValue { field: &'static str, reason: &'static str },
+}
 
 // Assembly Conveyor SPOT operations for adding and deleting items
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub enum spot_ops_types {
     AddItem,
     DeleteItem,
@@ -36,7 +40,7 @@ impl FromStr for spot_ops_types {
 }
 
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct add_item_op {
     pub op_type: spot_ops_types,
     pub full_invoice_number: String,
@@ -55,7 +59,7 @@ pub struct add_item_op {
     pub invoice_comments: String
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct delete_item_op {
     pub op_type: spot_ops_types,
     pub full_invoice_number: String,

@@ -31,3 +31,4 @@ diesel = { version = "2.2.0", features = ["chrono", "postgres"] }
 dotenvy = "0.15"
 pq-sys = { version = "0.6", features = ["bundled"] }
 openssl-sys = { version = "0.9.100", features = ["vendored"] } 
+csv = "1"
