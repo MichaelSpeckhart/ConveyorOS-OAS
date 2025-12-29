@@ -3,9 +3,21 @@ use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Local};
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
+
 pub enum add_item_errors {
     EmptyField { field: &'static str },
     InvalidValue { field: &'static str, reason: &'static str },
+}
+
+impl fmt::Display for add_item_errors {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            add_item_errors::EmptyField { field } => write!(f, "Empty field: {}", field),
+            add_item_errors::InvalidValue { field, reason } => {
+                write!(f, "Invalid value in field {}: {}", field, reason)
+            }
+        }
+    }
 }
 
 // Assembly Conveyor SPOT operations for adding and deleting items
@@ -19,9 +31,9 @@ pub enum spot_ops_types {
 impl fmt::Display for spot_ops_types {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            spot_ops_types::AddItem => write!(f, "\"ADDITEM\""), 
-            spot_ops_types::DeleteItem => write!(f, "\"DELITEM\""), 
-            spot_ops_types::Default => write!(f, "\"UNSUPPORTED\"")
+            spot_ops_types::AddItem => write!(f, "ADDITEM"), 
+            spot_ops_types::DeleteItem => write!(f, "DELITEM"), 
+            spot_ops_types::Default => write!(f, "UNSUPPORTED")
         }
     }
 }
@@ -32,8 +44,8 @@ impl FromStr for spot_ops_types {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.trim().to_uppercase().as_str() {
-            "\"ADDITEM\"" => Ok(spot_ops_types::AddItem),
-            "\"DELITEM\"" => Ok(spot_ops_types::DeleteItem),
+            "ADDITEM" => Ok(spot_ops_types::AddItem),
+            "DELITEM" => Ok(spot_ops_types::DeleteItem),
             _ => Ok(spot_ops_types::Default),
         }
     }

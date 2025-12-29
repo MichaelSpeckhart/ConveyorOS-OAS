@@ -25,7 +25,7 @@ pub fn run() {
             plc::client::read_slot_id1,   // <--- note the client here
             plc::client::write_m5_command,
             io::fileutils_tauri::read_file_cmd,  // <--- added write command
-            pos::spot::spot_file_utils::parse_spot_csv,
+            pos::spot::spot_tauri::parse_spot_csv_tauri,
             tauri_commands::auth_login_user_tauri,
             tauri_commands::auth_create_user_tauri,
             tauri_commands::get_all_users_tauri

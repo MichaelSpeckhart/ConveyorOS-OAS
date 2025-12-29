@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { readDelCsvFile, readFile } from "../lib/file";
+import { parseSpotCsv, readDelCsvFile, readFile } from "../lib/file";
 
 export default function ReadFilePage() {
   const [path, setPath] = useState("");
@@ -11,12 +11,12 @@ export default function ReadFilePage() {
   async function handleRead() {
     setError(null);
     setLoading(true);
-
+    console.log("Reading file at path:", path);
     try {
-      const result: string[] = await readFile(path);
-      setLines(result);
+      const result: number = await parseSpotCsv(path);
+      setLines([]);
 
-      setDeleteCount(await readDelCsvFile(result));
+      //
 
     } catch (err: any) {
       setError(err.toString());
@@ -79,7 +79,7 @@ export default function ReadFilePage() {
           <h2>Contents:</h2>
           <pre
             style={{
-              background: "#000000ff",
+              background: "#ffffffff",
               padding: "12px",
               borderRadius: "6px",
               maxHeight: "400px",

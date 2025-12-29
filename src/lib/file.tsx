@@ -7,3 +7,7 @@ export async function readFile(path: string): Promise<Array<string>> {
 export async function readDelCsvFile(contents: Array<string>): Promise<number> {
     return invoke<number>("parse_spot_csv", {contents});
 }
+
+export async function parseSpotCsv(path: string): Promise<number> {
+    return invoke<number>("parse_spot_csv_tauri", {path});
+}

@@ -1,6 +1,8 @@
-use std::{fs::File, io::{self, BufRead, BufReader}, sync::Condvar};
+use std::{fs::{self, File}, io::{self, BufRead, BufReader}, sync::Condvar};
 use std::path::Path;
 use std::string::String;
+
+use crate::pos::spot::spot_file_utils::parse_spot_csv_core;
 
 // Read file utility method
 // NB: Could impl struct "Reader" with different reading
@@ -22,6 +24,10 @@ pub fn read_file(file_name: impl AsRef<Path>) -> io::Result<Vec<String>> {
         let line = line?;      // line: String
         lines.push(line);
     }
+
+    // delete_file(file_name);
+
+    
 
     Ok(lines)
 }
@@ -56,3 +62,9 @@ pub fn check_file_exists(file_name: impl AsRef<std::path::Path>) -> io::Result<b
         }
     }
 }
+
+pub fn delete_file(file_path: impl AsRef<Path>) -> io::Result<()> {
+    fs::remove_file(file_path)?;
+    Ok(())
+}
+

@@ -3,6 +3,7 @@ import { SideNavLayout } from "./layout/SideNavLayout";
 import Login from "./pages/login/Login";
 import Home from "./pages/Home";
 import { LoginResult } from "./types/auth";
+import ReadFilePage from "./pages/Slot";
 
 export default function App() {
   const [user, setUser] = useState<LoginResult | null>(null);
@@ -27,7 +28,7 @@ export default function App() {
   return (
     <SideNavLayout title="Order Assembly System" items={navItems} activeKey={active} user={user}>
       {active === "dashboard" && <Home />}
-      {active === "scan" && <div>Scan Page</div>}
+      {active === "scan" && <ReadFilePage />}
       {active === "customers" && <div>Customers</div>}
       {active === "settings" && <div>Settings</div>}
     </SideNavLayout>
