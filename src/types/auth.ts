@@ -6,6 +6,4 @@ export interface LoginResult {
 export interface CreateUserRequest {
   username: string;
   pin: string;
-  
-
 }

@@ -1,4 +1,4 @@
-use std::{fs::File, io::{self, BufRead, BufReader}};
+use std::{fs::File, io::{self, BufRead, BufReader}, sync::Condvar};
 use std::path::Path;
 use std::string::String;
 
@@ -25,6 +25,17 @@ pub fn read_file(file_name: impl AsRef<Path>) -> io::Result<Vec<String>> {
 
     Ok(lines)
 }
+
+// pub fn read_csv_file(csv_file_name: impl AsRef<Path>) -> io::Result<Vec<String>> {
+//     let path = csv_file_name.as_ref();
+
+//     if !check_file_exists(path)? {
+//         return Err(io::Error::new(io::ErrorKind::NotFound, "File not found"));
+//     }
+
+//     let mut rdr = csv::Reader::from_reader(path);
+
+// }
 
 pub fn clean_line(line: &str) -> String {
     line.trim().trim_matches('"').to_string()

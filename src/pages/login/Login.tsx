@@ -6,7 +6,11 @@ export interface LoginResult {
   username: string;
 }
 
-const Login: React.FC = () => {
+type LoginProps = {
+  onSuccess: (user: LoginResult) => void;
+}
+
+const Login: React.FC<LoginProps> = ({ onSuccess }) => {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -23,11 +27,6 @@ const Login: React.FC = () => {
     }
   };
 
-  const OnSuccess = () => {
-    // Placeholder for success action, e.g., redirecting to home page
-    window.location.replace("/home");
-  }
-
   const submit = async (p: string) => {
     setError("");
     setSuccess("");
@@ -41,7 +40,7 @@ const Login: React.FC = () => {
       setSuccess("Login successful");   // 👈 green text
       setPin("");
       // Set a little delay
-      setTimeout(() => { OnSuccess() }, 500);
+      setTimeout(() => { onSuccess(result) }, 500);
     } catch (e: any) {
       const msg = String(e);
       if (msg.includes("NO_USERS")) {

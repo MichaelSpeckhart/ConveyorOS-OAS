@@ -9,21 +9,7 @@ impl spotops_types::add_item_op {
 
     pub fn perform_add_item_op(operation: &add_item_op) -> Result<String, String> {
         
-        let mut conn: diesel::PgConnection = establish_connection();
-
-        let mut created_garment = garment_repo::create_garment(&mut conn, operation.full_invoice_number.as_str(), 
-        operation.invoice_number.as_str(), 
-        &operation.item_id.as_str(), 
-        &operation.item_descriptions.as_str(), 
-        operation.invoice_dropoff_date.naive_local(), 
-        operation.invoice_promised_date.naive_local(), 
-        operation.invoice_comments.as_str(), 
-        operation.slot_occupancy as i32).map_err(|e| e.to_string())?;   
-
-
-        if created_garment.id <= 0 {
-            return Err("Failed to create garment record".to_string());
-        }            
+        let mut conn: diesel::PgConnection = establish_connection();          
 
 
         Ok("Add Item Operation Successful".to_string())

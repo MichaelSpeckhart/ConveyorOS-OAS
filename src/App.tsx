@@ -1,23 +1,35 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import SlotPage from "./pages/Slot";
-import "./App.css";
+import { SideNavLayout } from "./layout/SideNavLayout";
 import Login from "./pages/login/Login";
 import Home from "./pages/Home";
-import CreateUser from "./pages/login/CreateUser";
-function App() {
+import { LoginResult } from "./types/auth";
+
+export default function App() {
+  const [user, setUser] = useState<LoginResult | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [active, setActive] = useState("dashboard");
+
+  const navItems = [
+    { key: "dashboard", label: "Dashboard", icon: "🏠", onClick: () => setActive("dashboard") },
+    { key: "scan", label: "Scan", icon: "📦", onClick: () => setActive("scan") },
+    { key: "customers", label: "Customers", icon: "👤", onClick: () => setActive("customers") },
+    { key: "settings", label: "Settings", icon: "⚙️", onClick: () => setActive("settings") },
+  ];
+
+  if (!isAuthenticated) {
+    return <Login onSuccess={() => setIsAuthenticated(true)} />;
+  }
+  if (!user) {
+    return <Login onSuccess={setUser  } />;
+  }
+
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/create-user" element={<CreateUser />} />
-        <Route path="/home" element={<SlotPage />} />
-      </Routes>
-    </BrowserRouter>
+    <SideNavLayout title="Order Assembly System" items={navItems} activeKey={active} user={user}>
+      {active === "dashboard" && <Home />}
+      {active === "scan" && <div>Scan Page</div>}
+      {active === "customers" && <div>Customers</div>}
+      {active === "settings" && <div>Settings</div>}
+    </SideNavLayout>
   );
 }
-
-
-export default App;
