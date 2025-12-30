@@ -2,10 +2,11 @@ use std::str::FromStr;
 use chrono::{NaiveDateTime, Local, TimeZone};
 
 use crate::{
-  db::{connection::establish_connection, customer_repo},
+  db::{connection::establish_connection, customer_repo, garment_repo, ticket_repo},
   model::NewCustomer,
-  pos::spot::spotops_types::{self, add_item_op, spot_ops_types},
+  pos::spot::spotops_types::{self, spot_ops_types},
 };
+use crate::pos::spot::spotops_types::add_item_op;
 
 pub fn parse_spot_csv_core(contents: &[String]) -> Result<u32, String> {
     if contents.is_empty() {
@@ -101,24 +102,73 @@ pub fn parse_spot_csv_core(contents: &[String]) -> Result<u32, String> {
             
             if !customer_repo::contains_customer_identifier(&mut conn, &add_op.customer_identifier) {
                 println!("Creating new customer: {}", add_op.customer_identifier);
-                let new_customer = NewCustomer {
-                    customer_identifier: add_op.customer_identifier.clone(),
-                    first_name: add_op.customer_first_name.clone(),
-                    last_name: add_op.customer_last_name.clone(),
-                    phone_number: add_op.customer_phone_number.clone(),
-                };
-
-                customer_repo::create_customer(&mut conn, new_customer)
-                    .map_err(|e| format!("CREATE_CUSTOMER_FAILED: {}", e))?;
+                create_customer_from_add_op(&mut conn, &add_op)?;
             }
 
-            
+            if !garment_repo::garment_exists(&mut conn, add_op.item_id.clone()) {
+                create_garment_from_add_op(&mut conn, &add_op)?;
+            }
 
-            
+            if !ticket_repo::ticket_exists(&mut conn, add_op.invoice_number.clone()) {
+                println!("Creating new ticket: {}", add_op.invoice_number);
+                create_ticket_from_add_op(&mut conn, &add_op)?;
+            }
         }
     }
 
     Ok(add_op_nums)
+}
+
+/// Create a garment in the database from an AddItemOp
+pub fn create_garment_from_add_op(conn: &mut diesel::PgConnection, add_op: &spotops_types::add_item_op) -> Result<(), String> {
+    let new_garment = crate::model::NewGarment {
+        item_id: add_op.item_id.clone(),
+        invoice_comments: add_op.invoice_comments.clone(),
+        item_description: add_op.item_descriptions.clone(),
+        display_invoice_number: add_op.invoice_number.clone(),
+        full_invoice_number: add_op.full_invoice_number.clone(),
+        invoice_dropoff_date: add_op.invoice_dropoff_date.naive_local(),
+        invoice_pickup_date: add_op.invoice_promised_date.naive_local(),
+        slot_number: add_op.slot_occupancy as i32,
+    };
+
+    garment_repo::create_garment(conn, new_garment)
+        .map_err(|e| format!("CREATE_GARMENT_FAILED: {}", e))?;
+
+    Ok(())
+}
+
+pub fn create_ticket_from_add_op(conn: &mut diesel::PgConnection, add_op: &spotops_types::add_item_op) -> Result<(), String> {
+    let new_ticket = crate::model::NewTicket {
+        full_invoice_number: add_op.full_invoice_number.clone(),
+        display_invoice_number: add_op.invoice_number.clone(),
+        customer_identifier: add_op.customer_identifier.clone(),
+        customer_first_name: add_op.customer_first_name.clone(),
+        customer_last_name: add_op.customer_last_name.clone(),
+        customer_phone_number: add_op.customer_phone_number.clone(),
+        number_of_items: add_op.num_items as i32,
+        invoice_dropoff_date: add_op.invoice_dropoff_date.naive_local(),
+        invoice_pickup_date: add_op.invoice_promised_date.naive_local(),
+    };
+
+    ticket_repo::create_ticket(conn, new_ticket)
+        .map_err(|e| format!("CREATE_TICKET_FAILED: {}", e))?;
+
+    Ok(())
+}
+
+pub fn create_customer_from_add_op(conn: &mut diesel::PgConnection, add_op: &spotops_types::add_item_op) -> Result<(), String> {
+    let new_customer = NewCustomer {
+        customer_identifier: add_op.customer_identifier.clone(),
+        first_name: add_op.customer_first_name.clone(),
+        last_name: add_op.customer_last_name.clone(),
+        phone_number: add_op.customer_phone_number.clone(),
+    };
+
+    customer_repo::create_customer(conn, new_customer)
+        .map_err(|e| format!("CREATE_CUSTOMER_FAILED: {}", e))?;
+
+    Ok(())
 }
 
 pub fn clean_spot_csv_line(line: &str) -> String {

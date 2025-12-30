@@ -26,9 +26,6 @@ pub fn read_file(file_name: impl AsRef<Path>) -> io::Result<Vec<String>> {
     }
 
     // delete_file(file_name);
-
-    
-
     Ok(lines)
 }
 

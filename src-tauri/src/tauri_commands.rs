@@ -1,7 +1,7 @@
 use diesel::result::Error::NotFound;
 use serde::Serialize;
 
-use crate::{db::users_repo, domain::auth, model::User};
+use crate::{db::{connection::establish_connection, users_repo}, domain::auth, model::User};
 
 #[derive(Serialize)]
 pub struct login_result {
@@ -51,7 +51,7 @@ pub fn auth_create_user_tauri(username_input: String, pin_input: String) -> Resu
 
 #[tauri::command]
 pub fn get_all_users_tauri() -> Result<Vec<User>, String> {
-    let mut conn = crate::establish_connection();
+    let mut conn = establish_connection();
 
     users_repo::get_all_users(&mut conn).map_err(|_| "Connection Error".to_string())
 }

@@ -1,6 +1,5 @@
 use diesel::prelude::*;
 
-use crate::establish_connection;
 use crate::model::{User, NewUser};
 use crate::schema::users::dsl::*;
 

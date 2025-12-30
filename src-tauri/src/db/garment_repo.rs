@@ -1,16 +1,21 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use diesel::prelude::*;
 
-use crate::establish_connection;
 use crate::model::{Garment, NewGarment};
 use crate::schema::garments;
+use crate::schema::garments::dsl::*;
 
 pub fn count_garments(conn: &mut PgConnection) -> QueryResult<i64> {
     garments::table.count().get_result(conn)
 }
 
-pub fn garment_exists(conn: &mut PgConnection) -> bool {
-    true
+pub fn garment_exists(conn: &mut PgConnection, item_identifier: String) -> bool {
+    garments
+        .filter(item_id.eq(item_identifier))
+        .count()
+        .get_result::<i64>(conn)
+        .map(|count| count > 0)
+        .unwrap_or(false)
 }
 
 pub fn create_garment(conn: &mut PgConnection, new_garment: NewGarment) -> Result<Garment, String> {
