@@ -8,7 +8,8 @@ export interface LoginResult {
 
 type LoginProps = {
   onSuccess: (user: LoginResult) => void;
-}
+  onNoUsers: () => void; // ✅ add
+};
 
 const Login: React.FC<LoginProps> = ({ onSuccess }) => {
   const [pin, setPin] = useState("");
@@ -42,15 +43,19 @@ const Login: React.FC<LoginProps> = ({ onSuccess }) => {
       // Set a little delay
       setTimeout(() => { onSuccess(result) }, 500);
     } catch (e: any) {
-      const msg = String(e);
-      if (msg.includes("NO_USERS")) {
-        setError("No users found. Please set up an account.");
-        setGoToRegister(true);
-      } else {
-        setError(msg);
-      }
-      setPin("");
-    }
+  const msg = String(e);
+
+  if (msg.includes("NO_USERS")) {
+    setError("No users found. Please set up an account.");
+    setPin("");
+    onNoUsers(); // ✅ switches App to <CreateUser />
+    return;
+  }
+
+  setError(msg);
+  setPin("");
+}
+
   };
 
   const clear = () => setPin("");

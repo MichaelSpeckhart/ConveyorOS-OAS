@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-  LayoutDashboard,
-  ScanLine,
-  Users,
-  Settings,
-} from "lucide-react";
+import { LayoutDashboard, ScanLine, Settings, Database } from "lucide-react";
 
 import { SideNavLayout } from "./layout/SideNavLayout";
 import Login from "./pages/login/Login";
@@ -14,12 +9,11 @@ import PosSettings from "./pages/pos/PosSettings";
 import GarmentScanningPage from "./pages/scan/GarmentScanning";
 import CreateUser from "./pages/login/CreateUser";
 import DataPage from "./pages/Data";
-import { Database } from "lucide-react";
 
 export default function App() {
   const [user, setUser] = useState<LoginResult | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [active, setActive] = useState("dashboard");
+  const [showCreateUser, setShowCreateUser] = useState(false);
 
   const navItems = [
     {
@@ -48,14 +42,21 @@ export default function App() {
     },
   ];
 
-  if (!isAuthenticated) {
-    return <Login onSuccess={() => setIsAuthenticated(true)} />;
-  }
-
+  // ---- AUTH GATE ----
   if (!user) {
-    return <Login onSuccess={setUser} />;
+    if (showCreateUser) {
+      return <CreateUser />; // ✅ no props
+    }
+
+    return (
+      <Login
+        onSuccess={setUser}
+        onNoUsers={() => setShowCreateUser(true)} // ✅ simple
+      />
+    );
   }
 
+  // ---- MAIN APP ----
   return (
     <SideNavLayout
       title="Order Assembly System"
@@ -66,7 +67,6 @@ export default function App() {
       {active === "dashboard" && <Home />}
       {active === "scan" && <GarmentScanningPage />}
       {active === "data" && <DataPage />}
-      {active === "customers" && <div>Customers</div>}
       {active === "settings" && <PosSettings />}
     </SideNavLayout>
   );

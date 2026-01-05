@@ -39,13 +39,18 @@ const CreateUser: React.FC = () => {
     try {
       const result = await invoke<CreateUserResult>("auth_create_user_tauri", {
         usernameInput: username,
-        pinInput: pin
+        pinInput: pin,
       });
 
-      setSuccess(`User "${result.username}" created.`);
+      setSuccess(`User "${result.username}" created. Redirecting to login...`);
       setUsername("");
       setPin("");
       setConfirmPin("");
+
+      // ✅ simple "redirect" for your state-driven App: reload and show Login
+      setTimeout(() => {
+        window.location.reload();
+      }, 600);
     } catch (err: any) {
       console.error(err);
       setError(typeof err === "string" ? err : "Failed to create user.");
@@ -113,7 +118,10 @@ const CreateUser: React.FC = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}
+        >
           <div>
             <label
               style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.9rem" }}
@@ -126,6 +134,7 @@ const CreateUser: React.FC = () => {
               onChange={(e) => setUsername(e.target.value)}
               style={inputStyle}
               autoComplete="off"
+              disabled={loading}
             />
           </div>
 
@@ -145,6 +154,7 @@ const CreateUser: React.FC = () => {
               }}
               style={inputStyle}
               inputMode="numeric"
+              disabled={loading}
             />
           </div>
 
@@ -164,6 +174,7 @@ const CreateUser: React.FC = () => {
               }}
               style={inputStyle}
               inputMode="numeric"
+              disabled={loading}
             />
           </div>
 

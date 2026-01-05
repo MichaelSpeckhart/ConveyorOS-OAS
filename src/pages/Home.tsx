@@ -42,7 +42,7 @@ export default function HomePage() {
     const tick = async () => {
       try {
         // OPTIONAL: implement these commands in Rust if you haven’t yet.
-        const connected = await invoke<boolean>("opc_is_connected").catch(() => false);
+        const connected = await invoke<boolean>("check_opc_connection_tauri").catch(() => false);
         const hangerVal = await invoke<boolean>("load_sensor_hanger_tauri").catch(() => false);
 
         // Optional target slot command if you have it
