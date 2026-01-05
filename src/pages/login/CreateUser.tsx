@@ -61,7 +61,7 @@ const CreateUser: React.FC = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#111827",
+        backgroundColor: "#e5e7eb",
         color: "#e5e7eb",
         fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
       }}

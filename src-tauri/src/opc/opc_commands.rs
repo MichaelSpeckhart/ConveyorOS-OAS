@@ -97,4 +97,8 @@ pub async fn get_load_hanger_sensor(opc_client: &OpcClient) -> Result<bool, Stri
     }
 }
 
+pub fn check_opc_connection(opc_client: &OpcClient) -> bool {
+    opc_client.is_connected()
+}
+
 

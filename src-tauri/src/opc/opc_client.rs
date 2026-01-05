@@ -1,8 +1,10 @@
-use std::{collections::HashMap, sync::{Arc, atomic::AtomicBool}, time::Duration};
-use tokio::{sync::{Mutex, broadcast}, task::JoinHandle};
+use std::{collections::HashMap, sync::{Arc, atomic::{AtomicBool, Ordering}}, time::Duration};
+use tokio::{sync::{Mutex, broadcast, futures}, task::JoinHandle};
 use thiserror::Error;
 
 use open62541::{ua, AsyncClient};
+
+use crate::plc::client;
 
 #[derive(Debug, Error)]
 pub enum OpcError {
@@ -29,6 +31,7 @@ pub struct OpcConfig {
 pub struct OpcClient {
     cfg: OpcConfig,
     inner: Arc<Mutex<Inner>>,
+    connected_flag: Arc<AtomicBool>,
 }
 
 struct Inner {
@@ -45,6 +48,7 @@ impl OpcClient {
                 client: None,
                 subs: HashMap::new(),
             })),
+            connected_flag: Arc::new(AtomicBool::new(false)),
         }
     }
 
@@ -54,6 +58,7 @@ impl OpcClient {
             .map_err(|e| OpcError::Ua(format!("{e:?}")))?;
         let mut inner = self.inner.lock().await;
         inner.client = Some(Arc::new(client));
+        self.connected_flag.store(true, Ordering::Relaxed);
         Ok(())
     }
 
@@ -161,5 +166,9 @@ impl OpcClient {
                 tokio::time::sleep(this.cfg.reconnect_backoff).await;
             }
         });
+    }
+
+    pub fn is_connected(&self) -> bool {
+        self.connected_flag.load(Ordering::Relaxed)
     }
 }

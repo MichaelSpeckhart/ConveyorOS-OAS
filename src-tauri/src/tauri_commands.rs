@@ -182,3 +182,8 @@ pub fn load_sensor_hanger_tauri(state: tauri::State<'_, AppState>) -> Result<boo
     Ok(state.hanger_detected.load(Ordering::Relaxed))
 }
 
+#[tauri::command]
+pub fn check_opc_connection_tauri(state: tauri::State<'_, AppState>) -> bool {
+    crate::opc::opc_commands::check_opc_connection(&state.opc)
+}
+

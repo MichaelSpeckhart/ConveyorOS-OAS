@@ -16,3 +16,7 @@ export async function slotRunRequest(targetSlot: number): Promise<void> {
   await invoke("slot_run_request_tauri", { targetSlot: Math.trunc(targetSlot) });
 }
 
+export async function opcConnected(): Promise<boolean> {
+    return invoke<boolean>("check_opc_connection_tauri");
+}
+

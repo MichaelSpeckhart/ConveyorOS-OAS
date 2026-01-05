@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { getCustomerFromTicket, getNumItemsOnTicket, handleScanTauri, loadSensorHanger, ticketExists } from "../../lib/slot_manager";
 import { slotRunRequest } from "../../lib/opc";
 import { listen } from "@tauri-apps/api/event";
@@ -34,7 +34,7 @@ const STATE_STYLE = {
     bg: "bg-blue-600",
     text: "text-white",
     title: "GARMENT ON CONVEYOR",
-    subtitle: "Please remove garment before scanning",
+    subtitle: "",
   },
   ticketcomplete: {
     bg: "bg-green-600",
@@ -54,6 +54,7 @@ export default function GarmentScanner() {
   const [keypadOpen, setKeypadOpen] = useState(false);
   const [manualCode, setManualCode] = useState("");
   const hangerListenerRef = useRef<(() => void) | null>(null);
+  let [opcConnected, setOpcConnected] = useState(false);
 
     const openKeypad = () => {
     setManualCode("");
@@ -77,6 +78,8 @@ export default function GarmentScanner() {
     await handleScan(code);
     closeKeypad();
   };
+
+  
 
 
 

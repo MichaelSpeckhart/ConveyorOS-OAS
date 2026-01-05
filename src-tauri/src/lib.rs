@@ -6,7 +6,7 @@ use open62541::ua;
 use tauri::Manager;
 use tokio::sync::Mutex;
 
-use crate::{db::{connection::establish_connection, db_migrations::run_db_migrations}, io::fileutils::read_file, opc::opc_client::{AppState, OpcClient, OpcConfig}, pos::spot::spot_file_utils::parse_spot_csv_core};
+use crate::{db::{connection::establish_connection, data::{data_list_customers, data_list_garments_for_ticket, data_list_tickets_for_customer}, db_migrations::run_db_migrations}, io::fileutils::read_file, opc::opc_client::{AppState, OpcClient, OpcConfig}, pos::spot::spot_file_utils::parse_spot_csv_core};
 
 pub mod plc;
 pub mod io;
@@ -29,6 +29,8 @@ fn greet(name: &str) -> String {
 
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
 
 
@@ -72,6 +74,10 @@ pub fn run() {
             tauri_commands::get_num_items_on_ticket,
             tauri_commands::load_sensor_hanger_tauri,
             tauri_commands::wait_for_hanger_sensor,
+            tauri_commands::check_opc_connection_tauri,
+            data_list_customers,
+            data_list_tickets_for_customer,
+            data_list_garments_for_ticket,
             greet
         ])
         .run(tauri::generate_context!())
