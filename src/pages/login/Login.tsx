@@ -132,7 +132,7 @@ const wrap: React.CSSProperties = {
   flexDirection: "column",
   justifyContent: "center",
   alignItems: "center",
-  background: "#8da1cc",
+  background: "#3f6dd0ff",
   fontFamily: "sans-serif",
   color: "white",
 };

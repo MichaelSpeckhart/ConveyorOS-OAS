@@ -1,6 +1,15 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    app_state (id) {
+        id -> Int4,
+        last_used_slot -> Int4,
+        updated_at -> Timestamp,
+        num_items_on_conveyor -> Int4,
+    }
+}
+
+diesel::table! {
     customers (id) {
         id -> Int4,
         customer_identifier -> Varchar,
@@ -26,6 +35,17 @@ diesel::table! {
 }
 
 diesel::table! {
+    slots (slot_number) {
+        slot_number -> Int4,
+        slot_state -> Varchar,
+        assigned_ticket -> Nullable<Varchar>,
+        item_id -> Nullable<Varchar>,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     tickets (id) {
         id -> Int4,
         full_invoice_number -> Varchar,
@@ -38,6 +58,7 @@ diesel::table! {
         invoice_dropoff_date -> Timestamp,
         invoice_pickup_date -> Timestamp,
         created_at -> Timestamp,
+        garments_processed -> Int4,
     }
 }
 
@@ -50,4 +71,6 @@ diesel::table! {
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(customers, garments, tickets, users,);
+diesel::allow_tables_to_appear_in_same_query!(
+    app_state, customers, garments, slots, tickets, users,
+);

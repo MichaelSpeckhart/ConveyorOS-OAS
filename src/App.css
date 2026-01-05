@@ -1,6 +1,7 @@
 /* ===============================
    GLOBAL RESET / LAYOUT FIX
    =============================== */
+@import "tailwindcss";
 
 html,
 body,

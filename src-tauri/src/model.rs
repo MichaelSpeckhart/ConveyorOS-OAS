@@ -1,9 +1,9 @@
 // src/models.rs
-use diesel::prelude::*;
+use diesel::{deserialize::FromSqlRow, expression::AsExpression, prelude::*};
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
-use crate::schema::{customers, tickets, users, garments};
+use crate::schema::{app_state, customers, garments, slots, tickets, users};
 
 //
 // CUSTOMERS
@@ -48,6 +48,7 @@ pub struct Ticket {
     pub invoice_dropoff_date: NaiveDateTime,
     pub invoice_pickup_date: NaiveDateTime,
     pub created_at: NaiveDateTime,
+    pub garments_processed: i32,
 }
 
 #[derive(Debug, Insertable, Deserialize)]
@@ -116,3 +117,71 @@ pub struct NewGarment {
     pub invoice_comments: String,
     pub slot_number: i32,
 }
+
+#[derive(Debug, Queryable, Identifiable, Serialize)]
+#[diesel(table_name = slots)]
+#[diesel(primary_key(slot_number))]
+pub struct Slot {
+    pub slot_number: i32,
+    pub slot_state: String,
+    pub assigned_ticket: Option<String>,
+    pub item_id: Option<String>,
+    pub created_at: chrono::NaiveDateTime,
+    pub updated_at: chrono::NaiveDateTime,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+pub enum SlotState {
+    Empty,
+    Reserved,
+    Occupied,
+    Blocked,
+    Error,
+}
+
+impl SlotState {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            SlotState::Empty => "empty",
+            SlotState::Reserved => "reserved",
+            SlotState::Occupied => "occupied",
+            SlotState::Blocked => "blocked",
+            SlotState::Error => "error",
+        }
+    }
+
+    pub fn from_db(value: &str) -> Option<Self> {
+        match value {
+            "empty" => Some(Self::Empty),
+            "reserved" => Some(Self::Reserved),
+            "occupied" => Some(Self::Occupied),
+            "blocked" => Some(Self::Blocked),
+            "error" => Some(Self::Error),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Queryable, Identifiable, Serialize)]
+#[diesel(table_name = app_state)]
+pub struct AppStateRow {
+    pub id: i32,
+    pub last_used_slot: i32,
+    pub num_items_on_conveyor: i32,
+    pub updated_at: chrono::NaiveDateTime,
+}
+
+use diesel::AsChangeset;
+
+#[derive(AsChangeset)]
+#[diesel(table_name = tickets)]
+pub struct UpdateTicket {
+    pub full_invoice_number: Option<String>,
+    pub display_invoice_number: Option<String>,
+    pub garments_processed: Option<i32>,
+    pub invoice_pickup_date: chrono::NaiveDateTime,
+}
+
+
+// You’ll also need Diesel enum mapping for Postgres enums.
+// Easiest approach: use diesel-derive-enum crate (recommended).

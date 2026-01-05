@@ -1,7 +1,7 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use diesel::prelude::*;
 
-use crate::model::{Ticket, NewTicket};
+use crate::model::{NewTicket, Ticket, UpdateTicket};
 use crate::schema::tickets;
 use crate::schema::tickets::dsl::*;
 
@@ -29,3 +29,36 @@ pub fn get_ticket_by_invoice_number(conn: &mut PgConnection, invoice_number: &st
         .map_err(|e| e.to_string())
 }
 
+pub fn get_customer_from_ticket(conn: &mut PgConnection, invoice_number: &str) -> Result<Option<crate::model::Customer>, String> {
+    use crate::schema::customers::dsl as customers_dsl;
+    use crate::schema::tickets::dsl as tickets_dsl;
+
+    let result = tickets_dsl::tickets
+        .inner_join(customers_dsl::customers.on(tickets_dsl::customer_identifier.eq(customers_dsl::customer_identifier)))
+        .filter(tickets_dsl::full_invoice_number.eq(invoice_number))
+        .select(customers_dsl::customers::all_columns())
+        .first::<crate::model::Customer>(conn)
+        .optional()
+        .map_err(|e| e.to_string())?;
+
+    Ok(result)
+}
+
+pub fn get_num_items_on_ticket(conn: &mut PgConnection, invoice_number: &str) -> Result<i32, String> {
+    use crate::schema::tickets::dsl as tickets_dsl;
+
+    let ticket = tickets_dsl::tickets
+        .filter(tickets_dsl::full_invoice_number.eq(invoice_number))
+        .first::<Ticket>(conn)
+        .map_err(|e| e.to_string())?;
+
+    Ok(ticket.number_of_items as i32)
+}
+
+pub fn update_ticket(conn: &mut PgConnection, ticket_id: i32, updated_ticket: &UpdateTicket) -> Result<Ticket, String> {
+    use crate::schema::tickets::dsl as tickets_dsl;
+    diesel::update(tickets_dsl::tickets.filter(tickets_dsl::id.eq(ticket_id)))
+        .set(updated_ticket)
+        .get_result::<Ticket>(conn)
+        .map_err(|e| e.to_string())
+}

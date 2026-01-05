@@ -4,3 +4,6 @@ pub mod users_repo;
 pub mod garment_repo;
 pub mod customer_repo;
 pub mod ticket_repo;
+pub mod slot_repo;
+pub mod app_state_repo;
+pub mod db_migrations;

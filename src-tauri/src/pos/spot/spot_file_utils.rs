@@ -109,7 +109,7 @@ pub fn parse_spot_csv_core(contents: &[String]) -> Result<u32, String> {
                 create_garment_from_add_op(&mut conn, &add_op)?;
             }
 
-            if !ticket_repo::ticket_exists(&mut conn, add_op.invoice_number.clone()) {
+            if !ticket_repo::ticket_exists(&mut conn, add_op.full_invoice_number.clone()) {
                 println!("Creating new ticket: {}", add_op.invoice_number);
                 create_ticket_from_add_op(&mut conn, &add_op)?;
             }

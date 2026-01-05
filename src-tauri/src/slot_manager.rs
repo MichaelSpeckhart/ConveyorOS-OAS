@@ -1,0 +1,87 @@
+use diesel::prelude::*;
+use crate::db::{slot_repo::SlotRepo, app_state_repo::AppStateRepo};
+use crate::model::Slot;
+
+pub struct SlotManager;
+
+impl SlotManager {
+    pub fn reserve_next_slot(
+        conn: &mut PgConnection,
+        ticket: Option<&str>,
+    ) -> Result<i32, String> {
+        conn.transaction::<i32, diesel::result::Error, _>(|conn| {
+            // 1) Reuse existing slot if ticket already assigned
+            if let Some(t) = ticket {
+                if let Some(existing) = SlotRepo::find_ticket_slot(conn, t)? {
+                    if existing.slot_state != "blocked" && existing.slot_state != "error" {
+                        return Ok(existing.slot_number);
+                    }
+                }
+            }
+
+            // 2) Get pointer
+            let last = AppStateRepo::get_last_used_slot(conn)?; // 0 means "start at 1"
+
+            // 3) Load all empty slots sorted
+            let empties = Self::list_empty_slots(conn)?;
+
+            // 4) Pick next after last (wrap)
+            let chosen = Self::pick_after(&empties, last)
+                .ok_or(diesel::result::Error::NotFound)?;
+
+            // 5) Try to reserve; if race-lost, retry a few times
+            for _ in 0..10 {
+                let ok = SlotRepo::try_reserve(conn, chosen, ticket)?;
+                if ok {
+                    // 6) Update pointer in SAME TX
+                    AppStateRepo::set_last_used_slot(conn, chosen)?;
+                    return Ok(chosen);
+                }
+
+                // someone else took it: reload + pick again
+                let empties = Self::list_empty_slots(conn)?;
+                let next = Self::pick_after(&empties, chosen)
+                    .ok_or(diesel::result::Error::NotFound)?;
+
+                let ok2 = SlotRepo::try_reserve(conn, next, ticket)?;
+                if ok2 {
+                    AppStateRepo::set_last_used_slot(conn, next)?;
+                    return Ok(next);
+                }
+            }
+
+            Err(diesel::result::Error::NotFound)
+        })
+        .map_err(|e| format!("No available slots: {e}"))
+    }
+
+    fn list_empty_slots(conn: &mut PgConnection) -> diesel::QueryResult<Vec<Slot>> {
+        use crate::schema::slots::dsl::*;
+        slots
+            .filter(slot_state.eq("empty"))
+            .order(slot_number.asc())
+            .load::<Slot>(conn)
+    }
+
+    fn pick_after(empties: &[Slot], last: i32) -> Option<i32> {
+        if empties.is_empty() {
+            return None;
+        }
+        // pick first > last, else wrap
+        empties
+            .iter()
+            .find(|s| s.slot_number > last)
+            .or_else(|| empties.first())
+            .map(|s| s.slot_number)
+    }
+
+    pub fn get_number_occupied_slots(
+        conn: &mut PgConnection,
+    ) -> diesel::QueryResult<i64> {
+        use crate::schema::slots::dsl::*;
+        slots
+            .filter(slot_state.ne("empty"))
+            .count()
+            .get_result::<i64>(conn)
+    }
+}

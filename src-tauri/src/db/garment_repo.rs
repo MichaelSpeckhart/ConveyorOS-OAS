@@ -22,5 +22,11 @@ pub fn create_garment(conn: &mut PgConnection, new_garment: NewGarment) -> Resul
     diesel::insert_into(garments::table).values(new_garment).get_result(conn).map_err(|_| "Error creating garment".to_string())
 }
 
+pub fn get_garment(conn: &mut PgConnection, item_identifier: &str) -> Result<Garment, String> {
+    garments
+        .filter(item_id.eq(item_identifier))
+        .first::<Garment>(conn)
+        .map_err(|e| e.to_string())
+}
 
 
