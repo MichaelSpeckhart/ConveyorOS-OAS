@@ -9,11 +9,27 @@ pub enum add_item_errors {
     InvalidValue { field: &'static str, reason: &'static str },
 }
 
+pub enum delete_item_errors {
+    EmptyField { field: &'static str },
+    InvalidValue { field: &'static str, reason: &'static str },
+}
+
 impl fmt::Display for add_item_errors {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             add_item_errors::EmptyField { field } => write!(f, "Empty field: {}", field),
             add_item_errors::InvalidValue { field, reason } => {
+                write!(f, "Invalid value in field {}: {}", field, reason)
+            }
+        }
+    }
+}
+
+impl fmt::Display for delete_item_errors {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            delete_item_errors::EmptyField { field } => write!(f, "Empty field: {}", field),
+            delete_item_errors::InvalidValue { field, reason } => {
                 write!(f, "Invalid value in field {}: {}", field, reason)
             }
         }

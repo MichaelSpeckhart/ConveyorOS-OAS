@@ -1,7 +1,7 @@
 use std::string;
 
 use crate::db::connection::establish_connection;
-use crate::pos::spot::spotops_types::{self, add_item_errors, add_item_op, delete_item_op, spot_ops_types};
+use crate::pos::spot::spotops_types::{self, add_item_errors, add_item_op, delete_item_errors, delete_item_op, spot_ops_types};
 
 use crate::db::{self, garment_repo};
 
@@ -77,8 +77,16 @@ impl spotops_types::add_item_op {
 impl spotops_types::delete_item_op {
    
    // Delete operation will remove the associated garment from the database
-    pub fn perform_delete_item_op(operation: &delete_item_op) {
-        
+    pub fn create_delete_item_op(full_invoice_number: &str, item_id: &str) -> Result<delete_item_op, delete_item_errors> {
+        if full_invoice_number.trim().is_empty() {
+            return Err(delete_item_errors::EmptyField { field: "full_invoice_number" });
+        }
+
+        if item_id.trim().is_empty() {
+            return Err(delete_item_errors::EmptyField { field: "item_id" });
+        }
+
+        Ok(delete_item_op { op_type: spot_ops_types::DeleteItem, full_invoice_number: full_invoice_number.to_string(), item_id: item_id.to_string() })
         
     }
 

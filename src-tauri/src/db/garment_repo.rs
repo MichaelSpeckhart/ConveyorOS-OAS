@@ -29,4 +29,9 @@ pub fn get_garment(conn: &mut PgConnection, item_identifier: &str) -> Result<Gar
         .map_err(|e| e.to_string())
 }
 
+pub fn delete_garment(conn: &mut PgConnection, item_identifier: &str) -> Result<usize, String> {
+    diesel::delete(garments.filter(item_id.eq(item_identifier)))
+        .execute(conn)
+        .map_err(|e| e.to_string())
+}
 

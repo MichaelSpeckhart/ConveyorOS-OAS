@@ -4,7 +4,7 @@ use chrono::{NaiveDateTime, Local, TimeZone};
 use crate::{
   db::{connection::establish_connection, customer_repo, garment_repo, ticket_repo},
   model::NewCustomer,
-  pos::spot::spotops_types::{self, spot_ops_types},
+  pos::spot::{self, spotops_types::{self, spot_ops_types}},
 };
 use crate::pos::spot::spotops_types::add_item_op;
 
@@ -112,6 +112,18 @@ pub fn parse_spot_csv_core(contents: &[String]) -> Result<u32, String> {
             if !ticket_repo::ticket_exists(&mut conn, add_op.full_invoice_number.clone()) {
                 println!("Creating new ticket: {}", add_op.invoice_number);
                 create_ticket_from_add_op(&mut conn, &add_op)?;
+            }
+        } else if op == spot_ops_types::DeleteItem {
+            let delete_op = spotops_types::delete_item_op::create_delete_item_op(&fields[1], &fields[2]);
+
+            let ticket = ticket_repo::get_ticket_by_invoice_number(&mut conn, &fields[1]);
+
+            let ticket_info = ticket.unwrap();
+
+            if ticket_info.ticket_status == "Processing" {
+                continue;
+            } else {
+                garment_repo::delete_garment(&mut conn, &fields[2])?;
             }
         }
     }
