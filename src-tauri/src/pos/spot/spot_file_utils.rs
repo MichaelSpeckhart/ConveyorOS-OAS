@@ -139,6 +139,7 @@ pub fn create_garment_from_add_op(conn: &mut diesel::PgConnection, add_op: &spot
 }
 
 pub fn create_ticket_from_add_op(conn: &mut diesel::PgConnection, add_op: &spotops_types::add_item_op) -> Result<(), String> {
+    let new_status: &str = "Not Processed";
     let new_ticket = crate::model::NewTicket {
         full_invoice_number: add_op.full_invoice_number.clone(),
         display_invoice_number: add_op.invoice_number.clone(),
@@ -149,6 +150,7 @@ pub fn create_ticket_from_add_op(conn: &mut diesel::PgConnection, add_op: &spoto
         number_of_items: add_op.num_items as i32,
         invoice_dropoff_date: add_op.invoice_dropoff_date.naive_local(),
         invoice_pickup_date: add_op.invoice_promised_date.naive_local(),
+        ticket_status: new_status.to_string(),
     };
 
     ticket_repo::create_ticket(conn, new_ticket)

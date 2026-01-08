@@ -22,6 +22,7 @@ export type TicketRow = {
   invoice_pickup_date: string;
   created_at: string;
   garments_processed: number;
+  ticket_status: string;
 };
 
 export type GarmentRow = {

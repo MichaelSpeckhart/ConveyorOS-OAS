@@ -1,9 +1,9 @@
 import { use, useEffect, useRef, useState } from "react";
-import { getCustomerFromTicket, getNumItemsOnTicket, handleScanTauri, loadSensorHanger, ticketExists } from "../../lib/slot_manager";
-import { slotRunRequest } from "../../lib/opc";
+import { getCustomerFromTicket, getNumItemsOnTicket, getSlotNumberFromBarcodeTauri, handleScanTauri, isLastGarmentTauri, loadSensorHanger, ticketExists } from "../../lib/slot_manager";
+import { slotRunRequest, opcConnected } from "../../lib/opc";
 import { listen } from "@tauri-apps/api/event";
 
-type ScanState = "waiting" | "success" | "error" | "oneitem" | "garmentonconveyor" | "ticketcomplete";
+type ScanState = "waiting" | "success" | "error" | "oneitem" | "garmentonconveyor" | "ticketcomplete" | "conveyordisconnected";
 
 const STATE_STYLE = {
   waiting: {
@@ -42,6 +42,12 @@ const STATE_STYLE = {
     title: "TICKET COMPLETE",
     subtitle: "REMOVE GARMENTS AND PROCEED",
   },
+  conveyordisconnected: {
+    bg: "bg-red-600",
+    text: "text-white",
+    title: "CONVEYOR DISCONNECTED",
+    subtitle: "CHECK OPC CONNECTION",
+  },
 };
 
 export default function GarmentScanner() {
@@ -54,7 +60,8 @@ export default function GarmentScanner() {
   const [keypadOpen, setKeypadOpen] = useState(false);
   const [manualCode, setManualCode] = useState("");
   const hangerListenerRef = useRef<(() => void) | null>(null);
-  let [opcConnected, setOpcConnected] = useState(false);
+  let   [isConveyorConnected, setIsConveyorConnected] = useState(true);
+  let   [nextSlot, setNextSlot] = useState<number | null>(null);
 
     const openKeypad = () => {
     setManualCode("");
@@ -79,7 +86,19 @@ export default function GarmentScanner() {
     closeKeypad();
   };
 
-  
+  // Check if OPC is connected
+  useEffect(() => {
+    let interval = setInterval(async () => {
+      if (await opcConnected() == false) {
+        setState("conveyordisconnected");
+        setIsConveyorConnected(false);
+      } else {
+        setIsConveyorConnected(true);
+        setState("waiting");
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
 
 
@@ -108,6 +127,11 @@ export default function GarmentScanner() {
       return;
     }
 
+    if (!isConveyorConnected) {
+      setState("conveyordisconnected");
+      return;
+    }
+
     const exists = await ticketExists(code);
     if (!exists) {
 
@@ -126,6 +150,17 @@ export default function GarmentScanner() {
     //   return;
     // }
 
+    let isLast = await isLastGarmentTauri(code);
+
+    if (isLast) {
+      // Get the slot number for the ticket family
+      setState("ticketcomplete");
+      let slotNum = await getSlotNumberFromBarcodeTauri(code);  
+      setNextSlot(slotNum);
+      await slotRunRequest(slotNum!);
+      return;
+    }
+
     const info = await getCustomerFromTicket(code);
     setCustomerInfo(info);
 
@@ -134,6 +169,7 @@ export default function GarmentScanner() {
     setState("success");
     setLastScan(code);
     setScanCount((prev) => prev + 1);
+    setNextSlot(slot_num);
     await slotRunRequest(slot_num!);
 
     let hanged = await loadSensorHanger();
@@ -198,6 +234,12 @@ export default function GarmentScanner() {
           <div className="bg-white rounded-2xl p-4 shadow-md flex flex-col justify-center items-center">
             <span className="text-slate-400 text-sm font-bold uppercase">Last Scan</span>
             <span className="text-3xl font-mono font-bold text-slate-800">{lastScan ?? "---"}</span>
+          </div>
+
+          {/* Next Slot Display */}
+          <div className="bg-white rounded-2xl p-4 shadow-md flex flex-col justify-center items-center border-b-8 border-green-500">
+            <span className="text-slate-400 text-sm font-bold uppercase">Next Slot</span>
+            <span className="text-5xl font-black text-slate-900">{nextSlot !== null ? nextSlot : "--"}</span>
           </div>
           
           <div className="bg-white rounded-2xl p-4 shadow-md flex flex-col justify-center items-center border-b-8 border-blue-500">

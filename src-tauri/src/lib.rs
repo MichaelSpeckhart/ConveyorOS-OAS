@@ -6,7 +6,7 @@ use open62541::ua;
 use tauri::Manager;
 use tokio::sync::Mutex;
 
-use crate::{db::{connection::establish_connection, data::{data_list_customers, data_list_garments_for_ticket, data_list_tickets_for_customer}, db_migrations::run_db_migrations}, io::fileutils::read_file, opc::opc_client::{AppState, OpcClient, OpcConfig}, pos::spot::spot_file_utils::parse_spot_csv_core};
+use crate::{db::{connection::establish_connection, data::{data_list_customers, data_list_garments_for_ticket, data_list_tickets_for_customer}, db_migrations::run_db_migrations}, io::fileutils::read_file, opc::opc_client::{AppState, OpcClient, OpcConfig}, pos::spot::spot_file_utils::parse_spot_csv_core, settings::load_settings};
 
 pub mod plc;
 pub mod io;
@@ -20,6 +20,7 @@ pub mod tauri_commands;
 pub mod settings;
 pub mod opc;
 pub mod slot_manager;
+pub mod result;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -33,13 +34,35 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
 
+            let app_handle = app.handle();
+
+            // ✅ load settings from the same store the frontend uses
+            let settings = load_settings(&app_handle);
+            let p = app
+                .path()
+                .app_data_dir()
+                .expect("app_data_dir")
+                .join("settings.json");
+
+            println!("📦 SETTINGS FILE PATH: {}", p.display());
+            println!("✅ Loaded settings: {:?}", settings);
+
+            // ✅ build DATABASE_URL from settings and set env var for Diesel
+            let database_url = crate::settings::database_url(&settings);
+            env::set_var("DATABASE_URL", database_url);
+            println!("✅ Set DATABASE_URL env var for Diesel");
+
+
 
             let mut conn = establish_connection();
             run_db_migrations(&mut conn)?;
             // start file watch
-            //async_watch();
+            async_watch();
+
+            // ✅ Initialize OPC UA client and manage its state
+
             let opc = OpcClient::new(OpcConfig {
-                endpoint_url: "opc.tcp://192.168.22.248:4840".to_string(),
+                endpoint_url: settings.opcServerUrl.to_string(),
                 reconnect_backoff: std::time::Duration::from_secs(3),
             });
 
@@ -78,6 +101,9 @@ pub fn run() {
             data_list_customers,
             data_list_tickets_for_customer,
             data_list_garments_for_ticket,
+            tauri_commands::is_last_garment,
+            tauri_commands::get_slot_number_from_barcode_tauri,
+            tauri_commands::garment_ticket_on_conveyor_tauri,
             greet
         ])
         .run(tauri::generate_context!())

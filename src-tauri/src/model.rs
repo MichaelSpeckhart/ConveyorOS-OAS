@@ -49,6 +49,7 @@ pub struct Ticket {
     pub invoice_pickup_date: NaiveDateTime,
     pub created_at: NaiveDateTime,
     pub garments_processed: i32,
+    pub ticket_status: String,
 }
 
 #[derive(Debug, Insertable, Deserialize)]
@@ -63,6 +64,7 @@ pub struct NewTicket {
     pub customer_phone_number: String,
     pub invoice_dropoff_date: NaiveDateTime,
     pub invoice_pickup_date: NaiveDateTime,
+    pub ticket_status: String,
     // created_at from DB default
 }
 
@@ -180,6 +182,7 @@ pub struct UpdateTicket {
     pub display_invoice_number: Option<String>,
     pub garments_processed: Option<i32>,
     pub invoice_pickup_date: chrono::NaiveDateTime,
+    pub ticket_status: Option<String>
 }
 
 

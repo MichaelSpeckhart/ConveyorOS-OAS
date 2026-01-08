@@ -28,6 +28,7 @@ pub struct TicketRow {
     pub invoice_pickup_date: chrono::NaiveDateTime,
     pub created_at: chrono::NaiveDateTime,
     pub garments_processed: i32,
+    pub ticket_status: String,
 }
 
 #[derive(serde::Serialize, Queryable)]

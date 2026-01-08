@@ -59,6 +59,7 @@ diesel::table! {
         invoice_pickup_date -> Timestamp,
         created_at -> Timestamp,
         garments_processed -> Int4,
+        ticket_status -> Varchar,
     }
 }
 

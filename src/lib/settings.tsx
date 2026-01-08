@@ -8,6 +8,7 @@ export type AppSettings = {
   dbName: string;
   dbUser: string;
   dbPassword: string;
+  opcServerUrl?: string;
 };
 
 const DEFAULTS: AppSettings = {
@@ -17,6 +18,7 @@ const DEFAULTS: AppSettings = {
   dbName: "conveyor",
   dbUser: "postgres",
   dbPassword: "",
+  opcServerUrl: "opc.tcp://localhost:4840",
 };
 
 let storePromise: Promise<Store> | null = null;

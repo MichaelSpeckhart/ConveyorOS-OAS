@@ -11,7 +11,7 @@ type LoginProps = {
   onNoUsers: () => void; // ✅ add
 };
 
-const Login: React.FC<LoginProps> = ({ onSuccess }) => {
+const Login: React.FC<LoginProps> = ({ onSuccess, onNoUsers }) => {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");

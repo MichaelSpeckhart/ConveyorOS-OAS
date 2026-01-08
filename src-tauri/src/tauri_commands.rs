@@ -6,7 +6,7 @@ use serde::Serialize;
 use tauri::http::Error;
 use tokio::time::{sleep, timeout};
 
-use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, slot_repo::{self, SlotRepo}, ticket_repo, users_repo}, domain::auth, model::{UpdateTicket, User}, opc::{opc_client::{AppState, OpcClient}, opc_commands::{get_load_hanger_sensor, slot_run_request}, sensor::hanger_poll_loop}, slot_manager::SlotManager};
+use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, slot_repo::{self, SlotRepo}, ticket_repo, users_repo}, domain::auth, model::{UpdateTicket, User}, opc::{opc_client::{AppState, OpcClient}, opc_commands::{get_load_hanger_sensor, slot_run_request}, sensor::hanger_poll_loop}, schema::garments::slot_number, slot_manager::SlotManager};
 
 #[derive(Serialize)]
 pub struct login_result {
@@ -71,47 +71,96 @@ pub fn handle_scan_tauri(scan_code: String) -> Result<Option<i32>, String> {
 
     let mut conn = establish_connection();
 
-    // 1) If ticket already on conveyor, return its slot number
-    match SlotRepo::find_ticket_slot(&mut conn, &code)
-        .map_err(|e| format!("DB Error (find slot): {e}"))?
-    {
-        Some(slot) => return Ok(Some(slot.slot_number)),
-        None => {}
+    let garment = garment_repo::get_garment(&mut conn, &code);
+    if garment.is_err() {
+        return Err(format!("Garment not found for ticket: {}", code));
     }
 
-    // 2) Reserve next slot for this ticket
-    let reserved_slot = SlotManager::reserve_next_slot(&mut conn, Some(&code))
-        .map_err(|e| format!("DB Error (reserve slot): {e}"))?;
-
-    // 3) Load garment
-    let garment = garment_repo::get_garment(&mut conn, &code)
-        .map_err(|_| format!("Garment not found for ticket: {}", code))?;
-
-    // 4) Load ticket using garment invoice number
-    let mut ticket = ticket_repo::get_ticket_by_invoice_number(
+    let ticket = ticket_repo::get_ticket_by_invoice_number(
         &mut conn,
-        &garment.full_invoice_number,
-    )
-    .map_err(|e| format!("DB Error (get ticket): {e}"))?;
+        &garment.unwrap().full_invoice_number,
+    );
+
+    if ticket.is_err() {
+        return Err(format!("Ticket not found for garment: {}", code));
+    }
+
+    let mut ticket_info = ticket.unwrap();
+
+    let on_conveyor = slot_repo::SlotRepo::ticket_on_conveyor(&mut conn, &ticket_info.full_invoice_number);
+
+    if on_conveyor.unwrap() == true {
+        ticket_info.garments_processed += 1;
+
+        let update_ticket = &UpdateTicket {
+            full_invoice_number: Some(ticket_info.full_invoice_number.clone()),
+            display_invoice_number: Some(ticket_info.display_invoice_number.clone()),
+            garments_processed: Some(ticket_info.garments_processed),
+            invoice_pickup_date: ticket_info.invoice_pickup_date,
+            ticket_status: Some(ticket_info.ticket_status)
+        };
+
+        let res = ticket_repo::update_ticket(&mut conn, ticket_info.id, update_ticket);
+
+        match slot_repo::SlotRepo::find_ticket_slot(&mut conn, &ticket_info.full_invoice_number)
+            .map_err(|e| format!("DB Error (find slot): {e}"))?
+        {
+            Some(slot) => return Ok(Some(slot.slot_number)),
+            None => return Ok(None),
+        }
+
+    } else {
+
+    }
 
     // 5) Update ticket
-    ticket.garments_processed += 1;
+    ticket_info.garments_processed += 1;
 
-    // let changes = UpdateTicket {garments_processed:Some(ticket.garments_processed),invoice_pickup_date:ticket.invoice_pickup_date, full_invoice_number: todo!(), display_invoice_number: todo!() };
+    let new_status: &str = "Processing";
 
-    // // Pick ONE approach:
-    // // A) update by id
-    // ticket_repo::update_ticket(&mut conn, ticket.id, &changes)
-    //     .map_err(|e| format!("DB Error (update ticket): {e}"))?;
+    let update_ticket = &UpdateTicket {
+        full_invoice_number: Some(ticket_info.full_invoice_number.clone()),
+        display_invoice_number: Some(ticket_info.display_invoice_number.clone()),
+        garments_processed: Some(ticket_info.garments_processed),
+        invoice_pickup_date: ticket_info.invoice_pickup_date,
+        ticket_status: Some(new_status.to_string())
+    };
 
-    // OR B) update by invoice number
-    // ticket_repo::update_ticket_by_invoice(&mut conn, &ticket.full_invoice_number, &changes)
-    //     .map_err(|e| format!("DB Error (update ticket): {e}"))?;
+    // Update ticket
+    let res = ticket_repo::update_ticket(&mut conn, ticket_info.id, update_ticket);
 
-    // 6) Return slot number
+    // Reserve next slot for this ticket
+    let reserved_slot = SlotManager::reserve_next_slot(&mut conn, Some(&ticket_info.full_invoice_number))
+        .map_err(|e| format!("DB Error (reserve slot): {e}"))?;
+
+
     Ok(Some(reserved_slot))
 }
 
+
+#[tauri::command]
+pub fn is_last_garment(ticket: String) -> Result<bool, String> {
+    let mut conn = establish_connection();
+
+    let garment = garment_repo::get_garment(&mut conn, &ticket);
+
+    if garment.is_err() {
+        return Err(format!("Garment not found for ticket: {}", ticket));
+    }
+
+    let ticket = ticket_repo::get_ticket_by_invoice_number(
+        &mut conn,
+        &garment.unwrap().full_invoice_number,
+    );
+
+    if ticket.is_err() {
+        return Err(format!("Ticket not found for garment"));
+    }
+
+    let ticket = ticket.unwrap();
+    let res = ticket.garments_processed + 1 >= ticket.number_of_items;
+    Ok(res)
+}
 
 #[tauri::command]
 pub fn ticket_exists_tauri(ticket: String) -> Result<bool, String> {
@@ -185,5 +234,72 @@ pub fn load_sensor_hanger_tauri(state: tauri::State<'_, AppState>) -> Result<boo
 #[tauri::command]
 pub fn check_opc_connection_tauri(state: tauri::State<'_, AppState>) -> bool {
     crate::opc::opc_commands::check_opc_connection(&state.opc)
+}
+
+#[tauri::command]
+pub async fn get_slot_number_from_barcode_tauri(
+    barcode: String
+) -> Result<Option<i32>, String> {
+    let mut conn = establish_connection();
+    let garment = garment_repo::get_garment(&mut conn, &barcode);
+
+    if garment.is_err() {
+        return Err(format!("Garment not found for ticket: {}", barcode));
+    }
+
+
+    match SlotRepo::find_ticket_slot(&mut conn, &barcode)
+        .map_err(|e| format!("DB Error (find slot): {e}"))?
+    {
+        Some(slot) => Ok(Some(slot.slot_number)),
+        None => Ok(None),
+    }
+}
+
+#[tauri::command]
+pub async fn garment_ticket_on_conveyor_tauri(
+    barcode: String
+) -> Result<i32, String> {
+    let mut conn = establish_connection();
+
+    match SlotRepo::find_ticket_slot(&mut conn, &barcode)
+        .map_err(|e| format!("DB Error (find slot): {e}"))?
+    {
+        Some(slot) => Ok(slot.slot_number),
+        None => Err("Garment ticket not on conveyor".to_string()),
+    }
+}
+
+#[tauri::command]
+pub async fn handle_last_scan(barcode: String, slot_num: i32) -> Result<i32, String> {
+    // Get the garment
+    let mut conn = establish_connection();
+
+    let garment = garment_repo::get_garment(&mut conn, &barcode);
+    if garment.is_err() {
+        return Err(format!("Garment not found for ticket: {}", barcode));
+    }
+
+    let ticket = ticket_repo::get_ticket_by_invoice_number(
+        &mut conn,
+        &garment.unwrap().full_invoice_number,
+    );
+
+    let ticket_info = ticket.unwrap();
+    let new_status: &str = "Processed";
+
+    let update_ticket = &UpdateTicket {
+        full_invoice_number: Some(ticket_info.full_invoice_number),
+        display_invoice_number: Some(ticket_info.display_invoice_number),
+        garments_processed: Some(ticket_info.number_of_items),
+        invoice_pickup_date: ticket_info.invoice_pickup_date,
+        ticket_status: Some(new_status.to_string())
+    };
+
+    let res = ticket_repo::update_ticket(&mut conn, ticket_info.id, update_ticket);
+
+    slot_repo::SlotRepo::free_slot(&mut conn, slot_num);
+
+    Ok(slot_num)
 }
 

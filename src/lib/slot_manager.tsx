@@ -26,6 +26,18 @@ export async function loadSensorHanger() : Promise<boolean> {
     return invoke<boolean>("wait_for_hanger_sensor");
 }
 
+export async function isLastGarmentTauri(ticket: string): Promise<boolean> {
+    return invoke<boolean>("is_last_garment", { ticket });
+}
+
+export async function getSlotNumberFromBarcodeTauri(ticket: string): Promise<number | null> {
+    return invoke<number | null>("get_slot_number_from_barcode_tauri", { ticket });
+}
+
+export async function garmentTicketOnConveyorTauri(ticket: string): Promise<number | string> {
+    return invoke<number | string>("garment_ticket_on_conveyor_tauri", { ticket });
+}
+
 import { listen } from "@tauri-apps/api/event";
 
 listen<boolean>("hanger-sensor", (e) => {

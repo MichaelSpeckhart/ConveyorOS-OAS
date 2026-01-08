@@ -131,6 +131,21 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      <section className="bg-white rounded-2xl p-6 shadow space-y-4">
+        <h2 className="text-xl font-black">OPC Server Settings</h2>
+        
+        <div className="grid grid-cols-1 gap-4">
+          <label className="space-y-1">
+            <div className="text-sm font-bold">OPC Server URL</div>
+            <input
+              className="w-full border rounded-xl px-3 py-2"
+              value={s.opcServerUrl || ""}
+              onChange={(e) => setS({ ...s, opcServerUrl: e.target.value })}
+            />
+          </label>
+        </div>
+      </section>
+
       {/* ACTIONS */}
       <div className="flex gap-3 items-center">
         <button

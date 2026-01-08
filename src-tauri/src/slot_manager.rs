@@ -55,6 +55,13 @@ impl SlotManager {
         .map_err(|e| format!("No available slots: {e}"))
     }
 
+    pub fn free_slot(
+        conn: &mut PgConnection,
+        slot_number: i32,
+    ) -> diesel::QueryResult<()> {
+        SlotRepo::free_slot(conn, slot_number)
+    }
+
     fn list_empty_slots(conn: &mut PgConnection) -> diesel::QueryResult<Vec<Slot>> {
         use crate::schema::slots::dsl::*;
         slots

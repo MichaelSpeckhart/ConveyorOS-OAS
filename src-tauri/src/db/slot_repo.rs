@@ -36,6 +36,33 @@ impl SlotRepo {
             .optional()
     }
 
+    pub fn ticket_on_conveyor(conn: &mut PgConnection, ticket: &str) -> QueryResult<bool> {
+        use crate::schema::slots::dsl::*;
+        let count: i64 = slots
+            .filter(assigned_ticket.eq(ticket))
+            .count()
+            .get_result(conn)?;
+        Ok(count > 0)
+    }
+
+    pub fn free_slot(
+        conn: &mut PgConnection,
+        slot_number_val: i32,
+    ) -> QueryResult<()> {
+        use crate::schema::slots::dsl::*;
+
+        diesel::update(slots.filter(slot_number.eq(slot_number_val)))
+            .set((
+                slot_state.eq("empty"),
+                assigned_ticket.eq::<Option<String>>(None),
+                item_id.eq::<Option<String>>(None),
+                updated_at.eq(diesel::dsl::now),
+            ))
+            .execute(conn)?;
+
+        Ok(())
+    }
+
     /// Atomic reservation: only reserves if currently empty.
     /// Returns true if reservation succeeded, false if someone else got it.
     pub fn try_reserve(
@@ -73,7 +100,6 @@ impl SlotRepo {
             .set((
                 slot_state.eq("occupied"),
                 assigned_ticket.eq(ticket.map(|s| s.to_string())),
-                item_id.eq(item.map(|s| s.to_string())),
                 updated_at.eq(diesel::dsl::now),
             ))
             .execute(conn)?;
