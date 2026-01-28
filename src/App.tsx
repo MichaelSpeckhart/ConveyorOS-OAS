@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import { LoginResult } from "./types/auth";
 import PosSettings from "./pages/pos/PosSettings";
 import GarmentScanningPage from "./pages/scan/GarmentScanning";
+import RecallData from "./pages/scan/RecallData";
 import CreateUser from "./pages/login/CreateUser";
 import DataPage from "./pages/Data";
 
@@ -65,7 +66,8 @@ export default function App() {
       user={user}
     >
       {active === "dashboard" && <Home />}
-      {active === "scan" && <GarmentScanningPage />}
+      {active === "scan" && <GarmentScanningPage onOpenRecall={() => setActive("recall")} />}
+      {active === "recall" && <RecallData />}
       {active === "data" && <DataPage />}
       {active === "settings" && <PosSettings />}
     </SideNavLayout>

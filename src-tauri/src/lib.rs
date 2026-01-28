@@ -95,6 +95,7 @@ pub fn run() {
             tauri_commands::count_occupied_slots_tauri,
             tauri_commands::get_customer_from_ticket_tauri,
             tauri_commands::get_num_items_on_ticket,
+            tauri_commands::get_ticket_from_garment,
             tauri_commands::load_sensor_hanger_tauri,
             tauri_commands::wait_for_hanger_sensor,
             tauri_commands::check_opc_connection_tauri,
@@ -104,6 +105,8 @@ pub fn run() {
             tauri_commands::is_last_garment,
             tauri_commands::get_slot_number_from_barcode_tauri,
             tauri_commands::garment_ticket_on_conveyor_tauri,
+            tauri_commands::get_slot_manager_stats,
+            tauri_commands::clear_conveyor_tauri,
             greet
         ])
         .run(tauri::generate_context!())
@@ -122,7 +125,7 @@ pub fn async_watch() {
 
             match res {
                 Ok(add_ops) => {
-                    println!("Parsed {} add_item_op entries from CSV.", add_ops);
+                    // println!("Parsed {} add_item_op entries from CSV.", add_ops);
                 },
                 Err(e) => {
                     println!("Error parsing CSV: {}", e);
@@ -133,4 +136,3 @@ pub fn async_watch() {
         }
     });
 }
-

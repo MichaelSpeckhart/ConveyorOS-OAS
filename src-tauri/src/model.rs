@@ -186,5 +186,4 @@ pub struct UpdateTicket {
 }
 
 
-// You’ll also need Diesel enum mapping for Postgres enums.
-// Easiest approach: use diesel-derive-enum crate (recommended).
+

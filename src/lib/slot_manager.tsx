@@ -1,8 +1,11 @@
 import { invoke } from "@tauri-apps/api/core";
 import { customer } from "../types/customer";
+import type { TicketRow } from "./data";
+import type { SlotManagerStats } from "../types/slotstats";
 
 
 export async function ticketExists(ticket: string): Promise<boolean> {
+    console.log("Invoking ticket_exists_tauri with ticket:", ticket);
     return invoke<boolean>("ticket_exists_tauri", { ticket });
 }
 
@@ -10,6 +13,11 @@ export async function ticketExists(ticket: string): Promise<boolean> {
 export async function getCustomerFromTicket(ticket: string): Promise<customer | null> {
     console.log("Invoking get_customer_from_ticket_tauri with ticket:", ticket);
     return invoke<customer | null>("get_customer_from_ticket_tauri", { ticket });
+}
+
+export async function getTicketFromGarment(barcode: string): Promise<TicketRow> {
+    console.log("Invoking get_ticket_from_garment with barcode:", barcode);
+    return invoke<TicketRow>("get_ticket_from_garment", { barcode });
 }
 
 export async function getNumItemsOnTicket(ticket: string): Promise<number> {
@@ -38,9 +46,28 @@ export async function garmentTicketOnConveyorTauri(ticket: string): Promise<numb
     return invoke<number | string>("garment_ticket_on_conveyor_tauri", { ticket });
 }
 
+type RawSlotManagerStats = {
+    occupied_slots: number;
+    total_slots: number;
+    occupancy_percentage: number;
+};
+
+export async function getSlotManagerStatsTauri(): Promise<SlotManagerStats> {
+    const raw = await invoke<RawSlotManagerStats>("get_slot_manager_stats");
+    return {
+        total_slots: raw.total_slots,
+        slots_used: raw.occupied_slots,
+        capacity_percentage: raw.occupancy_percentage,
+    };
+}
+
+export async function clearConveyorTauri(): Promise<void> {
+    await invoke<void>("clear_conveyor_tauri");
+}
+
+
 import { listen } from "@tauri-apps/api/event";
 
 listen<boolean>("hanger-sensor", (e) => {
   console.log("Sensor changed:", e.payload);
 });
-

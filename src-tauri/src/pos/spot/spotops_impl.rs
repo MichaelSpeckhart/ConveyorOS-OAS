@@ -32,7 +32,7 @@ impl spotops_types::add_item_op {
         invoice_comments: &str
     ) -> Result<add_item_op, add_item_errors> {
 
-        println!("Creating Add Item Operation for invoice: {}", full_invoice_number);
+        // println!("Creating Add Item Operation for invoice: {}", full_invoice_number);
 
         if full_invoice_number.trim().is_empty() {
             return Err(add_item_errors::EmptyField { field: "full_invoice_number" });
@@ -47,7 +47,7 @@ impl spotops_types::add_item_op {
             return Err(add_item_errors::EmptyField { field: "item_descriptions" });
         }
 
-        println!("Creating Add Item Operation for invoice: {}", full_invoice_number);
+        // println!("Creating Add Item Operation for invoice: {}", full_invoice_number);
 
         Ok(add_item_op {
             op_type: spot_ops_types::AddItem,

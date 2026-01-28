@@ -15,9 +15,9 @@ pub fn parse_spot_csv_core(contents: &[String]) -> Result<u32, String> {
     //print all of contents
     println!("Parsing SPOT CSV with {} lines", contents.len());
     // print all of contents
-    for (i, line) in contents.iter().enumerate() {
-        println!("  Line[{}]: {}", i, line);
-    }
+    // for (i, line) in contents.iter().enumerate() {
+    //     println!("  Line[{}]: {}", i, line);
+    // }
     let mut add_op_nums: u32 = 0;
 
     //  single DB connection
@@ -30,9 +30,9 @@ pub fn parse_spot_csv_core(contents: &[String]) -> Result<u32, String> {
 
         let mut fields: Vec<String> = line.split("\",\"").map(|s| s.to_string()).collect();
         // print fields
-        for (i, field) in fields.iter().enumerate() {
-            println!("    Field[{}]: {}", i, field);
-        }
+        // for (i, field) in fields.iter().enumerate() {
+        //     println!("    Field[{}]: {}", i, field);
+        // }
         if fields.len() < 3 {
             continue;
         }
@@ -44,15 +44,15 @@ pub fn parse_spot_csv_core(contents: &[String]) -> Result<u32, String> {
         let op = spot_ops_types::from_str(&fields[0])
             .map_err(|_| "BAD_OP".to_string())?;
 
-        println!("Parsed operation: {}", op);
+        // println!("Parsed operation: {}", op);
 
         if op == spot_ops_types::AddItem {
             add_op_nums += 1;
-            println!("Processing Add Item operation...");
+            // println!("Processing Add Item operation...");
             // print fields
-            for (i, field) in fields.iter().enumerate() {
-                println!("  Field[{}]: {}", i, field);
-            }   
+            // for (i, field) in fields.iter().enumerate() {
+            //     println!("  Field[{}]: {}", i, field);
+            // }   
             // Guard against short lines before indexing [3..14]
             if fields.len() < 14 {
                 println!("Bad add item line, insufficient fields: {}", line);
@@ -97,11 +97,11 @@ pub fn parse_spot_csv_core(contents: &[String]) -> Result<u32, String> {
             ).map_err(|e| format!("ADD_OP_CREATE_FAILED: {}", e))?;
 
 
-            println!("Created Add Item Operation: {:?}", add_op);
+            // println!("Created Add Item Operation: {:?}", add_op);
 
             
             if !customer_repo::contains_customer_identifier(&mut conn, &add_op.customer_identifier) {
-                println!("Creating new customer: {}", add_op.customer_identifier);
+                // println!("Creating new customer: {}", add_op.customer_identifier);
                 create_customer_from_add_op(&mut conn, &add_op)?;
             }
 
@@ -110,7 +110,7 @@ pub fn parse_spot_csv_core(contents: &[String]) -> Result<u32, String> {
             }
 
             if !ticket_repo::ticket_exists(&mut conn, add_op.full_invoice_number.clone()) {
-                println!("Creating new ticket: {}", add_op.invoice_number);
+                // println!("Creating new ticket: {}", add_op.invoice_number);
                 create_ticket_from_add_op(&mut conn, &add_op)?;
             }
         } else if op == spot_ops_types::DeleteItem {

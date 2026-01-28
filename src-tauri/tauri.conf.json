@@ -15,7 +15,8 @@
         "title": "White Conveyors OAS",
         "width": 800,
         "height": 600,
-        "devtools": true
+        "devtools": true,
+        "fullscreen": true
       }
     ],
     "security": {

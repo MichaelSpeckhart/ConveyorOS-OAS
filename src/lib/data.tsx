@@ -46,5 +46,6 @@ export async function listTicketsForCustomer(customer_identifier: string): Promi
 }
 
 export async function listGarmentsForTicket(full_invoice_number: string): Promise<GarmentRow[]> {
+  console.log("Listing garments for ticket:", full_invoice_number);
   return invoke<GarmentRow[]>("data_list_garments_for_ticket", { fullInvoiceNumber: full_invoice_number });
 }

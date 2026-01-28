@@ -77,7 +77,7 @@ export const SideNavLayout: React.FC<SideNavLayoutProps> = ({
             )}
           </div>
 
-          <button
+          {/* <button
             type="button"
             onClick={() => setCollapsed((c) => !c)}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -87,7 +87,7 @@ export const SideNavLayout: React.FC<SideNavLayoutProps> = ({
             <span style={{ display: "block", transform: collapsed ? "rotate(0deg)" : "rotate(180deg)" }}>
               ❯
             </span>
-          </button>
+          </button> */}
         </div>
 
         {/* Nav */}
@@ -132,11 +132,13 @@ export const SideNavLayout: React.FC<SideNavLayoutProps> = ({
             )}
           </div>
 
-          {!collapsed && (
-            <div style={styles.kbdHint} title="Toggle sidebar">
-              Ctrl/Cmd + B
-            </div>
-          )}
+          {/* {!collapsed && (
+            // <div style={styles.kbdHint} title="Toggle sidebar">
+            //   Ctrl/Cmd + B
+            // </div>
+          )} */}
+          {/* Logout Button  */}
+          
         </div>
       </aside>
 
@@ -331,20 +333,21 @@ const styles: Record<string, React.CSSProperties> = {
   },
 
   main: {
-    flex: 1,
-    padding: 16,
-    overflow: "auto",
-    background: theme.colors.bg,
-  },
+  flex: 1,
+  padding: 16,
+  overflow: "hidden",  // Changed from "auto"
+  background: theme.colors.bg,
+},
 
-  contentCard: {
-    minHeight: "100%",
-    background: theme.colors.panel,
-    borderRadius: 20,
-    padding: 20,
-    border: `1px solid ${theme.colors.border}`,
-    boxShadow: theme.colors.shadow,
-  },
+contentCard: {
+  height: "100%",  // Changed from minHeight
+  background: theme.colors.panel,
+  borderRadius: 20,
+  padding: 20,
+  border: `1px solid ${theme.colors.border}`,
+  boxShadow: theme.colors.shadow,
+  overflow: "hidden",  // Added this
+},
 
   logoImg: {
   width: "100%",

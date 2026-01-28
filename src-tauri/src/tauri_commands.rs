@@ -1,12 +1,13 @@
 use std::{sync::atomic::Ordering, time::Duration};
 
+use diesel::prelude::*;
 use diesel::result::Error::NotFound;
 use open62541::ua::Variant;
 use serde::Serialize;
 use tauri::http::Error;
 use tokio::time::{sleep, timeout};
 
-use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, slot_repo::{self, SlotRepo}, ticket_repo, users_repo}, domain::auth, model::{UpdateTicket, User}, opc::{opc_client::{AppState, OpcClient}, opc_commands::{get_load_hanger_sensor, slot_run_request}, sensor::hanger_poll_loop}, schema::garments::slot_number, slot_manager::SlotManager};
+use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, slot_repo::{self, SlotRepo}, ticket_repo, users_repo}, domain::auth, model::{Ticket, UpdateTicket, User}, opc::{opc_client::{AppState, OpcClient}, opc_commands::{get_load_hanger_sensor, slot_run_request}, sensor::hanger_poll_loop}, schema::garments::slot_number, slot_manager::{SlotManager, SlotManagerStats}};
 
 #[derive(Serialize)]
 pub struct login_result {
@@ -16,21 +17,21 @@ pub struct login_result {
 
 #[tauri::command]
 pub fn auth_login_user_tauri(pin_input: String) -> Result<User, String> {
-    // Validate PIN
+    
     if pin_input.len() != 4 || !pin_input.chars().all(|c| c.is_ascii_digit()) {
         return Err("PIN must be 4 digits".into());
     }
 
-    // Count users
+    
     let num_users = auth::count_number_of_users()
         .map_err(|_| "Connection Error".to_string())?;
 
-    // If no users exist, return special error
+    
     if num_users == 0 {
-        return Err("NO_USERS".into());  // frontend can special-case this
+        return Err("NO_USERS".into());  
     }
 
-    // Attempt login
+    
     let user = auth::login_user_with_pin(&pin_input)?;
 
     Ok(user)
@@ -38,16 +39,16 @@ pub fn auth_login_user_tauri(pin_input: String) -> Result<User, String> {
 
 #[tauri::command]
 pub fn auth_create_user_tauri(username_input: String, pin_input: String) -> Result<User, String> {
-    // Validate username
+    
     if username_input.trim().is_empty() {
         return Err("Username cannot be empty".into());
     }
-    // Validate PIN
+    
     if pin_input.len() != 4 || !pin_input.chars().all(|c| c.is_ascii_digit()) {
         return Err("PIN must be 4 digits".into());
     }
 
-    // Create user
+    
     let new_user = auth::create_user(&username_input, &pin_input)
         .map_err(|_| "Connection Error".to_string())?;
     Ok(new_user)
@@ -113,7 +114,7 @@ pub fn handle_scan_tauri(scan_code: String) -> Result<Option<i32>, String> {
 
     }
 
-    // 5) Update ticket
+    
     ticket_info.garments_processed += 1;
 
     let new_status: &str = "Processing";
@@ -126,10 +127,10 @@ pub fn handle_scan_tauri(scan_code: String) -> Result<Option<i32>, String> {
         ticket_status: Some(new_status.to_string())
     };
 
-    // Update ticket
+    
     let res = ticket_repo::update_ticket(&mut conn, ticket_info.id, update_ticket);
 
-    // Reserve next slot for this ticket
+    
     let reserved_slot = SlotManager::reserve_next_slot(&mut conn, Some(&ticket_info.full_invoice_number))
         .map_err(|e| format!("DB Error (reserve slot): {e}"))?;
 
@@ -164,6 +165,7 @@ pub fn is_last_garment(ticket: String) -> Result<bool, String> {
 
 #[tauri::command]
 pub fn ticket_exists_tauri(ticket: String) -> Result<bool, String> {
+    println!("Checking if ticket exists: {}", ticket);
     let mut conn = establish_connection();
 
     let res = garment_exists(&mut conn, ticket);
@@ -175,6 +177,18 @@ pub fn ticket_exists_tauri(ticket: String) -> Result<bool, String> {
 pub fn count_occupied_slots_tauri() -> Result<i64, String> {
     let mut conn = establish_connection();
     let res = SlotManager::get_number_occupied_slots(&mut conn)
+        .map_err(|e| format!("DB Error: {}", e))?;
+    Ok(res)
+}
+
+#[tauri::command]
+pub fn get_ticket_from_garment(barcode: String) -> Result<Ticket, String> {
+    let mut conn = establish_connection();
+    let garment = garment_repo::get_garment(&mut conn, &barcode);
+    if garment.is_err() {
+        return Err(format!("Garment not found for ticket: {}", barcode));
+    }
+    let res = ticket_repo::get_ticket_by_invoice_number(&mut conn, &garment.unwrap().full_invoice_number)
         .map_err(|e| format!("DB Error: {}", e))?;
     Ok(res)
 }
@@ -303,3 +317,49 @@ pub async fn handle_last_scan(barcode: String, slot_num: i32) -> Result<i32, Str
     Ok(slot_num)
 }
 
+#[tauri::command]
+pub fn get_slot_manager_stats() -> Result<SlotManagerStats, String> {
+    let mut conn = establish_connection();
+    SlotManagerStats::fetch(&mut conn)
+        .map_err(|e| format!("DB Error: {}", e))
+}
+
+#[tauri::command]
+pub fn clear_conveyor_tauri() -> Result<(), String> {
+    let mut conn = establish_connection();
+
+    conn.transaction::<(), diesel::result::Error, _>(|conn| {
+        use crate::schema::garments::dsl as garments_dsl;
+        use crate::schema::slots::dsl as slots_dsl;
+        use crate::schema::tickets::dsl as tickets_dsl;
+
+        let _affected_tickets: Vec<String> = garments_dsl::garments
+            .filter(garments_dsl::slot_number.ne(-1))
+            .select(garments_dsl::full_invoice_number)
+            .distinct()
+            .load(conn)?;
+
+        diesel::update(slots_dsl::slots)
+            .set((
+                slots_dsl::slot_state.eq("empty"),
+                slots_dsl::assigned_ticket.eq::<Option<String>>(None),
+                slots_dsl::item_id.eq::<Option<String>>(None),
+                slots_dsl::updated_at.eq(diesel::dsl::now),
+            ))
+            .execute(conn)?;
+
+        diesel::update(garments_dsl::garments.filter(garments_dsl::slot_number.ne(-1)))
+            .set(garments_dsl::slot_number.eq(-1))
+            .execute(conn)?;
+
+        diesel::update(tickets_dsl::tickets)
+            .set((
+                tickets_dsl::garments_processed.eq(0),
+                tickets_dsl::ticket_status.eq("Not Processed"),
+            ))
+            .execute(conn)?;
+
+        Ok(())
+    })
+    .map_err(|e| format!("DB Error: {}", e))
+}
