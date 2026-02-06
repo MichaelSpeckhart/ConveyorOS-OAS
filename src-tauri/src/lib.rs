@@ -1,8 +1,5 @@
 use std::{env, sync::{Arc, atomic::AtomicBool}};
 
-use diesel::{Connection, PgConnection};
-use dotenvy::dotenv;
-use open62541::ua;
 use tauri::Manager;
 use tokio::sync::Mutex;
 
@@ -21,6 +18,7 @@ pub mod settings;
 pub mod opc;
 pub mod slot_manager;
 pub mod result;
+pub mod admin;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -36,7 +34,6 @@ pub fn run() {
 
             let app_handle = app.handle();
 
-            // ✅ load settings from the same store the frontend uses
             let settings = load_settings(&app_handle);
             let p = app
                 .path()
@@ -44,13 +41,12 @@ pub fn run() {
                 .expect("app_data_dir")
                 .join("settings.json");
 
-            println!("📦 SETTINGS FILE PATH: {}", p.display());
-            println!("✅ Loaded settings: {:?}", settings);
+            println!("SETTINGS FILE PATH: {}", p.display());
+            println!("Loaded settings: {:?}", settings);
 
-            // ✅ build DATABASE_URL from settings and set env var for Diesel
             let database_url = crate::settings::database_url(&settings);
             env::set_var("DATABASE_URL", database_url);
-            println!("✅ Set DATABASE_URL env var for Diesel");
+            println!("Set DATABASE_URL env var for Diesel");
 
 
 
@@ -59,20 +55,18 @@ pub fn run() {
             // start file watch
             async_watch();
 
-            // ✅ Initialize OPC UA client and manage its state
-
             let opc = OpcClient::new(OpcConfig {
                 endpoint_url: settings.opcServerUrl.to_string(),
                 reconnect_backoff: std::time::Duration::from_secs(3),
             });
 
-            println!("✅ OPC Client initialized");
+            println!("OPC Client initialized");
 
             app.manage(AppState { opc: opc.clone(), hanger_detected: Arc::new(AtomicBool::new(false)), hanger_task: Arc::new(Mutex::new(None)) });
 
             tauri::async_runtime::spawn(async move {
                 if let Err(e) = opc.connect().await {
-                    eprintln!("❌ OPC connect failed: {e}");
+                    eprintln!("OPC connect failed: {e}");
                 }
                 opc.start_reconnect_loop();
             });
@@ -107,6 +101,12 @@ pub fn run() {
             tauri_commands::garment_ticket_on_conveyor_tauri,
             tauri_commands::get_slot_manager_stats,
             tauri_commands::clear_conveyor_tauri,
+            tauri_commands::start_user_session,
+            tauri_commands::end_user_session,
+            tauri_commands::increment_session_garments,
+            tauri_commands::increment_session_tickets,
+            tauri_commands::session_exists_today_tauri,
+            tauri_commands::get_existing_session_today_tauri,
             greet
         ])
         .run(tauri::generate_context!())
@@ -124,7 +124,7 @@ pub fn async_watch() {
             let res = parse_spot_csv_core(&contents.unwrap());
 
             match res {
-                Ok(add_ops) => {
+                Ok(_add_ops) => {
                     // println!("Parsed {} add_item_op entries from CSV.", add_ops);
                 },
                 Err(e) => {

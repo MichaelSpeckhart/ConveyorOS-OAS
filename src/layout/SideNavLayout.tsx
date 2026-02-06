@@ -18,6 +18,7 @@ type SideNavLayoutProps = {
   user: { username: string };
   children: React.ReactNode;
   defaultCollapsed?: boolean;
+  onLogout?: () => void;
 };
 
 export const SideNavLayout: React.FC<SideNavLayoutProps> = ({
@@ -27,6 +28,7 @@ export const SideNavLayout: React.FC<SideNavLayoutProps> = ({
   user,
   children,
   defaultCollapsed = false,
+  onLogout,
 }) => {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
@@ -132,12 +134,16 @@ export const SideNavLayout: React.FC<SideNavLayoutProps> = ({
             )}
           </div>
 
-          {/* {!collapsed && (
-            // <div style={styles.kbdHint} title="Toggle sidebar">
-            //   Ctrl/Cmd + B
-            // </div>
-          )} */}
-          {/* Logout Button  */}
+          {!collapsed && (
+            <button
+              type="button"
+              onClick={onLogout}
+              style={styles.logoutBtn}
+              disabled={!onLogout}
+            >
+              Log out
+            </button>
+          )}
           
         </div>
       </aside>
@@ -330,6 +336,15 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 10,
     background: "rgba(255,255,255,0.6)",
     whiteSpace: "nowrap",
+  },
+  logoutBtn: {
+    padding: "8px 12px",
+    borderRadius: 10,
+    border: `1px solid ${theme.colors.border}`,
+    background: "#fff",
+    color: theme.colors.textMuted,
+    fontWeight: 700,
+    cursor: "pointer",
   },
 
   main: {

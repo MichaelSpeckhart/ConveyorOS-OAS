@@ -1,0 +1,15 @@
+// This file is part of ConveyorOS OAS.
+// Copyright (C) 2024 ConveyorOS Inc. <
+// SPDX-License-Identifier: MIT
+// The 4th column is the number of items in the order
+// so in the first one, its 3, so there are two more lines
+// with the same ADDITEM but different item numbers
+// to indicate there are multiple items in the order
+// the 11th is the item id which is unique per item
+// So for every additem in that order, where the 2nd column is the same 
+// the number of items stays the same
+
+
+"ADDITEM",".DCDC03-090374","03-090374","3","100","0.00","DC3407", "Sabina","Tacitus","801-208-2200","AA90664756","Shirts-Regular Hang -Black,Solid","2025-04-18T14:27:49","2025-04-22T17:00:00","Donot crease"
+"ADDITEM",".DCDC03-090374","03-090374","3","100","0.00","DC3407", "Sabina","Tacitus","801-208-2200","AA90664757","Shirts-Regular Hang -Black,Solid","2025-04-18T14:27:49","2025-04-22T17:00:00","Donot crease"
+"ADDITEM",".DCDC03-090374","03-090374","3","100","0.00","DC3407", "Sabina","Tacitus","801-208-2200","AA90664758","Shirts-Regular Hang -Black,Solid","2025-04-18T14:27:49","2025-04-22T17:00:00","Donot crease"

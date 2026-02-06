@@ -3,6 +3,8 @@ import { clearConveyorTauri, getCustomerFromTicket, getNumItemsOnTicket, getSlot
 import { slotRunRequest, opcConnected } from "../../lib/opc";
 import { GarmentRow, listGarmentsForTicket, TicketRow } from "../../lib/data";
 import type { SlotManagerStats } from "../../types/slotstats";
+import { incrementSessionGarmentsTauri, incrementSessionTicketsTauri } from "../../lib/session_manager";
+import { ScanQueue } from "../../classes/Queue";
 
 type ScanState = "waiting" | "success" | "error" | "oneitem" | "garmentonconveyor" | "ticketcomplete" | "conveyordisconnected";
 
@@ -16,7 +18,7 @@ const STATE_STYLE = {
   conveyordisconnected: { bg: "bg-red-600", text: "text-white", title: "CONVEYOR DISCONNECTED", subtitle: "CHECK OPC CONNECTION" },
 };
 
-export default function GarmentScanner({ onOpenRecall }: { onOpenRecall?: () => void }) {
+export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenRecall?: () => void; sessionId?: number | null }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [barcode, setBarcode] = useState("");
@@ -124,6 +126,11 @@ export default function GarmentScanner({ onOpenRecall }: { onOpenRecall?: () => 
       const info = await getCustomerFromTicket(code);
       setCustomerInfo(info);
       await slotRunRequest(slotNum!);
+      if (sessionId) {
+        const session = await incrementSessionGarmentsTauri(sessionId);
+        setScanCount(session.garments_scanned);
+        await incrementSessionTicketsTauri(sessionId);
+      }
       await refreshSlotStats();
       return;
     }
@@ -147,9 +154,21 @@ export default function GarmentScanner({ onOpenRecall }: { onOpenRecall?: () => 
     let slot_num = await handleScanTauri(code);
     setState("success");
     setLastScan(code);
-    setScanCount((prev) => prev + 1);
     setNextSlot(slot_num);
-    await slotRunRequest(slot_num!);
+
+    // if (isConveyorConnected)
+    // {
+    //   await slotRunRequest(slot_num!);
+    // }
+
+    //await slotRunRequest(slot_num!);
+    if (sessionId) {
+      console.log("Session ID available, incrementing garments scanned.");
+      const session = await incrementSessionGarmentsTauri(sessionId);
+      setScanCount(session.garments_scanned);
+    } else {
+      setScanCount((prev) => prev + 1);
+    }
     await refreshSlotStats();
 
     if (await loadSensorHanger()) setState("garmentonconveyor"); 
@@ -189,28 +208,28 @@ export default function GarmentScanner({ onOpenRecall }: { onOpenRecall?: () => 
       {/* 2. MIDDLE SECTION: Customer Info */}
       <div className="min-h-0 flex flex-col">
         {customerInfo ? (
-          <div className="bg-white border-l-[10px] border-blue-500 rounded-3xl p-6 shadow-lg flex flex-col gap-4 h-full min-h-0 overflow-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-shrink-0">
+          <div className="bg-white border-l-[8px] border-blue-500 rounded-2xl p-2 shadow-lg flex flex-col gap-2 h-full min-h-0 overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 flex-shrink-0">
               <div className="lg:col-span-2">
-                <p className="text-blue-600 font-bold uppercase tracking-widest text-sm mb-2">Customer + Ticket</p>
-                <div className="flex items-start justify-between gap-4">
+                <p className="text-blue-600 font-bold uppercase tracking-widest text-[10px] mb-1">Customer + Ticket</p>
+                <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-4xl font-black text-slate-900 leading-none">
+                    <h2 className="text-2xl font-black text-slate-900 leading-none">
                       {customerInfo.first_name} {customerInfo.last_name}
                     </h2>
-                    <div className="flex flex-wrap gap-2 mt-4">
-                      <span className="px-3 py-1.5 bg-slate-100 rounded-lg font-mono text-base text-slate-600">ID: {customerInfo.customer_identifier}</span>
-                      <span className="px-3 py-1.5 bg-slate-100 rounded-lg font-mono text-base text-slate-600">{customerInfo.phone_number}</span>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      <span className="px-2 py-0.5 bg-slate-100 rounded-md font-mono text-[11px] text-slate-600">ID: {customerInfo.customer_identifier}</span>
+                      <span className="px-2 py-0.5 bg-slate-100 rounded-md font-mono text-[11px] text-slate-600">{customerInfo.phone_number}</span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="inline-block bg-green-100 text-green-700 px-4 py-2 rounded-2xl font-bold text-base">Active Profile</div>
+                    <div className="inline-block bg-green-100 text-green-700 px-2.5 py-1 rounded-xl font-bold text-xs">Active Profile</div>
                   </div>
                 </div>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-widest text-slate-500 font-bold">Ticket</div>
-                <div className="mt-2 space-y-2 text-slate-700">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-1.5">
+                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Ticket</div>
+                <div className="mt-1 space-y-0.5 text-slate-700 text-[11px]">
                   <Detail label="Display #" value={ticketMeta?.display_invoice_number ?? "—"} mono />
                   <Detail label="Pickup" value={fmtDate(ticketMeta?.invoice_pickup_date)} />
                   <Detail label="Items" value={ticketMeta?.number_of_items ?? garments.length} />
@@ -219,23 +238,23 @@ export default function GarmentScanner({ onOpenRecall }: { onOpenRecall?: () => 
             </div>
 
             <div className="flex-1 min-h-0">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 flex flex-col min-h-0 h-full">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-1.5 flex flex-col min-h-0 h-full">
                 <div className="flex items-center justify-between">
-                  <div className="text-xs uppercase tracking-widest text-slate-500 font-bold">Garments</div>
-                  <div className="text-slate-700 font-black">{garments.length}</div>
+                  <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Garments</div>
+                  <div className="text-slate-700 font-black text-xs">{garments.length}</div>
                 </div>
-                <div className="mt-3 flex-1 min-h-0 overflow-auto divide-y divide-slate-200">
+                <div className="mt-1 flex-1 min-h-0 overflow-auto divide-y divide-slate-200">
                   {garments.length === 0 ? (
-                    <div className="py-3 text-slate-500 text-sm">No garments found.</div>
+                    <div className="py-1 text-slate-500 text-[10px]">No garments found.</div>
                   ) : (
                     garments.map((g) => (
-                      <div key={g.id} className="py-2.5">
-                        <div className="flex items-start justify-between gap-3">
+                      <div key={g.id} className="py-1">
+                        <div className="flex items-start justify-between gap-1.5">
                           <div className="min-w-0">
-                            <div className="font-bold text-slate-900 text-sm break-words">{g.item_description}</div>
-                            <div className="text-[11px] text-slate-600 font-mono mt-1 break-all">Item ID: {g.item_id}</div>
+                            <div className="font-bold text-slate-900 text-[10px] break-words leading-snug">{g.item_description}</div>
+                            <div className="text-[8px] text-slate-600 font-mono mt-0.5 break-all">Item ID: {g.item_id}</div>
                           </div>
-                          <div className="px-2.5 py-1 rounded-full bg-white border border-slate-200 text-slate-700 text-[11px] font-bold shrink-0">
+                          <div className="px-1.5 py-0.5 rounded-full bg-white border border-slate-200 text-slate-700 text-[8px] font-bold shrink-0">
                             Slot {g.slot_number}
                           </div>
                         </div>

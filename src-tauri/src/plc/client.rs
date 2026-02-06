@@ -1,5 +1,3 @@
-use std::error::Error;
-use tokio::net::TcpStream;
 use tokio_modbus::prelude::*;
 use tokio_modbus::client::tcp;
 
@@ -29,7 +27,7 @@ pub async fn read_d116_modbus_internal() -> Result<i16, String> {
 
 
     // Read 1 holding register
-    let regs = ctx
+    let _regs = ctx
         .read_holding_registers(REG_D116, 1)
         .await
         .map_err(|e| format!("Modbus read D116 failed: {e}"))?;
@@ -63,13 +61,14 @@ pub async fn test_modbus_context() {
 }
 
 pub async fn write_m5_modbus(state: bool) -> Result<(), String> {
+    let _ = state;
     test_tcp_connect().await;
 
     test_modbus_context().await;
 
     let mut ctx = make_modbus_ctx().await?;
 
-    ctx.write_single_coil(COIL_M5, true)
+    let _ = ctx.write_single_coil(COIL_M5, true)
         .await
         .map_err(|e| format!("Modbus write M5 failed: {e}"))
         .map_err(|e| e)?;

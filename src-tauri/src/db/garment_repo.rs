@@ -1,4 +1,3 @@
-use chrono::{NaiveDate, NaiveDateTime};
 use diesel::prelude::*;
 
 use crate::model::{Garment, NewGarment};
@@ -19,6 +18,10 @@ pub fn garment_exists(conn: &mut PgConnection, item_identifier: String) -> bool 
 }
 
 pub fn create_garment(conn: &mut PgConnection, new_garment: NewGarment) -> Result<Garment, String> {
+    if garment_exists(conn, new_garment.item_id.clone()) {
+        return Err("Garment with this item_id already exists".to_string());
+    }
+
     diesel::insert_into(garments::table).values(new_garment).get_result(conn).map_err(|_| "Error creating garment".to_string())
 }
 
@@ -30,6 +33,10 @@ pub fn get_garment(conn: &mut PgConnection, item_identifier: &str) -> Result<Gar
 }
 
 pub fn delete_garment(conn: &mut PgConnection, item_identifier: &str) -> Result<usize, String> {
+    if !garment_exists(conn, item_identifier.to_string()) {
+        return Ok(0);
+    }
+
     diesel::delete(garments.filter(item_id.eq(item_identifier)))
         .execute(conn)
         .map_err(|e| e.to_string())

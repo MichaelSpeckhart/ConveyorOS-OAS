@@ -2,6 +2,8 @@ use std::{fmt, str::FromStr};
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Local};
 
+use crate::pos::spot;
+
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 
 pub enum add_item_errors {
@@ -41,6 +43,8 @@ impl fmt::Display for delete_item_errors {
 pub enum spot_ops_types {
     AddItem,
     DeleteItem,
+    AddInvoice,
+    DeleteInvoice,
     Default
 }
 
@@ -49,6 +53,8 @@ impl fmt::Display for spot_ops_types {
         match self {
             spot_ops_types::AddItem => write!(f, "ADDITEM"), 
             spot_ops_types::DeleteItem => write!(f, "DELITEM"), 
+            spot_ops_types::AddInvoice => write!(f, "ADDINV"),
+            spot_ops_types::DeleteInvoice => write!(f, "DELINV"),
             spot_ops_types::Default => write!(f, "UNSUPPORTED")
         }
     }
@@ -69,7 +75,7 @@ impl FromStr for spot_ops_types {
 
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub struct add_item_op {
+pub struct AddItemOp {
     pub op_type: spot_ops_types,
     pub full_invoice_number: String,
     pub invoice_number: String,
@@ -92,5 +98,38 @@ pub struct delete_item_op {
     pub op_type: spot_ops_types,
     pub full_invoice_number: String,
     pub item_id: String
+}
+
+
+/// Add Invoice Operation 
+/// Defined in Xplor SPOT Conveyor CSV Documentation.
+/// Add or update invoice in Conveyor database
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct AddInvoiceOp {
+    pub op_type: spot_ops_types,
+    pub full_invoice_number: String,
+    pub display_invoice_number: String,
+    pub num_items: u32,
+    pub slot_occupancy: u32,
+    pub invoice_balance_due: f32,
+    pub customer_identifier: String,
+    pub customer_first_name: String,
+    pub customer_last_name: String,
+    pub customer_phone_number: String,
+    pub customer_pin: String
+}
+
+/// Delete Invoice Operation
+/// Defined in Xplor SPOT Conveyor CSV Documentation.
+/// Delete invoice from Conveyor database
+/// If the Invoice is currently loaded, the
+/// conveyor should unload it and provide a conveyor.csv with UNLOADINV Op Type as
+/// feedback.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[repr(align(64))]
+pub struct DeleteInvoiceOp {
+    pub op_type: spot_ops_types,
+    pub full_invoice_number: String,
+    pub unload_point_number: String,
 }
 

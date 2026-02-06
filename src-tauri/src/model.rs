@@ -1,9 +1,9 @@
 // src/models.rs
-use diesel::{deserialize::FromSqlRow, expression::AsExpression, prelude::*};
+use diesel::{prelude::*};
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
-use crate::schema::{app_state, customers, garments, slots, tickets, users};
+use crate::schema::{app_state, customers, garments, slots, tickets, users, sessions};
 
 //
 // CUSTOMERS
@@ -79,6 +79,7 @@ pub struct User {
     pub username: String,
     pub pin: String,
     pub created_at: NaiveDateTime,
+    pub is_admin: i32,
 }
 
 #[derive(Debug, Insertable, Deserialize)]
@@ -86,7 +87,30 @@ pub struct User {
 pub struct NewUser {
     pub username: String,
     pub pin: String,
+    pub is_admin: i32,
     // created_at from DB default
+}
+
+//
+// SESSIONS
+//
+
+#[derive(Debug, Queryable, Identifiable, Serialize)]
+#[diesel(table_name = sessions)]
+pub struct Session {
+    pub id: i32,
+    pub user_id: i32,
+    pub login_at: NaiveDateTime,
+    pub logout_at: Option<NaiveDateTime>,
+    pub garments_scanned: i32,
+    pub tickets_completed: i32,
+    pub is_admin: i32,
+}
+
+#[derive(Debug, Insertable)]
+#[diesel(table_name = sessions)]
+pub struct NewSession {
+    pub user_id: i32,
 }
 
 //
@@ -185,5 +209,10 @@ pub struct UpdateTicket {
     pub ticket_status: Option<String>
 }
 
-
+pub struct OperatorStats {
+    pub user_id: i32,
+    pub username: String,
+    pub total_garments: i64,
+    pub total_tickets: i64,
+}
 

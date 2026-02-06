@@ -15,6 +15,7 @@ pub fn create_user(conn: &mut PgConnection, username_input: &str, pin_input: &st
     let new_user = NewUser {
         username: username_input.to_string(),
         pin: pin_input.to_string(),
+        is_admin: 0
     };
 
     diesel::insert_into(users)
@@ -28,4 +29,8 @@ pub fn find_by_username(conn: &mut PgConnection, username_input: &str) -> QueryR
 
 pub fn get_all_users(conn: &mut PgConnection) -> QueryResult<Vec<User>> {
     users.load::<User>(conn)
+}
+
+pub fn get_user_by_id(conn: &mut PgConnection, user_id_val: i32) -> QueryResult<User> {
+    users.filter(id.eq(user_id_val)).first::<User>(conn)
 }

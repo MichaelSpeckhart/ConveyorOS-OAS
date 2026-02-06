@@ -1,16 +1,13 @@
 use std::{sync::atomic::Ordering, time::Duration};
 
 use diesel::prelude::*;
-use diesel::result::Error::NotFound;
-use open62541::ua::Variant;
 use serde::Serialize;
-use tauri::http::Error;
 use tokio::time::{sleep, timeout};
 
-use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, slot_repo::{self, SlotRepo}, ticket_repo, users_repo}, domain::auth, model::{Ticket, UpdateTicket, User}, opc::{opc_client::{AppState, OpcClient}, opc_commands::{get_load_hanger_sensor, slot_run_request}, sensor::hanger_poll_loop}, schema::garments::slot_number, slot_manager::{SlotManager, SlotManagerStats}};
+use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, slot_repo::{self, SlotRepo}, ticket_repo, users_repo, sessions_repo}, domain::auth, model::{Ticket, UpdateTicket, User}, opc::{opc_client::{AppState}, opc_commands::{get_load_hanger_sensor}}, slot_manager::{SlotManager, SlotManagerStats}};
 
 #[derive(Serialize)]
-pub struct login_result {
+pub struct LoginResult {
     pub username: String,
     pub id: i32
 }
@@ -101,7 +98,7 @@ pub fn handle_scan_tauri(scan_code: String) -> Result<Option<i32>, String> {
             ticket_status: Some(ticket_info.ticket_status)
         };
 
-        let res = ticket_repo::update_ticket(&mut conn, ticket_info.id, update_ticket);
+        let _res = ticket_repo::update_ticket(&mut conn, ticket_info.id, update_ticket);
 
         match slot_repo::SlotRepo::find_ticket_slot(&mut conn, &ticket_info.full_invoice_number)
             .map_err(|e| format!("DB Error (find slot): {e}"))?
@@ -128,7 +125,7 @@ pub fn handle_scan_tauri(scan_code: String) -> Result<Option<i32>, String> {
     };
 
     
-    let res = ticket_repo::update_ticket(&mut conn, ticket_info.id, update_ticket);
+    let _res = ticket_repo::update_ticket(&mut conn, ticket_info.id, update_ticket);
 
     
     let reserved_slot = SlotManager::reserve_next_slot(&mut conn, Some(&ticket_info.full_invoice_number))
@@ -310,9 +307,9 @@ pub async fn handle_last_scan(barcode: String, slot_num: i32) -> Result<i32, Str
         ticket_status: Some(new_status.to_string())
     };
 
-    let res = ticket_repo::update_ticket(&mut conn, ticket_info.id, update_ticket);
+    let _res = ticket_repo::update_ticket(&mut conn, ticket_info.id, update_ticket);
 
-    slot_repo::SlotRepo::free_slot(&mut conn, slot_num);
+    let _ = slot_repo::SlotRepo::free_slot(&mut conn, slot_num);
 
     Ok(slot_num)
 }
@@ -321,6 +318,38 @@ pub async fn handle_last_scan(barcode: String, slot_num: i32) -> Result<i32, Str
 pub fn get_slot_manager_stats() -> Result<SlotManagerStats, String> {
     let mut conn = establish_connection();
     SlotManagerStats::fetch(&mut conn)
+        .map_err(|e| format!("DB Error: {}", e))
+}
+
+#[tauri::command]
+pub fn start_user_session(user_id_input: i32) -> Result<crate::model::Session, String> {
+    let mut conn = establish_connection();
+    conn.transaction::<crate::model::Session, diesel::result::Error, _>(|conn| {
+        sessions_repo::close_active_sessions_for_user(conn, user_id_input)?;
+        sessions_repo::create_session(conn, user_id_input)
+    })
+    .map_err(|e| format!("DB Error: {}", e))
+}
+
+#[tauri::command]
+pub fn end_user_session(session_id: i32) -> Result<crate::model::Session, String> {
+    let mut conn = establish_connection();
+    sessions_repo::end_session(&mut conn, session_id)
+        .map_err(|e| format!("DB Error: {}", e))
+}
+
+#[tauri::command]
+pub fn increment_session_garments(session_id: i32) -> Result<crate::model::Session, String> {
+    println!("Incrementing garments for session ID: {}", session_id);
+    let mut conn = establish_connection();
+    sessions_repo::increment_garments(&mut conn, session_id)
+        .map_err(|e| format!("DB Error: {}", e))
+}
+
+#[tauri::command]
+pub fn increment_session_tickets(session_id: i32) -> Result<crate::model::Session, String> {
+    let mut conn = establish_connection();
+    sessions_repo::increment_tickets(&mut conn, session_id)
         .map_err(|e| format!("DB Error: {}", e))
 }
 
@@ -362,4 +391,24 @@ pub fn clear_conveyor_tauri() -> Result<(), String> {
         Ok(())
     })
     .map_err(|e| format!("DB Error: {}", e))
+}
+
+
+#[tauri::command]
+pub fn session_exists_today_tauri(user_id_input: i32) -> Result<bool, String> {
+    let mut conn = establish_connection();
+    // doesnt return count, just the actual data
+    match sessions_repo::session_exists_today(&mut conn, user_id_input) {
+        Ok(exists) => Ok(exists),
+        Err(e) => Err(format!("DB Error: {}", e)),
+    }
+}
+
+#[tauri::command]
+pub fn get_existing_session_today_tauri(user_id_input: i32) -> Result<Option<crate::model::Session>, String> {
+    let mut conn = establish_connection();
+    match sessions_repo::get_existing_session_today(&mut conn, user_id_input) {
+        Ok(session_opt) => Ok(session_opt),
+        Err(e) => Err(format!("DB Error: {}", e)),
+    }
 }

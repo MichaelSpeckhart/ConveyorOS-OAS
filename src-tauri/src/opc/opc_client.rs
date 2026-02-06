@@ -1,10 +1,9 @@
 use std::{collections::HashMap, sync::{Arc, atomic::{AtomicBool, Ordering}}, time::Duration};
-use tokio::{sync::{Mutex, broadcast, futures}, task::JoinHandle};
+use tokio::{sync::{Mutex, broadcast}, task::JoinHandle};
 use thiserror::Error;
 
 use open62541::{ua, AsyncClient};
 
-use crate::plc::client;
 
 #[derive(Debug, Error)]
 pub enum OpcError {

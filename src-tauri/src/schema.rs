@@ -35,6 +35,18 @@ diesel::table! {
 }
 
 diesel::table! {
+    sessions (id) {
+        id -> Int4,
+        user_id -> Int4,
+        login_at -> Timestamp,
+        logout_at -> Nullable<Timestamp>,
+        garments_scanned -> Int4,
+        tickets_completed -> Int4,
+        is_admin -> Int4,
+    }
+}
+
+diesel::table! {
     slots (slot_number) {
         slot_number -> Int4,
         slot_state -> Varchar,
@@ -69,9 +81,12 @@ diesel::table! {
         username -> Varchar,
         pin -> Varchar,
         created_at -> Timestamp,
+        is_admin -> Int4,
     }
 }
 
+diesel::joinable!(sessions -> users (user_id));
+
 diesel::allow_tables_to_appear_in_same_query!(
-    app_state, customers, garments, slots, tickets, users,
+    app_state, customers, garments, sessions, slots, tickets, users,
 );

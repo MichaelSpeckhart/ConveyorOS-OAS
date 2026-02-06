@@ -1,13 +1,15 @@
 use std::string;
 
+use diesel::sql_types::ops::Add;
+
 use crate::db::connection::establish_connection;
-use crate::pos::spot::spotops_types::{self, add_item_errors, add_item_op, delete_item_errors, delete_item_op, spot_ops_types};
+use crate::pos::spot::spotops_types::{self, add_item_errors, AddItemOp, delete_item_errors, delete_item_op, spot_ops_types};
 
 use crate::db::{self, garment_repo};
 
-impl spotops_types::add_item_op {
+impl spotops_types::AddItemOp {
 
-    pub fn perform_add_item_op(operation: &add_item_op) -> Result<String, String> {
+    pub fn perform_add_item_op(operation: &AddItemOp) -> Result<String, String> {
         
         let mut conn: diesel::PgConnection = establish_connection();          
 
@@ -30,7 +32,7 @@ impl spotops_types::add_item_op {
         invoice_dropoff_date: chrono::DateTime<chrono::Local>,
         invoice_promised_date: chrono::DateTime<chrono::Local>,
         invoice_comments: &str
-    ) -> Result<add_item_op, add_item_errors> {
+    ) -> Result<AddItemOp, add_item_errors> {
 
         // println!("Creating Add Item Operation for invoice: {}", full_invoice_number);
 
@@ -49,7 +51,7 @@ impl spotops_types::add_item_op {
 
         // println!("Creating Add Item Operation for invoice: {}", full_invoice_number);
 
-        Ok(add_item_op {
+        Ok(AddItemOp {
             op_type: spot_ops_types::AddItem,
             full_invoice_number: full_invoice_number.to_string(),
             invoice_number: invoice_number.to_string(),

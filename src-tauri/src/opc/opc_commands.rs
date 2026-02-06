@@ -1,5 +1,4 @@
-use crate::opc::{self, opc_client::OpcClient};
-use diesel::sql_types::Bool;
+use crate::opc::{ opc_client::OpcClient};
 use open62541::{ScalarValue, VariantValue, ua::{self, DataValue}};
 use tauri::State;
 
@@ -8,7 +7,7 @@ pub fn get_opc_client(opc_client: State<OpcClient>) -> OpcClient {
 }
 
 pub async fn set_speed(opc_client: &mut OpcClient, node_id: ua::NodeId, speed: DataValue) {
-    opc_client.write_value(node_id, speed).await;
+    let _ = opc_client.write_value(node_id, speed).await;
 }
 
 pub async fn get_speed(opc_client: &mut OpcClient, node_id: ua::NodeId) -> Option<DataValue> {
@@ -43,7 +42,7 @@ pub async fn slot_run_request(opc_client: &OpcClient, target_slot: i16) -> Resul
         .await
         .map_err(|e| e.to_string())?;
 
-    match opc_client
+    let _ = match opc_client
         .write_value(
             ua::NodeId::numeric(1, 83),
             DataValue::new(ua::Variant::scalar(ua::Boolean::new(true))),
