@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { clearConveyorTauri, getCustomerFromTicket, getNumItemsOnTicket, getSlotNumberFromBarcodeTauri, getSlotManagerStatsTauri, getTicketFromGarment, handleScanTauri, isLastGarmentTauri, loadSensorHanger, ticketExists } from "../../lib/slot_manager";
-import { slotRunRequest, opcConnected } from "../../lib/opc";
+import { clearConveyorTauri, getCustomerFromTicket, getSlotNumberFromBarcodeTauri, getSlotManagerStatsTauri, getTicketFromGarment, handleScanTauri, isLastGarmentTauri, loadSensorHanger, ticketExists } from "../../lib/slot_manager";
+import { slotRunRequest } from "../../lib/opc";
 import { GarmentRow, listGarmentsForTicket, TicketRow } from "../../lib/data";
 import type { SlotManagerStats } from "../../types/slotstats";
 import { incrementSessionGarmentsTauri, incrementSessionTicketsTauri } from "../../lib/session_manager";
-import { ScanQueue } from "../../classes/Queue";
-
 type ScanState = "waiting" | "success" | "error" | "oneitem" | "garmentonconveyor" | "ticketcomplete" | "conveyordisconnected";
 
 const STATE_STYLE = {
@@ -33,7 +31,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
   const [manualCode, setManualCode] = useState("");
   const [clearOpen, setClearOpen] = useState(false);
   const [clearSequence, setClearSequence] = useState("");
-  const [isConveyorConnected, setIsConveyorConnected] = useState(true);
+  // const [isConveyorConnected, setIsConveyorConnected] = useState(true);
   const [nextSlot, setNextSlot] = useState<number | null>(null);
   const ticketsCompleted = slotStats?.slots_used ?? "—";
   const conveyorCapacity = slotStats ? Math.round(slotStats.capacity_percentage) : "—";

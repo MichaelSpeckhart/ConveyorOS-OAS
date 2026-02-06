@@ -3,7 +3,7 @@
     The Garments will be displayed in a scrollable list below the customer/ticket box.
 */}
 
-import React, { useState } from "react";
+import  { useState } from "react";
 import { getCustomerFromTicket, getTicketFromGarment, ticketExists } from "../../lib/slot_manager";
 import { GarmentRow, listGarmentsForTicket, TicketRow } from "../../lib/data";
 

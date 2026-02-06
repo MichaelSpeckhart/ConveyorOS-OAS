@@ -14,8 +14,8 @@ export default function HomePage() {
   const [opcConnected, setOpcConnected] = useState<boolean>(false);
   const [hanger, setHanger] = useState<boolean>(false);
 
-  const [itemsToday, setItemsToday] = useState<number>(0);
-  const [lastScan, setLastScan] = useState<string>("—");
+  const [itemsToday] = useState<number>(0);
+  const [lastScan] = useState<string>("—");
 
   const [targetSlot, setTargetSlot] = useState<number | null>(null);
 

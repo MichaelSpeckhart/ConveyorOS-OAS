@@ -16,7 +16,7 @@ const Login: React.FC<LoginProps> = ({ onSuccess, onNoUsers }) => {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [goToRegister, setGoToRegister] = useState(false);
+  const [goToRegister] = useState(false);
 
   const press = async (digit: string) => {
     if (pin.length < 4) {
