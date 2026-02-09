@@ -2,17 +2,8 @@ use diesel::prelude::*;
 use dotenvy::dotenv;
 use std::env;
 
-/// Simple establish connection to Postgres DB
-pub fn establish_connection() -> PgConnection {
-    dotenv().ok();
-
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    PgConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
-}
-
-/// Safe version that returns Result instead of panicking
-pub fn establish_connection_safe() -> Result<PgConnection, String> {
+/// Establish connection to Postgres DB
+pub fn establish_connection() -> Result<PgConnection, String> {
     dotenv().ok();
 
     let database_url = env::var("DATABASE_URL")

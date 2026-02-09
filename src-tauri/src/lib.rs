@@ -3,7 +3,7 @@ use std::{env, sync::{Arc, atomic::AtomicBool}};
 use tauri::Manager;
 use tokio::sync::Mutex;
 
-use crate::{db::{connection::{establish_connection, establish_connection_safe}, data::{data_list_customers, data_list_garments_for_ticket, data_list_tickets_for_customer}, db_migrations::run_db_migrations}, io::fileutils::read_file, opc::opc_client::{AppState, OpcClient, OpcConfig}, pos::spot::spot_file_utils::parse_spot_csv_core, settings::load_settings};
+use crate::{db::{connection::establish_connection, data::{data_list_customers, data_list_garments_for_ticket, data_list_tickets_for_customer}, db_migrations::run_db_migrations}, io::fileutils::read_file, opc::opc_client::{AppState, OpcClient, OpcConfig}, pos::spot::spot_file_utils::parse_spot_csv_core, settings::{load_settings, appsettings::AppSettings}};
 
 pub mod plc;
 pub mod io;
@@ -50,7 +50,7 @@ pub fn run() {
 
             // Try to connect to database and run migrations
             // If it fails, log the error but don't crash - allow settings UI to be shown
-            match establish_connection_safe() {
+            match establish_connection() {
                 Ok(mut conn) => {
                     match run_db_migrations(&mut conn) {
                         Ok(_) => println!("✅ Database migrations completed successfully"),
@@ -68,7 +68,7 @@ pub fn run() {
             }
 
             // start file watch
-            async_watch();
+            async_watch(settings.clone());
 
             let opc = OpcClient::new(OpcConfig {
                 endpoint_url: settings.opcServerUrl.to_string(),
@@ -133,25 +133,33 @@ pub fn run() {
 }
 
 
-pub fn async_watch() {
-    tauri::async_runtime::spawn(async {
-        loop {
-            println!("Async task running...");
-            tokio::time::sleep(std::time::Duration::from_secs(5)).await;
-            let contents = read_file("/Users/michaelspeckhart/newpos.csv");
-            
-            let res = parse_spot_csv_core(&contents.unwrap());
+pub fn async_watch(settings: AppSettings) {
+    let csv_dir = settings.posCsvDir.clone();
 
-            match res {
-                Ok(_add_ops) => {
-                    // println!("Parsed {} add_item_op entries from CSV.", add_ops);
-                },
+    tauri::async_runtime::spawn(async move {
+        if csv_dir.is_empty() {
+            println!("⚠️ POS CSV directory not configured, skipping file watch");
+            return;
+        }
+
+        loop {
+            tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+
+            let csv_path = std::path::Path::new(&csv_dir).join("newpos.csv");
+            let contents = match read_file(csv_path.to_str().unwrap_or_default()) {
+                Ok(c) => c,
                 Err(e) => {
-                    println!("Error parsing CSV: {}", e);
+                    println!("File watch: could not read CSV: {}", e);
+                    continue;
+                }
+            };
+
+            match parse_spot_csv_core(&contents) {
+                Ok(_) => {},
+                Err(e) => {
+                    println!("File watch: error parsing CSV: {}", e);
                 }
             }
-
-            println!("Async task completed an iteration.");
         }
     });
 }

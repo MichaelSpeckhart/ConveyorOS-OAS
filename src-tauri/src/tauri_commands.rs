@@ -4,7 +4,7 @@ use diesel::prelude::*;
 use serde::Serialize;
 use tokio::time::{sleep, timeout};
 
-use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, slot_repo::{self, SlotRepo}, ticket_repo, users_repo, sessions_repo}, domain::auth, model::{Ticket, UpdateTicket, User}, opc::{opc_client::{AppState}, opc_commands::{get_load_hanger_sensor}}, slot_manager::{SlotManager, SlotManagerStats}};
+use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, slot_repo::{self, SlotRepo}, ticket_repo, users_repo, sessions_repo}, domain::auth, model::{Ticket, UpdateTicket, User}, opc::{opc_client::AppState, opc_commands::get_load_hanger_sensor}, slot_manager::{SlotManager, SlotManagerStats}};
 
 #[derive(Serialize)]
 pub struct LoginResult {
@@ -54,7 +54,7 @@ pub fn auth_create_user_tauri(username_input: String, pin_input: String) -> Resu
 
 #[tauri::command]
 pub fn get_all_users_tauri() -> Result<Vec<User>, String> {
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
 
     users_repo::get_all_users(&mut conn).map_err(|_| "Connection Error".to_string())
 }
@@ -67,7 +67,7 @@ pub fn handle_scan_tauri(scan_code: String) -> Result<Option<i32>, String> {
         return Err("Scan code too short".to_string());
     }
 
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
 
     let garment = garment_repo::get_garment(&mut conn, &code);
     if garment.is_err() {
@@ -138,7 +138,7 @@ pub fn handle_scan_tauri(scan_code: String) -> Result<Option<i32>, String> {
 
 #[tauri::command]
 pub fn is_last_garment(ticket: String) -> Result<bool, String> {
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
 
     let garment = garment_repo::get_garment(&mut conn, &ticket);
 
@@ -163,7 +163,7 @@ pub fn is_last_garment(ticket: String) -> Result<bool, String> {
 #[tauri::command]
 pub fn ticket_exists_tauri(ticket: String) -> Result<bool, String> {
     println!("Checking if ticket exists: {}", ticket);
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
 
     let res = garment_exists(&mut conn, ticket);
 
@@ -172,7 +172,7 @@ pub fn ticket_exists_tauri(ticket: String) -> Result<bool, String> {
 
 #[tauri::command]
 pub fn count_occupied_slots_tauri() -> Result<i64, String> {
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
     let res = SlotManager::get_number_occupied_slots(&mut conn)
         .map_err(|e| format!("DB Error: {}", e))?;
     Ok(res)
@@ -180,7 +180,7 @@ pub fn count_occupied_slots_tauri() -> Result<i64, String> {
 
 #[tauri::command]
 pub fn get_ticket_from_garment(barcode: String) -> Result<Ticket, String> {
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
     let garment = garment_repo::get_garment(&mut conn, &barcode);
     if garment.is_err() {
         return Err(format!("Garment not found for ticket: {}", barcode));
@@ -192,7 +192,7 @@ pub fn get_ticket_from_garment(barcode: String) -> Result<Ticket, String> {
 
 #[tauri::command]
 pub fn get_customer_from_ticket_tauri(ticket: String) -> Result<Option<crate::model::Customer>, String> {
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
     let garment = garment_repo::get_garment(&mut conn, &ticket);
     let res = ticket_repo::get_customer_from_ticket(&mut conn, &garment.unwrap().full_invoice_number)
         .map_err(|e| format!("DB Error: {}", e))?;
@@ -201,7 +201,7 @@ pub fn get_customer_from_ticket_tauri(ticket: String) -> Result<Option<crate::mo
 
 #[tauri::command]
 pub fn get_num_items_on_ticket(ticket: String) -> Result<i32, String> {
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
     let garment = garment_repo::get_garment(&mut conn, &ticket);
 
     if garment.is_err() {
@@ -251,7 +251,7 @@ pub fn check_opc_connection_tauri(state: tauri::State<'_, AppState>) -> bool {
 pub async fn get_slot_number_from_barcode_tauri(
     barcode: String
 ) -> Result<Option<i32>, String> {
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
     let garment = garment_repo::get_garment(&mut conn, &barcode);
 
     if garment.is_err() {
@@ -271,7 +271,7 @@ pub async fn get_slot_number_from_barcode_tauri(
 pub async fn garment_ticket_on_conveyor_tauri(
     barcode: String
 ) -> Result<i32, String> {
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
 
     match SlotRepo::find_ticket_slot(&mut conn, &barcode)
         .map_err(|e| format!("DB Error (find slot): {e}"))?
@@ -284,7 +284,7 @@ pub async fn garment_ticket_on_conveyor_tauri(
 #[tauri::command]
 pub async fn handle_last_scan(barcode: String, slot_num: i32) -> Result<i32, String> {
     // Get the garment
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
 
     let garment = garment_repo::get_garment(&mut conn, &barcode);
     if garment.is_err() {
@@ -316,14 +316,14 @@ pub async fn handle_last_scan(barcode: String, slot_num: i32) -> Result<i32, Str
 
 #[tauri::command]
 pub fn get_slot_manager_stats() -> Result<SlotManagerStats, String> {
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
     SlotManagerStats::fetch(&mut conn)
         .map_err(|e| format!("DB Error: {}", e))
 }
 
 #[tauri::command]
 pub fn start_user_session(user_id_input: i32) -> Result<crate::model::Session, String> {
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
     conn.transaction::<crate::model::Session, diesel::result::Error, _>(|conn| {
         sessions_repo::close_active_sessions_for_user(conn, user_id_input)?;
         sessions_repo::create_session(conn, user_id_input)
@@ -333,7 +333,7 @@ pub fn start_user_session(user_id_input: i32) -> Result<crate::model::Session, S
 
 #[tauri::command]
 pub fn end_user_session(session_id: i32) -> Result<crate::model::Session, String> {
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
     sessions_repo::end_session(&mut conn, session_id)
         .map_err(|e| format!("DB Error: {}", e))
 }
@@ -341,21 +341,21 @@ pub fn end_user_session(session_id: i32) -> Result<crate::model::Session, String
 #[tauri::command]
 pub fn increment_session_garments(session_id: i32) -> Result<crate::model::Session, String> {
     println!("Incrementing garments for session ID: {}", session_id);
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
     sessions_repo::increment_garments(&mut conn, session_id)
         .map_err(|e| format!("DB Error: {}", e))
 }
 
 #[tauri::command]
 pub fn increment_session_tickets(session_id: i32) -> Result<crate::model::Session, String> {
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
     sessions_repo::increment_tickets(&mut conn, session_id)
         .map_err(|e| format!("DB Error: {}", e))
 }
 
 #[tauri::command]
 pub fn clear_conveyor_tauri() -> Result<(), String> {
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
 
     conn.transaction::<(), diesel::result::Error, _>(|conn| {
         use crate::schema::garments::dsl as garments_dsl;
@@ -396,7 +396,7 @@ pub fn clear_conveyor_tauri() -> Result<(), String> {
 
 #[tauri::command]
 pub fn session_exists_today_tauri(user_id_input: i32) -> Result<bool, String> {
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
     // doesnt return count, just the actual data
     match sessions_repo::session_exists_today(&mut conn, user_id_input) {
         Ok(exists) => Ok(exists),
@@ -406,7 +406,7 @@ pub fn session_exists_today_tauri(user_id_input: i32) -> Result<bool, String> {
 
 #[tauri::command]
 pub fn get_existing_session_today_tauri(user_id_input: i32) -> Result<Option<crate::model::Session>, String> {
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
     match sessions_repo::get_existing_session_today(&mut conn, user_id_input) {
         Ok(session_opt) => Ok(session_opt),
         Err(e) => Err(format!("DB Error: {}", e)),

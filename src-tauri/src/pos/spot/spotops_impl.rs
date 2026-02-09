@@ -11,7 +11,7 @@ impl spotops_types::AddItemOp {
 
     pub fn perform_add_item_op(operation: &AddItemOp) -> Result<String, String> {
         
-        let mut conn: diesel::PgConnection = establish_connection();          
+        let mut conn: diesel::PgConnection = establish_connection()?;          
 
 
         Ok("Add Item Operation Successful".to_string())

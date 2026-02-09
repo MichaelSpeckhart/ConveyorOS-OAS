@@ -14,7 +14,7 @@ pub fn parse_spot_csv_core(contents: &[String]) -> Result<u32, String> {
     }
     
     // Single DB connection
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
 
     for line in contents {
         if line.trim().is_empty() {

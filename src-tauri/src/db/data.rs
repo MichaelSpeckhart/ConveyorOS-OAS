@@ -45,7 +45,7 @@ pub struct GarmentRow {
 
 #[tauri::command]
 pub fn data_list_customers(query: Option<String>) -> Result<Vec<CustomerRow>, String> {
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
     let mut q = customers::table.into_boxed();
 
     if let Some(search) = query {
@@ -68,7 +68,7 @@ pub fn data_list_customers(query: Option<String>) -> Result<Vec<CustomerRow>, St
 
 #[tauri::command]
 pub fn data_list_tickets_for_customer(customer_identifier: String) -> Result<Vec<TicketRow>, String> {
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
 
     tickets::table
         .filter(tickets::customer_identifier.eq(customer_identifier))
@@ -80,7 +80,7 @@ pub fn data_list_tickets_for_customer(customer_identifier: String) -> Result<Vec
 
 #[tauri::command]
 pub fn data_list_garments_for_ticket(full_invoice_number: String) -> Result<Vec<GarmentRow>, String> {
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
 
     garments::table
         .filter(garments::full_invoice_number.eq(full_invoice_number))

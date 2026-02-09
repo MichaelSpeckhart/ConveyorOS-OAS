@@ -8,14 +8,14 @@ pub fn login_user_with_pin(pin_input: &str) -> Result<User, String> {
         return Err("PIN must be 4 digits".into());
     }
 
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
 
     users_repo::find_by_pin(&mut conn, pin_input).map_err(|_| "Invalid PIN".to_string())
 }
 
 pub fn count_number_of_users() -> Result<i64, String> {
 
-    let mut conn: PgConnection = establish_connection();
+    let mut conn: PgConnection = establish_connection()?;
 
     users_repo::count_users(&mut conn).map_err(|_| "Connection Exception".to_string())
 }
@@ -28,7 +28,7 @@ pub fn create_user(username_input: &str, pin_input: &str) -> Result<User, String
         return Err("PIN must be 4 digits".into());
     }
 
-    let mut conn = establish_connection();
+    let mut conn = establish_connection()?;
 
     let mut user = users_repo::find_by_username(&mut conn, username_input);
     match user {

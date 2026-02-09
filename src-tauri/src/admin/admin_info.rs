@@ -14,7 +14,7 @@ pub fn get_operator_averaged_stats_start_end(start_date: DateTime<Utc>, end_date
     }
 
     // 1. Query sessions for all the operator stats from start to end date
-    let mut conn = crate::db::connection::establish_connection();
+    let mut conn = crate::db::connection::establish_connection()?;
     let sessions = sessions_repo::get_sessions_start_end(&mut conn, start_date.naive_utc().date(), end_date.naive_utc().date())
         .map_err(|e| e.to_string())?;
 
