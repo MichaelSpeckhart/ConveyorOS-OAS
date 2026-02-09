@@ -497,7 +497,7 @@ pub fn check_setup_required_tauri(app: tauri::AppHandle) -> bool {
     match std::env::var("DATABASE_URL") {
         Ok(_) => {
             // DATABASE_URL is set, try to connect
-            match diesel::PgConnection::establish(&database_url) {
+            match diesel::pg::PgConnection::establish(&database_url) {
                 Ok(_) => false, // Connection works, no setup needed
                 Err(_) => true,  // Connection fails, setup required
             }
