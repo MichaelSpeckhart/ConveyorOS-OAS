@@ -3,7 +3,7 @@ use std::{env, sync::{Arc, atomic::AtomicBool}};
 use tauri::Manager;
 use tokio::sync::Mutex;
 
-use crate::{db::{connection::establish_connection, data::{data_list_customers, data_list_garments_for_ticket, data_list_tickets_for_customer}, db_migrations::run_db_migrations}, io::fileutils::read_file, opc::opc_client::{AppState, OpcClient, OpcConfig}, pos::spot::spot_file_utils::parse_spot_csv_core, settings::load_settings};
+use crate::{db::{connection::{establish_connection, establish_connection_safe}, data::{data_list_customers, data_list_garments_for_ticket, data_list_tickets_for_customer}, db_migrations::run_db_migrations}, io::fileutils::read_file, opc::opc_client::{AppState, OpcClient, OpcConfig}, pos::spot::spot_file_utils::parse_spot_csv_core, settings::load_settings};
 
 pub mod plc;
 pub mod io;
@@ -45,13 +45,28 @@ pub fn run() {
             println!("Loaded settings: {:?}", settings);
 
             let database_url = crate::settings::database_url(&settings);
-            env::set_var("DATABASE_URL", database_url);
+            env::set_var("DATABASE_URL", database_url.clone());
             println!("Set DATABASE_URL env var for Diesel");
 
+            // Try to connect to database and run migrations
+            // If it fails, log the error but don't crash - allow settings UI to be shown
+            match establish_connection_safe() {
+                Ok(mut conn) => {
+                    match run_db_migrations(&mut conn) {
+                        Ok(_) => println!("✅ Database migrations completed successfully"),
+                        Err(e) => {
+                            eprintln!("⚠️ Failed to run database migrations: {}", e);
+                            eprintln!("   Please configure database settings in the app");
+                        }
+                    }
+                }
+                Err(e) => {
+                    eprintln!("⚠️ Failed to connect to database: {}", e);
+                    eprintln!("   Database URL: {}", database_url);
+                    eprintln!("   Please configure database settings in the app");
+                }
+            }
 
-
-            let mut conn = establish_connection();
-            run_db_migrations(&mut conn)?;
             // start file watch
             async_watch();
 
@@ -107,6 +122,10 @@ pub fn run() {
             tauri_commands::increment_session_tickets,
             tauri_commands::session_exists_today_tauri,
             tauri_commands::get_existing_session_today_tauri,
+            tauri_commands::save_settings_tauri,
+            tauri_commands::test_database_connection_tauri,
+            tauri_commands::get_current_settings_tauri,
+            tauri_commands::check_setup_required_tauri,
             greet
         ])
         .run(tauri::generate_context!())

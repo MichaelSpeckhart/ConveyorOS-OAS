@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { loadSettings, pickPosCsvFile, saveSettings, type AppSettings } from "../../lib/settings";
+import { loadSettings, pickPosCsvFile, saveSettings, testDatabaseConnection, type AppSettings } from "../../lib/settings";
 
 export default function SettingsPage() {
   const [s, setS] = useState<AppSettings | null>(null);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [section, setSection] = useState<"pos" | "db" | "opc">("pos");
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [connectionResult, setConnectionResult] = useState<{ success: boolean; message: string } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -36,6 +38,30 @@ export default function SettingsPage() {
     } catch (e) {
       console.error("FAILED pickPosCsvFile:", e);
       setErr(String(e));
+    }
+  };
+
+  const onTestConnection = async () => {
+    if (!s) return;
+    setTestingConnection(true);
+    setConnectionResult(null);
+    setErr(null);
+
+    try {
+      const result = await testDatabaseConnection(
+        s.dbHost,
+        s.dbPort,
+        s.dbName,
+        s.dbUser,
+        s.dbPassword
+      );
+      setConnectionResult(result);
+      setTimeout(() => setConnectionResult(null), 3000);
+    } catch (e) {
+      console.error("Test connection failed:", e);
+      setConnectionResult({ success: false, message: String(e) });
+    } finally {
+      setTestingConnection(false);
     }
   };
 
@@ -157,6 +183,26 @@ export default function SettingsPage() {
                     onChange={(e) => setS({ ...s, dbPassword: e.target.value })}
                   />
                 </label>
+              </div>
+
+              {/* Test Connection Button */}
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  onClick={onTestConnection}
+                  disabled={testingConnection}
+                  className="px-5 py-3 rounded-2xl bg-blue-600 text-white font-black tracking-tight shadow-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {testingConnection ? "Testing..." : "Test Connection"}
+                </button>
+                {connectionResult && (
+                  <div className={`rounded-xl border px-4 py-2 text-sm font-semibold ${
+                    connectionResult.success
+                      ? "border-green-500/40 bg-green-500/10 text-green-700"
+                      : "border-red-500/40 bg-red-500/10 text-red-700"
+                  }`}>
+                    {connectionResult.message}
+                  </div>
+                )}
               </div>
               </section>
             )}

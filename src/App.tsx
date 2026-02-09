@@ -12,6 +12,8 @@ import CreateUser from "./pages/login/CreateUser";
 import DataPage from "./pages/Data";
 import OperatorData from "./pages/operators/OperatorData";
 import { endUserSessionTauri, getExistingSession, sessionExistsTodayTauri, startUserSessionTauri } from "./lib/session_manager";
+import SetupWizard from "./components/SetupWizard";
+import { checkSetupRequired } from "./lib/settings";
 
 export default function App() {
   const [user, setUser] = useState<LoginResult | null>(null);
@@ -20,6 +22,24 @@ export default function App() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [sessionId, setSessionId] = useState<number | null>(null);
+  const [setupRequired, setSetupRequired] = useState<boolean | null>(null);
+
+  // Check if initial setup is required
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const required = await checkSetupRequired();
+        if (alive) setSetupRequired(required);
+      } catch (e) {
+        console.error("Failed to check setup required:", e);
+        if (alive) setSetupRequired(true); // Default to showing setup on error
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -88,6 +108,23 @@ export default function App() {
       onClick: () => setActive("settings"),
     },
   ];
+
+  // ---- SETUP WIZARD GATE ----
+  if (setupRequired === null) {
+    // Still checking if setup is required
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="text-center space-y-3">
+          <div className="h-8 w-8 mx-auto rounded-full border-2 border-slate-300 border-t-slate-900 animate-spin" />
+          <p className="text-slate-600 font-semibold">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (setupRequired) {
+    return <SetupWizard onComplete={() => setSetupRequired(false)} />;
+  }
 
   // ---- AUTH GATE ----
   if (!user) {

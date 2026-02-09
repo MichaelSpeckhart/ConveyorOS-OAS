@@ -1,5 +1,6 @@
 import { Store } from "@tauri-apps/plugin-store";
 import { open } from "@tauri-apps/plugin-dialog";
+import { invoke } from "@tauri-apps/api/core";
 
 export type AppSettings = {
   posCsvDir: string;
@@ -50,4 +51,43 @@ export async function pickPosCsvFile(): Promise<string | null> {
   });
 
   return typeof file === "string" ? file : null;
+}
+
+export async function testDatabaseConnection(
+  dbHost: string,
+  dbPort: number,
+  dbName: string,
+  dbUser: string,
+  dbPassword: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const result = await invoke<string>("test_database_connection_tauri", {
+      dbHost,
+      dbPort,
+      dbName,
+      dbUser,
+      dbPassword,
+    });
+    return { success: true, message: result };
+  } catch (error) {
+    return { success: false, message: String(error) };
+  }
+}
+
+export async function checkSetupRequired(): Promise<boolean> {
+  try {
+    return await invoke<boolean>("check_setup_required_tauri");
+  } catch (error) {
+    console.error("Failed to check setup required:", error);
+    return true; // Assume setup required if check fails
+  }
+}
+
+export async function getCurrentSettings(): Promise<AppSettings> {
+  try {
+    return await invoke<AppSettings>("get_current_settings_tauri");
+  } catch (error) {
+    console.error("Failed to get current settings:", error);
+    return DEFAULTS;
+  }
 }

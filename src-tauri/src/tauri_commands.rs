@@ -412,3 +412,96 @@ pub fn get_existing_session_today_tauri(user_id_input: i32) -> Result<Option<cra
         Err(e) => Err(format!("DB Error: {}", e)),
     }
 }
+
+// ============ Settings Management Commands ============
+
+#[tauri::command]
+pub fn save_settings_tauri(
+    app: tauri::AppHandle,
+    db_host: String,
+    db_port: u16,
+    db_name: String,
+    db_user: String,
+    db_password: String,
+    opc_server_url: String,
+    pos_csv_dir: String,
+) -> Result<(), String> {
+    use tauri::Manager;
+    use tauri_plugin_store::StoreExt;
+
+    let settings = crate::settings::appsettings::AppSettings {
+        posCsvDir: pos_csv_dir,
+        dbHost: db_host,
+        dbPort: db_port,
+        dbName: db_name,
+        dbUser: db_user,
+        dbPassword: db_password,
+        opcServerUrl: opc_server_url,
+    };
+
+    let store = app.store("settings.json").map_err(|e| format!("Store error: {}", e))?;
+
+    store.set("app_settings", serde_json::to_value(&settings).map_err(|e| e.to_string())?);
+    store.save().map_err(|e| format!("Failed to save settings: {}", e))?;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn test_database_connection_tauri(
+    db_host: String,
+    db_port: u16,
+    db_name: String,
+    db_user: String,
+    db_password: String,
+) -> Result<String, String> {
+    use diesel::prelude::*;
+
+    let pw = urlencoding::encode(&db_password);
+    let database_url = format!(
+        "postgres://{}:{}@{}:{}/{}",
+        db_user, pw, db_host, db_port, db_name
+    );
+
+    match diesel::PgConnection::establish(&database_url) {
+        Ok(_conn) => Ok("Connection successful!".to_string()),
+        Err(e) => Err(format!("Connection failed: {}", e)),
+    }
+}
+
+#[tauri::command]
+pub fn get_current_settings_tauri(app: tauri::AppHandle) -> Result<crate::settings::appsettings::AppSettings, String> {
+    Ok(crate::settings::load_settings(&app))
+}
+
+#[tauri::command]
+pub fn check_setup_required_tauri(app: tauri::AppHandle) -> bool {
+    use tauri::Manager;
+    use tauri_plugin_store::StoreExt;
+
+    // Check if settings exist
+    let store = match app.store("settings.json") {
+        Ok(s) => s,
+        Err(_) => return true, // Setup required if store fails
+    };
+
+    // Check if app_settings key exists
+    if store.get("app_settings").is_none() {
+        return true; // Setup required if no settings
+    }
+
+    // Try to establish connection with existing settings
+    let settings = crate::settings::load_settings(&app);
+    let database_url = crate::settings::database_url(&settings);
+
+    match std::env::var("DATABASE_URL") {
+        Ok(_) => {
+            // DATABASE_URL is set, try to connect
+            match diesel::PgConnection::establish(&database_url) {
+                Ok(_) => false, // Connection works, no setup needed
+                Err(_) => true,  // Connection fails, setup required
+            }
+        }
+        Err(_) => true, // DATABASE_URL not set, setup required
+    }
+}
