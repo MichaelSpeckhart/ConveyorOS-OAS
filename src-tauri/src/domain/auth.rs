@@ -1,6 +1,4 @@
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use serde::{Deserialize, Serialize};
 
 use crate::{db::{connection::establish_connection, users_repo}, model::User};
 

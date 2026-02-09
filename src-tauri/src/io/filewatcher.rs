@@ -1,6 +1,5 @@
 use std::fs::File;
-use std::io::{self, Read, Write};
-use std::path::Path;
+use std::io::{self, Read};
 
 pub fn read_file() -> io::Result<String> {
 

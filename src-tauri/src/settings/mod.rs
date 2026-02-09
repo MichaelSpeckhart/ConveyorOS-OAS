@@ -1,14 +1,13 @@
 pub mod appsettings;
 
 use tauri::{AppHandle, Manager};
-use tauri_plugin_store::StoreBuilder;
 use tauri_plugin_store::StoreExt;
 
 use crate::settings::appsettings::AppSettings;
 
 /// Reads settings.json -> key "app_settings" (written by the frontend)
 pub fn load_settings(app: &AppHandle) -> AppSettings {
-    let path = app
+    let _path = app
         .path()
         .app_data_dir()
         .expect("app_data_dir")

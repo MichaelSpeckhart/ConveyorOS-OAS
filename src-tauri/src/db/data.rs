@@ -1,5 +1,4 @@
 use diesel::prelude::*;
-use tauri::State;
 
 use crate::db::connection::establish_connection;
 use crate::schema::{customers, tickets, garments};

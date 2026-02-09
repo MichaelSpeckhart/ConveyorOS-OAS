@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, TimeZone, Utc};
 
 use crate::model::OperatorStats;
 
@@ -52,7 +52,15 @@ pub fn get_operator_averaged_stats_start_end(start_date: DateTime<Utc>, end_date
 
 pub fn get_operator_stats_today() -> Result<Vec<OperatorStats>, String> {
     let now = Utc::now();
-    let start_of_day = now.date().and_hms(0, 0, 0);
-    let end_of_day = now.date().and_hms(23, 59, 59);
+    let start_of_day = Utc.from_utc_datetime(
+        &now.date_naive()
+            .and_hms_opt(0, 0, 0)
+            .expect("valid start of day time"),
+    );
+    let end_of_day = Utc.from_utc_datetime(
+        &now.date_naive()
+            .and_hms_opt(23, 59, 59)
+            .expect("valid end of day time"),
+    );
     get_operator_averaged_stats_start_end(start_of_day, end_of_day)
 }

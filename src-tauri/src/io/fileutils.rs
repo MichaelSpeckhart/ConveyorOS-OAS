@@ -1,8 +1,7 @@
-use std::{fs::{self, File}, io::{self, BufRead, BufReader}, sync::Condvar};
+use std::{fs::{self, File}, io::{self, BufRead, BufReader}};
 use std::path::Path;
 use std::string::String;
 
-use crate::pos::spot::spot_file_utils::parse_spot_csv_core;
 
 // Read file utility method
 // NB: Could impl struct "Reader" with different reading

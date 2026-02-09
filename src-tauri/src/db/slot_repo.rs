@@ -3,7 +3,6 @@ use diesel::prelude::*;
 use diesel::{OptionalExtension, PgConnection, QueryResult};
 
 use crate::model::Slot;
-use crate::schema::slots;
 
 pub struct SlotRepo;
 
@@ -92,7 +91,6 @@ impl SlotRepo {
         conn: &mut PgConnection,
         num: i32,
         ticket: Option<&str>,
-        item: Option<&str>,
     ) -> QueryResult<()> {
         use crate::schema::slots::dsl::*;
 

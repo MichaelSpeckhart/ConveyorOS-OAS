@@ -2,7 +2,6 @@ use std::sync::{
     Arc,
     atomic::{AtomicBool, Ordering},
 };
-use open62541::ua;
 use tokio::time::{sleep, Duration};
 
 use crate::opc::{opc_client::OpcClient, opc_commands::get_load_hanger_sensor};

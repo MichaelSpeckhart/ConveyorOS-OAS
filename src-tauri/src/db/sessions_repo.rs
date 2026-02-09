@@ -1,5 +1,5 @@
 use diesel::prelude::*;
-use chrono::{DateTime, NaiveDate};
+use chrono::{NaiveDate};
 
 use crate::model::{NewSession, Session};
 use crate::schema::sessions;

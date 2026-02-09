@@ -13,7 +13,7 @@ export async function setTargetSlot(value: number): Promise<void> {
 }
 
 export async function slotRunRequest(targetSlot: number): Promise<void> {
-  await invoke("slot_run_request_tauri", { targetSlot: Math.trunc(targetSlot) });
+  await invoke("slot_run_request_tauri", { target_slot: Math.trunc(targetSlot) });
 }
 
 export async function opcConnected(): Promise<boolean> {

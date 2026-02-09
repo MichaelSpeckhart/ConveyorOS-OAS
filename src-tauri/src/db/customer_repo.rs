@@ -1,10 +1,7 @@
-use core::num;
-
-use chrono::{NaiveDate, NaiveDateTime};
 use diesel::prelude::*;
 
 use crate::model::{Customer, NewCustomer};
-use crate::schema::{customers, garments};
+use crate::schema::{customers};
 use crate::schema::customers::dsl::*;
 
 

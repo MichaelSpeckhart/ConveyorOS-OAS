@@ -1,6 +1,6 @@
 use open62541::ua::Variant;
 
-use crate::opc::{opc_client::{self, AppState}, opc_commands};
+use crate::opc::{opc_client::{AppState}, opc_commands};
 
 
 
@@ -17,7 +17,7 @@ pub async fn get_target_slot_tauri(state: tauri::State<'_, AppState>) -> Result<
 #[tauri::command]
 pub async fn slot_run_request_tauri(
     state: tauri::State<'_, AppState>,
-    targetSlot: i16,
+    target_slot: i16,
 ) -> Result<(), String> {
-    opc_commands::slot_run_request(&state.opc, targetSlot).await
+    opc_commands::slot_run_request(&state.opc, target_slot).await
 }

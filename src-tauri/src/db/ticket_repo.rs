@@ -1,4 +1,3 @@
-use chrono::{NaiveDate, NaiveDateTime};
 use diesel::prelude::*;
 
 use crate::model::{NewTicket, Ticket, UpdateTicket};
