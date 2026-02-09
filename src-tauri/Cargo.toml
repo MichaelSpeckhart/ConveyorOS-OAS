@@ -14,6 +14,9 @@ edition = "2021"
 name = "conveyoros_oas_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
+[features]
+default = []
+vendored = ["openssl-sys/vendored", "pq-sys/bundled"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -31,8 +34,8 @@ rs-melsec = "0.1.0"
 chrono = { version = "0.4", features = ["serde"] }
 diesel = { version = "2.2.0", features = ["chrono", "postgres"] }
 dotenvy = "0.15"
-pq-sys = { version = "0.6", features = ["bundled"] }
-openssl-sys = { version = "0.9.100", features = ["vendored"] } 
+pq-sys = "0.6"
+openssl-sys = "0.9.100"
 csv = "1"
 notify = { version = "8.1.0", features = ["serde"] }
 opcua = "0.12"
