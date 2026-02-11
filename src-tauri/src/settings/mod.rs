@@ -32,6 +32,12 @@ pub fn load_settings(app: &AppHandle) -> AppSettings {
 pub fn database_url(s: &AppSettings) -> String {
     // URL-encode password in case it has special chars
     let pw = urlencoding::encode(&s.dbPassword);
+
+    // Write the database url to a file to check
+    // Path should be the C: folder for easy access - this is just for debugging to verify the URL is correct
+    std::fs::write("C:\\database_url.txt", format!("postgres://{}:{}@{}:{}/{}", s.dbUser, pw, s.dbHost, s.dbPort, s.dbName))
+        .expect("Unable to write database_url.txt");
+
     format!(
         "postgres://{}:{}@{}:{}/{}",
         s.dbUser, pw, s.dbHost, s.dbPort, s.dbName

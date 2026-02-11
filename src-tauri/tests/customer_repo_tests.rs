@@ -22,7 +22,10 @@ pub fn test_add_customer() {
 
     let mut conn = establish_connection();
 
-    let result = customer_repo::create_customer(&mut conn, new_customer);
+    let result = customer_repo::create_customer(
+        conn.as_mut().expect("Failed to establish connection"),
+        new_customer
+    );
 
     match result {
         Ok(customer) => {
@@ -41,7 +44,7 @@ pub fn test_add_customer() {
 pub fn test_delete_customer_success() {
     use conveyoros_oas_lib::{db::connection::establish_connection, model::NewCustomer};
     
-    let mut conn = establish_connection();
+    let mut conn = establish_connection().expect("Failed to establish connection");
 
     // Delete the customer given the identifier
 
@@ -54,7 +57,7 @@ pub fn test_delete_customer_success() {
 #[test]
 pub fn test_delete_customer_failure() {
     use conveyoros_oas_lib::{db::connection::establish_connection};
-    let mut conn = establish_connection();
+    let mut conn = establish_connection().expect("Failed to establish connection");
 
     let num_deleted = customer_repo::delete_customer(&mut conn, "identifier_to_delete");
 
@@ -64,7 +67,7 @@ pub fn test_delete_customer_failure() {
 #[test]
 pub fn test_contains_customer_success() {
     use conveyoros_oas_lib::{db::connection::establish_connection};
-    let mut conn = establish_connection();
+    let mut conn = establish_connection().expect("Failed to establish connection");
 
     let customer = customer_repo::contains_customer_identifier(&mut conn, "123456");
 
@@ -74,7 +77,7 @@ pub fn test_contains_customer_success() {
 #[test]
 pub fn test_get_customer_success() {
     use conveyoros_oas_lib::{db::connection::establish_connection};
-    let mut conn = establish_connection();
+    let mut conn = establish_connection().expect("Failed to establish connection");
 
     let customer = customer_repo::get_customer_by_identifier(&mut conn, "123456");
 
