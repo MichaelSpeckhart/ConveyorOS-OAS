@@ -46,8 +46,7 @@ pub fn auth_create_user_tauri(username_input: String, pin_input: String) -> Resu
     }
 
     
-    let new_user = auth::create_user(&username_input, &pin_input)
-        .map_err(|_| "Connection Error".to_string())?;
+    let new_user = auth::create_user(&username_input, &pin_input)?;
     Ok(new_user)
 
 }
