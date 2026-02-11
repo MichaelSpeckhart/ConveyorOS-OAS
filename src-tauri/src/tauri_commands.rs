@@ -443,9 +443,9 @@ pub fn save_settings_tauri(
     store.set("app_settings", serde_json::to_value(&settings).map_err(|e| e.to_string())?);
     store.save().map_err(|e| format!("Failed to save settings: {}", e))?;
 
-    // Update DATABASE_URL so establish_connection() uses the new settings
+    // Update the global database URL so establish_connection() uses the new settings
     let database_url = crate::settings::database_url(&settings);
-    std::env::set_var("DATABASE_URL", &database_url);
+    crate::db::connection::set_database_url(&database_url);
 
     // Run migrations on the new database
     match crate::db::connection::establish_connection() {
@@ -507,14 +507,12 @@ pub fn check_setup_required_tauri(app: tauri::AppHandle) -> bool {
     let settings = crate::settings::load_settings(&app);
     let database_url = crate::settings::database_url(&settings);
 
-    match std::env::var("DATABASE_URL") {
+    match diesel::pg::PgConnection::establish(&database_url) {
         Ok(_) => {
-            // DATABASE_URL is set, try to connect
-            match diesel::pg::PgConnection::establish(&database_url) {
-                Ok(_) => false, // Connection works, no setup needed
-                Err(_) => true,  // Connection fails, setup required
-            }
+            // Connection works — also make sure the global URL is set
+            crate::db::connection::set_database_url(&database_url);
+            false
         }
-        Err(_) => true, // DATABASE_URL not set, setup required
+        Err(_) => true, // Connection fails, setup required
     }
 }

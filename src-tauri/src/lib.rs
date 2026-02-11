@@ -1,9 +1,9 @@
-use std::{env, sync::{Arc, atomic::AtomicBool}};
+use std::sync::{Arc, atomic::AtomicBool};
 
 use tauri::Manager;
 use tokio::sync::Mutex;
 
-use crate::{db::{connection::establish_connection, data::{data_list_customers, data_list_garments_for_ticket, data_list_tickets_for_customer}, db_migrations::run_db_migrations}, io::fileutils::read_file, opc::opc_client::{AppState, OpcClient, OpcConfig}, pos::spot::spot_file_utils::parse_spot_csv_core, settings::{load_settings, appsettings::AppSettings}};
+use crate::{db::{connection::{establish_connection, set_database_url}, data::{data_list_customers, data_list_garments_for_ticket, data_list_tickets_for_customer}, db_migrations::run_db_migrations}, io::fileutils::read_file, opc::opc_client::{AppState, OpcClient, OpcConfig}, pos::spot::spot_file_utils::parse_spot_csv_core, settings::{load_settings, appsettings::AppSettings}};
 
 pub mod plc;
 pub mod io;
@@ -45,8 +45,8 @@ pub fn run() {
             println!("Loaded settings: {:?}", settings);
 
             let database_url = crate::settings::database_url(&settings);
-            env::set_var("DATABASE_URL", database_url.clone());
-            println!("Set DATABASE_URL env var for Diesel");
+            set_database_url(&database_url);
+            println!("Database URL configured");
 
             // Try to connect to database and run migrations
             // If it fails, log the error but don't crash - allow settings UI to be shown
