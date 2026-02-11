@@ -38,9 +38,15 @@ export async function loadSettings(): Promise<AppSettings> {
 }
 
 export async function saveSettings(s: AppSettings): Promise<void> {
-  const store = await getStore();
-  await store.set("app_settings", s);
-  await store.save();
+  await invoke("save_settings_tauri", {
+    dbHost: s.dbHost,
+    dbPort: s.dbPort,
+    dbName: s.dbName,
+    dbUser: s.dbUser,
+    dbPassword: s.dbPassword,
+    opcServerUrl: s.opcServerUrl ?? "",
+    posCsvDir: s.posCsvDir,
+  });
 }
 
 export async function pickPosCsvFile(): Promise<string | null> {
