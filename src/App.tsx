@@ -129,7 +129,7 @@ export default function App() {
   // ---- AUTH GATE ----
   if (!user) {
     if (showCreateUser) {
-      return <CreateUser />; // ✅ no props
+      return <CreateUser onUserCreated={() => setShowCreateUser(false)} />;
     }
 
     return (

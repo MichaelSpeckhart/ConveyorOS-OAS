@@ -444,6 +444,20 @@ pub fn save_settings_tauri(
     store.set("app_settings", serde_json::to_value(&settings).map_err(|e| e.to_string())?);
     store.save().map_err(|e| format!("Failed to save settings: {}", e))?;
 
+    // Update DATABASE_URL so establish_connection() uses the new settings
+    let database_url = crate::settings::database_url(&settings);
+    std::env::set_var("DATABASE_URL", &database_url);
+
+    // Run migrations on the new database
+    match crate::db::connection::establish_connection() {
+        Ok(mut conn) => {
+            if let Err(e) = crate::db::db_migrations::run_db_migrations(&mut conn) {
+                return Err(format!("Failed to run migrations: {}", e));
+            }
+        }
+        Err(e) => return Err(format!("Failed to connect with new settings: {}", e)),
+    }
+
     Ok(())
 }
 

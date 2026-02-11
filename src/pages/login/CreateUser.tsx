@@ -7,7 +7,11 @@ interface CreateUserResult {
   username: string;
 }
 
-const CreateUser: React.FC = () => {
+interface CreateUserProps {
+  onUserCreated: () => void;
+}
+
+const CreateUser: React.FC<CreateUserProps> = ({ onUserCreated }) => {
   const [username, setUsername] = useState("");
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
@@ -47,9 +51,8 @@ const CreateUser: React.FC = () => {
       setPin("");
       setConfirmPin("");
 
-      // ✅ simple "redirect" for your state-driven App: reload and show Login
       setTimeout(() => {
-        window.location.reload();
+        onUserCreated();
       }, 600);
     } catch (err: any) {
       console.error(err);
