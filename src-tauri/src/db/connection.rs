@@ -1,5 +1,7 @@
 use diesel::prelude::*;
 use std::sync::RwLock;
+//add logging
+
 
 static DATABASE_URL: RwLock<String> = RwLock::new(String::new());
 
