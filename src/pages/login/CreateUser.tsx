@@ -54,9 +54,10 @@ const CreateUser: React.FC<CreateUserProps> = ({ onUserCreated }) => {
       setTimeout(() => {
         onUserCreated();
       }, 600);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       setError(typeof err === "string" ? err : "Failed to create user.");
+      alert(typeof err === "string" ? err : "Failed to create user.");
     } finally {
       setLoading(false);
     }

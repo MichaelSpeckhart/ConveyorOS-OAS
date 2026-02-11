@@ -20,7 +20,7 @@ pub mod slot_manager;
 pub mod result;
 pub mod admin;
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
@@ -48,20 +48,18 @@ pub fn run() {
             set_database_url(&database_url);
             println!("Database URL configured");
 
-            // Try to connect to database and run migrations
-            // If it fails, log the error but don't crash - allow settings UI to be shown
             match establish_connection() {
                 Ok(mut conn) => {
                     match run_db_migrations(&mut conn) {
-                        Ok(_) => println!("✅ Database migrations completed successfully"),
+                        Ok(_) => println!("Database migrations completed successfully"),
                         Err(e) => {
-                            eprintln!("⚠️ Failed to run database migrations: {}", e);
+                            eprintln!("Failed to run database migrations: {}", e);
                             eprintln!("   Please configure database settings in the app");
                         }
                     }
                 }
                 Err(e) => {
-                    eprintln!("⚠️ Failed to connect to database: {}", e);
+                    eprintln!("Failed to connect to database: {}", e);
                     eprintln!("   Database URL: {}", database_url);
                     eprintln!("   Please configure database settings in the app");
                 }

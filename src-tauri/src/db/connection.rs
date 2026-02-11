@@ -11,6 +11,7 @@ pub fn set_database_url(url: &str) {
 
 /// Establish connection to Postgres DB
 pub fn establish_connection() -> Result<PgConnection, String> {
+    //let app_handler = app.
     let database_url = DATABASE_URL
         .read()
         .unwrap()

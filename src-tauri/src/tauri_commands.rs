@@ -34,22 +34,31 @@ pub fn auth_login_user_tauri(pin_input: String) -> Result<User, String> {
     Ok(user)
 }
 
+// #[tauri::command]
+// pub fn auth_create_user_tauri(username_input: String, pin_input: String) -> Result<User, String> {
+    
+//     if username_input.trim().is_empty() {
+//         return Err("Username cannot be empty".into());
+//     }
+    
+//     if pin_input.len() != 4 || !pin_input.chars().all(|c| c.is_ascii_digit()) {
+//         return Err("PIN must be 4 digits".into());
+//     }
+
+    
+//     let new_user = auth::create_user(&username_input, &pin_input)?;
+//     Ok(new_user)
+
+// }
+
 #[tauri::command]
-pub fn auth_create_user_tauri(username_input: String, pin_input: String) -> Result<User, String> {
-    
-    if username_input.trim().is_empty() {
-        return Err("Username cannot be empty".into());
-    }
-    
-    if pin_input.len() != 4 || !pin_input.chars().all(|c| c.is_ascii_digit()) {
-        return Err("PIN must be 4 digits".into());
-    }
-
-    
-    let new_user = auth::create_user(&username_input, &pin_input)?;
-    Ok(new_user)
-
+pub async fn auth_create_user_tauri(
+    username_input: String,
+    pin_input: String,
+) -> Result<User, String> {
+    auth::create_user(&username_input, &pin_input)
 }
+
 
 #[tauri::command]
 pub fn get_all_users_tauri() -> Result<Vec<User>, String> {

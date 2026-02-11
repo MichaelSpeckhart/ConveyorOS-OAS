@@ -28,23 +28,23 @@ pub fn create_user(username_input: &str, pin_input: &str) -> Result<User, String
         return Err("PIN must be 4 digits".into());
     }
 
-    let mut conn = establish_connection()?;
+    let mut conn = establish_connection().map_err(|_| "Connection Exception".to_string())?;
 
     let mut user = users_repo::find_by_username(&mut conn, username_input);
     match user {
         Ok(_) => return Err("Username already exists".into()),
-        Err(diesel::result::Error::NotFound) => {}, // This is expected
-        Err(_) => return Err("Connection Exception".into()),
+        Err(diesel::result::Error::NotFound) => {},
+        Err(e) => return Err(format!("DB error checking username: {}", e)),
     }
 
     user = users_repo::find_by_pin(&mut conn, pin_input);
     match user {
-        Ok(_) => return Err("PIN already in use".into()),
-        Err(diesel::result::Error::NotFound) => {}, // This is expected
-        Err(_) => return Err("Connection Exception".into()),
+        Ok(_) => return Err("PIN already exists".into()),
+        Err(diesel::result::Error::NotFound) => {},
+        Err(e) => return Err(format!("DB error checking PIN: {}", e)),
     }
 
     users_repo::create_user(&mut conn, username_input, pin_input)
-        .map_err(|_| "Connection Exception".to_string())
+    .map_err(|e| format!("DB insert error: {}", e))
 }
 
