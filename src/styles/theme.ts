@@ -1,9 +1,10 @@
 // styles/theme.ts
 export const theme = {
   colors: {
-    bg: "#f6f8fb",
-    panel: "#ffffff",
-    border: "#e5e7eb",
+    bg: "#16355b",
+    panel: "#16355b",
+    border: "#16355b",
+    nav: "#ffffff",
 
     primary: "#2563eb",        // blue-600
     primarySoft: "#dbeafe",    // blue-100

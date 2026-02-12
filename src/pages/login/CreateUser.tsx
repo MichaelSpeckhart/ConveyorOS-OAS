@@ -70,7 +70,7 @@ const CreateUser: React.FC<CreateUserProps> = ({ onUserCreated }) => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#e5e7eb",
+        backgroundColor: "#16355b",
         color: "#e5e7eb",
         fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
       }}
@@ -81,14 +81,14 @@ const CreateUser: React.FC<CreateUserProps> = ({ onUserCreated }) => {
           maxWidth: "360px",
           padding: "2rem",
           borderRadius: "1rem",
-          background: "#1f2937",
+          background: "#ffffff",
           boxShadow: "0 20px 40px rgba(0,0,0,0.4)",
         }}
       >
-        <h2 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>
+        <h2 style={{ fontSize: "1.5rem", marginBottom: "0.5rem", color: "#0f172a" }}>
           Create First User
         </h2>
-        <p style={{ fontSize: "0.9rem", color: "#9ca3af", marginBottom: "1.5rem" }}>
+        <p style={{ fontSize: "0.9rem", color: "#64748b", marginBottom: "1.5rem" }}>
           Set up an operator account with a 4-digit PIN.
         </p>
 
@@ -128,7 +128,7 @@ const CreateUser: React.FC<CreateUserProps> = ({ onUserCreated }) => {
         >
           <div>
             <label
-              style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.9rem" }}
+              style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.9rem", color: "#0f172a" }}
             >
               Username
             </label>
@@ -144,7 +144,7 @@ const CreateUser: React.FC<CreateUserProps> = ({ onUserCreated }) => {
 
           <div>
             <label
-              style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.9rem" }}
+              style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.9rem", color: "#0f172a" }}
             >
               PIN (4 digits)
             </label>
@@ -164,7 +164,7 @@ const CreateUser: React.FC<CreateUserProps> = ({ onUserCreated }) => {
 
           <div>
             <label
-              style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.9rem" }}
+              style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.9rem", color: "#0f172a" }}
             >
               Confirm PIN
             </label>
@@ -209,9 +209,9 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "0.5rem 0.6rem",
   borderRadius: "0.5rem",
-  border: "1px solid #374151",
-  backgroundColor: "#111827",
-  color: "#e5e7eb",
+  border: "1px solid #e5e7eb",
+  backgroundColor: "#f1f5f9",
+  color: "#0f172a",
   fontSize: "0.95rem",
   outline: "none",
 };

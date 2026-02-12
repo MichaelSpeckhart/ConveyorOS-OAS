@@ -63,7 +63,7 @@ const Login: React.FC<LoginProps> = ({ onSuccess, onNoUsers }) => {
   const del = () => setPin((prev) => prev.slice(0, -1));
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 text-white flex items-center justify-center p-6">
+    <div className="min-h-screen w-full bg-[#16355b] text-white flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="bg-white/95 text-slate-900 rounded-[2.5rem] shadow-2xl p-8 md:p-10">
           <div className="flex items-center justify-between mb-8">
