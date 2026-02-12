@@ -50,13 +50,15 @@ pub fn run() {
 
             match establish_connection() {
                 Ok(mut conn) => {
-                    match run_db_migrations(&mut conn) {
-                        Ok(_) => println!("Database migrations completed successfully"),
-                        Err(e) => {
+                    
+                    std::thread::spawn(move || {
+                        if let Err(e) = run_db_migrations(&mut conn) {
                             eprintln!("Failed to run database migrations: {}", e);
                             eprintln!("   Please configure database settings in the app");
+                        } else {
+                            println!("Database migrations completed successfully");
                         }
-                    }
+                    });
                 }
                 Err(e) => {
                     eprintln!("Failed to connect to database: {}", e);
@@ -136,7 +138,7 @@ pub fn async_watch(settings: AppSettings) {
 
     tauri::async_runtime::spawn(async move {
         if csv_dir.is_empty() {
-            println!("⚠️ POS CSV directory not configured, skipping file watch");
+            println!("POS CSV directory not configured, skipping file watch");
             return;
         }
 

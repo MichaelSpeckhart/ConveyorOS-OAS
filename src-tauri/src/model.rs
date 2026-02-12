@@ -205,6 +205,7 @@ pub struct UpdateTicket {
     pub full_invoice_number: Option<String>,
     pub display_invoice_number: Option<String>,
     pub garments_processed: Option<i32>,
+    pub number_of_items: Option<i32>,
     pub invoice_pickup_date: chrono::NaiveDateTime,
     pub ticket_status: Option<String>
 }

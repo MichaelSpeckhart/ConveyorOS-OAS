@@ -61,3 +61,30 @@ pub fn update_ticket(conn: &mut PgConnection, ticket_id: i32, updated_ticket: &U
         .get_result::<Ticket>(conn)
         .map_err(|e| e.to_string())
 }
+
+pub fn update_ticket_item_count(conn: &mut PgConnection, invoice_number: &str, new_item_count: i32) -> Result<Ticket, String> {
+    use crate::schema::tickets::dsl as tickets_dsl;
+    diesel::update(tickets_dsl::tickets.filter(tickets_dsl::full_invoice_number.eq(invoice_number)))
+        .set(number_of_items.eq(new_item_count))
+        .get_result::<Ticket>(conn)
+        .map_err(|e| e.to_string())
+}
+
+pub fn update_ticket_dropoff_pickup(conn: &mut PgConnection, invoice_number: &str, dropoff_date: chrono::NaiveDateTime, pickup_date: chrono::NaiveDateTime) -> Result<Ticket, String> {
+    use crate::schema::tickets::dsl as tickets_dsl;
+    diesel::update(tickets_dsl::tickets.filter(tickets_dsl::full_invoice_number.eq(invoice_number)))
+        .set((
+            invoice_dropoff_date.eq(dropoff_date),
+            invoice_pickup_date.eq(pickup_date)
+        ))
+        .get_result::<Ticket>(conn)
+        .map_err(|e| e.to_string())
+}
+
+pub fn update_ticket_pickup_date(conn: &mut PgConnection, invoice_number: &str, pickup_date: chrono::NaiveDateTime) -> Result<Ticket, String> {
+    use crate::schema::tickets::dsl as tickets_dsl;
+    diesel::update(tickets_dsl::tickets.filter(tickets_dsl::full_invoice_number.eq(invoice_number)))
+        .set(invoice_pickup_date.eq(pickup_date))
+        .get_result::<Ticket>(conn)
+        .map_err(|e| e.to_string())
+}

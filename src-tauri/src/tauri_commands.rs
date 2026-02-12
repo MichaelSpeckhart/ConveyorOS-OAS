@@ -34,23 +34,6 @@ pub fn auth_login_user_tauri(pin_input: String) -> Result<User, String> {
     Ok(user)
 }
 
-// #[tauri::command]
-// pub fn auth_create_user_tauri(username_input: String, pin_input: String) -> Result<User, String> {
-    
-//     if username_input.trim().is_empty() {
-//         return Err("Username cannot be empty".into());
-//     }
-    
-//     if pin_input.len() != 4 || !pin_input.chars().all(|c| c.is_ascii_digit()) {
-//         return Err("PIN must be 4 digits".into());
-//     }
-
-    
-//     let new_user = auth::create_user(&username_input, &pin_input)?;
-//     Ok(new_user)
-
-// }
-
 #[tauri::command]
 pub async fn auth_create_user_tauri(
     username_input: String,
@@ -102,6 +85,7 @@ pub fn handle_scan_tauri(scan_code: String) -> Result<Option<i32>, String> {
             full_invoice_number: Some(ticket_info.full_invoice_number.clone()),
             display_invoice_number: Some(ticket_info.display_invoice_number.clone()),
             garments_processed: Some(ticket_info.garments_processed),
+            number_of_items: Some(ticket_info.number_of_items),
             invoice_pickup_date: ticket_info.invoice_pickup_date,
             ticket_status: Some(ticket_info.ticket_status)
         };
@@ -127,6 +111,7 @@ pub fn handle_scan_tauri(scan_code: String) -> Result<Option<i32>, String> {
     let update_ticket = &UpdateTicket {
         full_invoice_number: Some(ticket_info.full_invoice_number.clone()),
         display_invoice_number: Some(ticket_info.display_invoice_number.clone()),
+        number_of_items: Some(ticket_info.number_of_items),
         garments_processed: Some(ticket_info.garments_processed),
         invoice_pickup_date: ticket_info.invoice_pickup_date,
         ticket_status: Some(new_status.to_string())
@@ -311,6 +296,7 @@ pub async fn handle_last_scan(barcode: String, slot_num: i32) -> Result<i32, Str
         full_invoice_number: Some(ticket_info.full_invoice_number),
         display_invoice_number: Some(ticket_info.display_invoice_number),
         garments_processed: Some(ticket_info.number_of_items),
+        number_of_items: Some(ticket_info.number_of_items),
         invoice_pickup_date: ticket_info.invoice_pickup_date,
         ticket_status: Some(new_status.to_string())
     };
@@ -434,7 +420,6 @@ pub fn save_settings_tauri(
     opc_server_url: String,
     pos_csv_dir: String,
 ) -> Result<(), String> {
-    use tauri::Manager;
     use tauri_plugin_store::StoreExt;
 
     let settings = crate::settings::appsettings::AppSettings {
@@ -498,7 +483,6 @@ pub fn get_current_settings_tauri(app: tauri::AppHandle) -> Result<crate::settin
 
 #[tauri::command]
 pub fn check_setup_required_tauri(app: tauri::AppHandle) -> bool {
-    use tauri::Manager;
     use tauri_plugin_store::StoreExt;
 
     // Check if settings exist

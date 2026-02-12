@@ -68,6 +68,8 @@ impl FromStr for spot_ops_types {
         match s.trim().to_uppercase().as_str() {
             "ADDITEM" => Ok(spot_ops_types::AddItem),
             "DELITEM" => Ok(spot_ops_types::DeleteItem),
+            "ADDINV" => Ok(spot_ops_types::AddInvoice),
+            "DELINV" => Ok(spot_ops_types::DeleteInvoice),
             _ => Ok(spot_ops_types::Default),
         }
     }
@@ -94,7 +96,7 @@ pub struct AddItemOp {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub struct delete_item_op {
+pub struct DeleteItemOp {
     pub op_type: spot_ops_types,
     pub full_invoice_number: String,
     pub item_id: String
