@@ -36,3 +36,7 @@ pub fn database_url(s: &AppSettings) -> String {
         s.dbUser, pw, s.dbHost, s.dbPort, s.dbName
     )
 }
+
+pub fn pos_csv_dir(s: &AppSettings) -> String {
+    s.posCsvDir.clone()
+}

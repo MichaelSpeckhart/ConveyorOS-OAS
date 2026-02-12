@@ -270,23 +270,41 @@ pub fn create_customer_from_add_invoice_op(conn: &mut diesel::PgConnection, add_
 }
 
 pub fn create_ticket_from_add_invoice_op(conn: &mut diesel::PgConnection, add_op: &spotops_types::AddInvoiceOp) -> Result<(), String> {
+    
     let new_status: &str = "Not Processed";
+    
     let new_ticket = crate::model::NewTicket {
+    
         full_invoice_number: add_op.full_invoice_number.clone(),
+    
         display_invoice_number: add_op.display_invoice_number.clone(),
+    
         customer_identifier: add_op.customer_identifier.clone(),
+    
         customer_first_name: add_op.customer_first_name.clone(),
+    
         customer_last_name: add_op.customer_last_name.clone(),
+    
         customer_phone_number: add_op.customer_phone_number.clone(),
+    
         number_of_items: add_op.num_items as i32,
+    
         invoice_dropoff_date: NaiveDateTime::from_timestamp_opt(0, 0)
+    
             .expect("invalid dropoff placeholder timestamp"), // Placeholder, since AddInvoiceOp doesn't have dropoff date
+    
         invoice_pickup_date: NaiveDateTime::from_timestamp_opt(0, 0)
+    
             .expect("invalid pickup placeholder timestamp"), // Placeholder, since AddInvoiceOp doesn't have pickup date
+    
         ticket_status: new_status.to_string(),
+    
     };
 
+
+    
     ticket_repo::create_ticket(conn, new_ticket)
+    
         .map_err(|e| format!("CREATE_TICKET_FAILED: {}", e))?;
 
     Ok(())
@@ -294,53 +312,91 @@ pub fn create_ticket_from_add_invoice_op(conn: &mut diesel::PgConnection, add_op
 
 /// Create a garment in the database from an AddItemOp
 pub fn create_garment_from_add_op(conn: &mut diesel::PgConnection, add_op: &spotops_types::AddItemOp) -> Result<(), String> {
+    
     let new_garment = crate::model::NewGarment {
+    
         item_id: add_op.item_id.clone(),
+    
         invoice_comments: add_op.invoice_comments.clone(),
+    
         item_description: add_op.item_descriptions.clone(),
+    
         display_invoice_number: add_op.invoice_number.clone(),
+    
         full_invoice_number: add_op.full_invoice_number.clone(),
+    
         invoice_dropoff_date: add_op.invoice_dropoff_date.naive_local(),
+    
         invoice_pickup_date: add_op.invoice_promised_date.naive_local(),
+    
         slot_number: add_op.slot_occupancy as i32,
+    
     };
 
+
+    
     garment_repo::create_garment(conn, new_garment)
+    
         .map_err(|e| format!("CREATE_GARMENT_FAILED: {}", e))?;
 
     Ok(())
 }
 
 pub fn create_ticket_from_add_op(conn: &mut diesel::PgConnection, add_op: &spotops_types::AddItemOp) -> Result<(), String> {
+    
     let new_status: &str = "Not Processed";
+    
     let new_ticket = crate::model::NewTicket {
+    
         full_invoice_number: add_op.full_invoice_number.clone(),
+    
         display_invoice_number: add_op.invoice_number.clone(),
+    
         customer_identifier: add_op.customer_identifier.clone(),
+    
         customer_first_name: add_op.customer_first_name.clone(),
+    
         customer_last_name: add_op.customer_last_name.clone(),
+    
         customer_phone_number: add_op.customer_phone_number.clone(),
+    
         number_of_items: add_op.num_items as i32,
+    
         invoice_dropoff_date: add_op.invoice_dropoff_date.naive_local(),
+    
         invoice_pickup_date: add_op.invoice_promised_date.naive_local(),
+    
         ticket_status: new_status.to_string(),
+    
     };
 
+
+    
     ticket_repo::create_ticket(conn, new_ticket)
+    
         .map_err(|e| format!("CREATE_TICKET_FAILED: {}", e))?;
 
     Ok(())
 }
 
 pub fn create_customer_from_add_op(conn: &mut diesel::PgConnection, add_op: &spotops_types::AddItemOp) -> Result<(), String> {
+    
     let new_customer = NewCustomer {
+    
         customer_identifier: add_op.customer_identifier.clone(),
+    
         first_name: add_op.customer_first_name.clone(),
+    
         last_name: add_op.customer_last_name.clone(),
+    
         phone_number: add_op.customer_phone_number.clone(),
+    
     };
 
+    
+    
     customer_repo::create_customer(conn, new_customer)
+    
         .map_err(|e| format!("CREATE_CUSTOMER_FAILED: {}", e))?;
 
     Ok(())
@@ -351,32 +407,53 @@ pub fn update_ticket_from_add_op(conn: &mut diesel::PgConnection, add_op: &spoto
     let mut ticket = ticket_repo::get_ticket_by_invoice_number(conn, &add_op.full_invoice_number)?;
 
     // Update item count
-    ticket.number_of_items += add_op.num_items as i32;
+    ticket.number_of_items = add_op.num_items as i32;
 
     // Update dropoff and pickup dates if the new ones are later than the existing ones
+    
     if add_op.invoice_dropoff_date.naive_local() > ticket.invoice_dropoff_date {
+    
         ticket.invoice_dropoff_date = add_op.invoice_dropoff_date.naive_local();
+    
     }
+    
     if add_op.invoice_promised_date.naive_local() > ticket.invoice_pickup_date {
+    
         ticket.invoice_pickup_date = add_op.invoice_promised_date.naive_local();
+    
     }
 
+
+    
     let update_ticket = UpdateTicket {
+    
         full_invoice_number: Some(ticket.full_invoice_number.clone()),
+    
         display_invoice_number: Some(ticket.display_invoice_number.clone()),
+    
         number_of_items: Some(ticket.number_of_items),
+    
         invoice_pickup_date: (ticket.invoice_pickup_date),
+    
         garments_processed: Some(ticket.garments_processed),
+    
         ticket_status: Some(ticket.ticket_status.clone()),
+    
     };
+    
     // Save updates to the database
+    
     ticket_repo::update_ticket(conn, ticket.id, &update_ticket)
+    
         .map_err(|e| format!("UPDATE_TICKET_FAILED: {}", e))?;
 
     Ok(())
 }
 
 
+
 pub fn clean_spot_csv_line(line: &str) -> String {
+
     line.trim().trim_matches('"').to_string()
+
 }

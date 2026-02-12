@@ -67,6 +67,7 @@ pub fn run() {
                 }
             }
 
+            
             // start file watch
             async_watch(settings.clone());
 
@@ -134,7 +135,7 @@ pub fn run() {
 
 
 pub fn async_watch(settings: AppSettings) {
-    let csv_dir = settings.posCsvDir.clone();
+    let csv_dir =  crate::settings::pos_csv_dir(&settings);
 
     tauri::async_runtime::spawn(async move {
         if csv_dir.is_empty() {
