@@ -5,7 +5,6 @@ import { GarmentRow, listGarmentsForTicket, TicketRow } from "../../lib/data";
 import type { SlotManagerStats } from "../../types/slotstats";
 import { incrementSessionGarmentsTauri, incrementSessionTicketsTauri } from "../../lib/session_manager";
 
-import { warn, debug, trace, info, error } from "@tauri-apps/plugin-log"
 
 type ScanState = "waiting" | "success" | "error" | "oneitem" | "garmentonconveyor" | "ticketcomplete";
 
@@ -19,19 +18,6 @@ const STATE_STYLE = {
 };
 
 
-function forwardConsole(
-  fnName: 'log' | 'debug' | 'info' | 'warn' | 'error',
-  logger: (message: string) => Promise<void>
-) {
-
-  const original = console[fnName];
-  console[fnName] = (message) => {
-    original(message);
-    logger(message);
-  }
-
-
-}
 
 
 export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenRecall?: () => void; sessionId?: number | null }) {

@@ -11,7 +11,7 @@ import RecallData from "./pages/scan/RecallData";
 import CreateUser from "./pages/login/CreateUser";
 import DataPage from "./pages/Data";
 import OperatorData from "./pages/operators/OperatorData";
-import { endUserSessionTauri, getExistingSession, sessionExistsTodayTauri, startUserSessionTauri } from "./lib/session_manager";
+import { endUserSessionTauri, startUserSessionTauri } from "./lib/session_manager";
 import SetupWizard from "./components/SetupWizard";
 import { checkSetupRequired } from "./lib/settings";
 
