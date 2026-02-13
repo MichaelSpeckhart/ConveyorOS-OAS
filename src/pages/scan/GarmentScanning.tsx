@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { clearConveyorTauri, getCustomerFromTicket, getSlotNumberFromBarcodeTauri, getSlotManagerStatsTauri, getTicketFromGarment, handleScanTauri, isLastGarmentTauri, loadSensorHanger, ticketExists } from "../../lib/slot_manager";
-import { slotRunRequest } from "../../lib/opc";
+// import { slotRunRequest } from "../../lib/opc";
 import { GarmentRow, listGarmentsForTicket, TicketRow } from "../../lib/data";
 import type { SlotManagerStats } from "../../types/slotstats";
 import { incrementSessionGarmentsTauri, incrementSessionTicketsTauri } from "../../lib/session_manager";
+
+import { warn, debug, trace, info, error } from "@tauri-apps/plugin-log"
+
 type ScanState = "waiting" | "success" | "error" | "oneitem" | "garmentonconveyor" | "ticketcomplete";
 
 const STATE_STYLE = {
@@ -14,6 +17,22 @@ const STATE_STYLE = {
   garmentonconveyor: { bg: "bg-blue-600", text: "text-white", title: "GARMENT ON CONVEYOR", subtitle: "" },
   ticketcomplete: { bg: "bg-green-600", text: "text-white", title: "TICKET COMPLETE", subtitle: "REMOVE GARMENTS AND PROCEED" },
 };
+
+
+function forwardConsole(
+  fnName: 'log' | 'debug' | 'info' | 'warn' | 'error',
+  logger: (message: string) => Promise<void>
+) {
+
+  const original = console[fnName];
+  console[fnName] = (message) => {
+    original(message);
+    logger(message);
+  }
+
+
+}
+
 
 export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenRecall?: () => void; sessionId?: number | null }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -31,7 +50,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
   const [clearOpen, setClearOpen] = useState(false);
   const [clearSequence, setClearSequence] = useState("");
   const [nextSlot, setNextSlot] = useState<number | null>(null);
-  const ticketsCompleted = slotStats?.slots_used ?? "—";
+  const [ticketsCompleted, setTicketsCompeted] = useState(0);
   const conveyorCapacity = slotStats ? Math.round(slotStats.capacity_percentage) : "—";
 
   const refreshSlotStats = async () => {
@@ -110,11 +129,14 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
       setNextSlot(slotNum);
       const info = await getCustomerFromTicket(code);
       setCustomerInfo(info);
-      await slotRunRequest(slotNum!);
+      // await slotRunRequest(slotNum!);
       if (sessionId) {
-        const session = await incrementSessionGarmentsTauri(sessionId);
+        console.log("Session ID");
+        var session = await incrementSessionGarmentsTauri(sessionId);
         setScanCount(session.garments_scanned);
-        await incrementSessionTicketsTauri(sessionId);
+        session = await incrementSessionTicketsTauri(sessionId);
+        setTicketsCompeted(session.tickets_completed);
+        setLastScan(value);
       }
       await refreshSlotStats();
       return;
@@ -345,7 +367,6 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
   );
 }
 
-// Simple Helper Component for the Stats
 function StatBox({ label, value, color, border = "", suffix = "" }: any) {
   return (
     <div className={`bg-slate-800/90 rounded-xl p-3 shadow-md flex flex-col justify-center items-center ${border}`}>

@@ -56,6 +56,8 @@ pub fn parse_spot_csv_core(contents: &[String]) -> Result<u32, String> {
         }
     }
 
+    
+
     Ok(0)
 }
 

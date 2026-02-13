@@ -1,1 +1,2 @@
 -- No-op: num_items_on_conveyor already added in 2026-01-05-011843-0000_update_app_state
+SELECT 1;

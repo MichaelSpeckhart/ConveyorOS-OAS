@@ -150,6 +150,10 @@ pub fn is_last_garment(ticket: String) -> Result<bool, String> {
 
     let ticket = ticket.unwrap();
     let res = ticket.garments_processed + 1 >= ticket.number_of_items;
+    println!("Res:  {}", res);
+
+    
+
     Ok(res)
 }
 

@@ -39,7 +39,7 @@ export async function isLastGarmentTauri(ticket: string): Promise<boolean> {
 }
 
 export async function getSlotNumberFromBarcodeTauri(ticket: string): Promise<number | null> {
-    return invoke<number | null>("get_slot_number_from_barcode_tauri", { ticket });
+    return invoke<number | null>("get_slot_number_from_barcode_tauri", { barcode: ticket });
 }
 
 export async function garmentTicketOnConveyorTauri(ticket: string): Promise<number | string> {

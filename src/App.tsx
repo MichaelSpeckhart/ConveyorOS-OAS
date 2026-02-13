@@ -49,22 +49,11 @@ export default function App() {
     }
     (async () => {
       try {
-        const sessionExists = await sessionExistsTodayTauri(user.id);
-
-        if (sessionExists) {
-          const session = await getExistingSession(user.id);
-          if (alive) setSessionId(session.id);
-          return;
-        }
-        else
-        {
+        
           const session = await startUserSessionTauri(user.id);
 
-        
-
-
         if (alive) setSessionId(session.id);
-        }
+        
 
         
       } catch (e) {
