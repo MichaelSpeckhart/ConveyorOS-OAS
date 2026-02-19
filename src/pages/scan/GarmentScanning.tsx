@@ -160,7 +160,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
   };
 
   return (
-    <div className="flex-1 bg-[#16355b] grid grid-rows-[32vh,1fr,104px] p-5 gap-5 overflow-hidden h-full min-h-0">
+    <div className="flex-1 bg-slate-50 grid grid-rows-[32vh,1fr,104px] p-5 gap-5 overflow-hidden h-full min-h-0">
       
       {/* 1. TOP SECTION: Status Hero */}
       <div className={`relative flex flex-col items-center justify-center rounded-3xl shadow-xl transition-all duration-300 ${STATE_STYLE[state].bg} ${STATE_STYLE[state].text}`}>
@@ -192,28 +192,28 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
       {/* 2. MIDDLE SECTION: Customer Info */}
       <div className="min-h-0 flex flex-col">
         {customerInfo ? (
-          <div className="bg-slate-800/90 border-l-[8px] border-blue-400 rounded-2xl p-2 shadow-lg flex flex-col gap-2 h-full min-h-0 overflow-hidden">
+          <div className="bg-white border border-slate-200 border-l-[6px] border-l-blue-500 rounded-3xl p-4 shadow-sm flex flex-col gap-3 h-full min-h-0 overflow-hidden">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 flex-shrink-0">
               <div className="lg:col-span-2">
-                <p className="text-blue-300 font-bold uppercase tracking-widest text-[10px] mb-1">Customer + Ticket</p>
+                <p className="text-blue-600 font-bold uppercase tracking-widest text-[10px] mb-1">Customer + Ticket</p>
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-2xl font-black text-white leading-none">
+                    <h2 className="text-2xl font-black text-slate-900 leading-none">
                       {customerInfo.first_name} {customerInfo.last_name}
                     </h2>
                     <div className="flex flex-wrap gap-1.5 mt-2">
-                      <span className="px-2 py-0.5 bg-slate-700 rounded-md font-mono text-[11px] text-slate-300">ID: {customerInfo.customer_identifier}</span>
-                      <span className="px-2 py-0.5 bg-slate-700 rounded-md font-mono text-[11px] text-slate-300">{customerInfo.phone_number}</span>
+                      <span className="px-2 py-0.5 bg-slate-100 rounded-md font-mono text-[11px] text-slate-600">ID: {customerInfo.customer_identifier}</span>
+                      <span className="px-2 py-0.5 bg-slate-100 rounded-md font-mono text-[11px] text-slate-600">{customerInfo.phone_number}</span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="inline-block bg-green-900/50 text-green-300 px-2.5 py-1 rounded-xl font-bold text-xs">Active Profile</div>
+                    <div className="inline-block bg-green-50 text-green-700 border border-green-200 px-2.5 py-1 rounded-xl font-bold text-xs">Active Profile</div>
                   </div>
                 </div>
               </div>
-              <div className="rounded-lg border border-slate-600 bg-slate-700/50 p-1.5">
-                <div className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Ticket</div>
-                <div className="mt-1 space-y-0.5 text-slate-200 text-[11px]">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-2">
+                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Ticket</div>
+                <div className="mt-1 space-y-0.5 text-slate-700 text-[11px]">
                   <Detail label="Display #" value={ticketMeta?.display_invoice_number ?? "—"} mono />
                   <Detail label="Pickup" value={fmtDate(ticketMeta?.invoice_pickup_date)} />
                   <Detail label="Items" value={ticketMeta?.number_of_items ?? garments.length} />
@@ -222,23 +222,23 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
             </div>
 
             <div className="flex-1 min-h-0">
-              <div className="rounded-lg border border-slate-600 bg-slate-700/50 p-1.5 flex flex-col min-h-0 h-full">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-2 flex flex-col min-h-0 h-full">
                 <div className="flex items-center justify-between">
-                  <div className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Garments</div>
-                  <div className="text-white font-black text-xs">{garments.length}</div>
+                  <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Garments</div>
+                  <div className="text-slate-900 font-black text-xs">{garments.length}</div>
                 </div>
-                <div className="mt-1 flex-1 min-h-0 overflow-auto divide-y divide-slate-600">
+                <div className="mt-1 flex-1 min-h-0 overflow-auto divide-y divide-slate-200">
                   {garments.length === 0 ? (
-                    <div className="py-1 text-slate-400 text-[10px]">No garments found.</div>
+                    <div className="py-1 text-slate-500 text-[10px]">No garments found.</div>
                   ) : (
                     garments.map((g) => (
                       <div key={g.id} className="py-1">
                         <div className="flex items-start justify-between gap-1.5">
                           <div className="min-w-0">
-                            <div className="font-bold text-white text-[10px] break-words leading-snug">{g.item_description}</div>
-                            <div className="text-[8px] text-slate-400 font-mono mt-0.5 break-all">Item ID: {g.item_id}</div>
+                            <div className="font-bold text-slate-900 text-[10px] break-words leading-snug">{g.item_description}</div>
+                            <div className="text-[8px] text-slate-500 font-mono mt-0.5 break-all">Item ID: {g.item_id}</div>
                           </div>
-                          <div className="px-1.5 py-0.5 rounded-full bg-slate-600 border border-slate-500 text-slate-200 text-[8px] font-bold shrink-0">
+                          <div className="px-1.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[8px] font-bold shrink-0">
                             Slot {g.slot_number}
                           </div>
                         </div>
@@ -250,8 +250,8 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
             </div>
           </div>
         ) : (
-          <div className="bg-white/5 border-4 border-dashed border-white/15 rounded-3xl h-full flex items-center justify-center">
-            <span className="text-3xl text-white/30 font-bold uppercase tracking-tighter">Ready for next garment</span>
+          <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl h-full flex items-center justify-center">
+            <span className="text-3xl text-slate-300 font-bold uppercase tracking-tighter">Ready for next garment</span>
           </div>
         )}
       </div>
@@ -259,17 +259,17 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
       {/* 3. BOTTOM SECTION: Stats + Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr,240px] gap-3 h-full min-h-0">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 h-full">
-          <StatBox label="Last Scan" value={lastScan ?? "---"} color="text-slate-300" />
-          <StatBox label="Next Slot" value={nextSlot ?? "--"} color="text-green-400" border="border-b-8 border-green-500" />
-          <StatBox label="Processed" value={scanCount} color="text-blue-400" border="border-b-8 border-blue-500" />
-          <StatBox label="Tickets Completed" value={ticketsCompleted} color="text-slate-200" />
-          <StatBox label="Conveyor Capacity" value={conveyorCapacity} color="text-slate-200" suffix="%" />
+          <StatBox label="Last Scan" value={lastScan ?? "---"} color="text-slate-700" />
+          <StatBox label="Next Slot" value={nextSlot ?? "--"} color="text-green-600" border="border-b-[6px] border-green-500" />
+          <StatBox label="Processed" value={scanCount} color="text-blue-600" border="border-b-[6px] border-blue-500" />
+          <StatBox label="Tickets Completed" value={ticketsCompleted} color="text-slate-900" />
+          <StatBox label="Conveyor Capacity" value={conveyorCapacity} color="text-slate-900" suffix="%" />
         </div>
 
         <div className="grid grid-cols-2 gap-3 h-full">
           <button
             onClick={openKeypad}
-            className="flex flex-col items-center justify-center gap-1 bg-slate-800 hover:bg-black text-white rounded-xl transition-all active:scale-95 shadow-lg h-full"
+            className="flex flex-col items-center justify-center gap-1 bg-slate-900 hover:bg-slate-700 text-white rounded-xl transition-all active:scale-95 shadow-sm border border-slate-200 h-full"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect width="18" height="18" x="3" y="3" rx="2" />
@@ -279,7 +279,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
           </button>
           <button
             onClick={openClear}
-            className="flex flex-col items-center justify-center gap-1 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all active:scale-95 shadow-lg h-full"
+            className="flex flex-col items-center justify-center gap-1 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all active:scale-95 shadow-sm h-full"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 6h18" />
@@ -353,8 +353,8 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
 
 function StatBox({ label, value, color, border = "", suffix = "" }: any) {
   return (
-    <div className={`bg-slate-800/90 rounded-xl p-3 shadow-md flex flex-col justify-center items-center ${border}`}>
-      <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">{label}</span>
+    <div className={`bg-white rounded-xl p-3 shadow-sm border border-slate-200 flex flex-col justify-center items-center ${border}`}>
+      <span className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">{label}</span>
       <span className={`text-4xl font-black tracking-tighter ${color}`}>{value}{suffix}</span>
     </div>
   );
@@ -369,8 +369,8 @@ function fmtDate(s?: string) {
 function Detail({ label, value, mono }: { label: string; value: string | number; mono?: boolean }) {
   return (
     <div className="flex items-start justify-between gap-3">
-      <div className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{label}</div>
-      <div className={`text-white text-right min-w-0 break-words ${mono ? "font-mono" : ""}`}>{value}</div>
+      <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">{label}</div>
+      <div className={`text-slate-900 text-right min-w-0 break-words ${mono ? "font-mono" : ""}`}>{value}</div>
     </div>
   );
 }

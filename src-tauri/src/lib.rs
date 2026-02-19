@@ -146,7 +146,7 @@ pub fn async_watch(settings: AppSettings) {
         loop {
             tokio::time::sleep(std::time::Duration::from_secs(5)).await;
 
-            let csv_path = std::path::Path::new(&csv_dir); //.join("newpos.csv");
+            let csv_path = std::path::Path::new(&csv_dir);//.join("newpos.csv");
             let contents = match read_file(csv_path.to_str().unwrap_or_default()) {
                 Ok(c) => c,
                 Err(e) => {
