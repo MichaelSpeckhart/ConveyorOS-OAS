@@ -4,7 +4,7 @@ use diesel::prelude::*;
 use serde::Serialize;
 use tokio::time::{sleep, timeout};
 
-use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, sessions_repo, slot_repo::{self, SlotRepo}, ticket_repo, users_repo}, domain::auth, model::{Ticket, UpdateTicket, User}, opc::{opc_client::AppState, opc_commands::get_load_hanger_sensor}, pos::spot::output::{conveyor_file_utils::{write_load_item, write_split_invoice, write_unload_item}, conveyor_ops_types::{self, ConveyorOpsTypes}}, slot_manager::{SlotManager, SlotManagerStats}};
+use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, sessions_repo, slot_repo::{self, SlotRepo}, ticket_repo, users_repo}, domain::auth, io::printer::printer_details, model::{Ticket, UpdateTicket, User}, opc::{opc_client::AppState, opc_commands::get_load_hanger_sensor}, pos::spot::output::{conveyor_file_utils::{write_load_item, write_split_invoice, write_unload_item}, conveyor_ops_types::{self, ConveyorOpsTypes}}, slot_manager::{SlotManager, SlotManagerStats}};
 
 #[derive(Serialize)]
 pub struct LoginResult {
@@ -552,6 +552,15 @@ pub fn test_database_connection_tauri(
 #[tauri::command]
 pub fn get_current_settings_tauri(app: tauri::AppHandle) -> Result<crate::settings::appsettings::AppSettings, String> {
     Ok(crate::settings::load_settings(&app))
+}
+
+#[tauri::command]
+pub fn print_ticket_tauri(full_invoice_number: String) -> Result<(), String> {
+    let mut conn = establish_connection()?;
+    let ticket = ticket_repo::get_ticket_by_invoice_number(&mut conn, &full_invoice_number)
+        .map_err(|e| format!("Ticket not found: {}", e))?;
+    printer_details::print_ticket(&ticket);
+    Ok(())
 }
 
 #[tauri::command]

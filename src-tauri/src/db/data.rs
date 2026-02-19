@@ -67,6 +67,29 @@ pub fn data_list_customers(query: Option<String>) -> Result<Vec<CustomerRow>, St
 
 
 #[tauri::command]
+pub fn data_list_all_tickets(query: Option<String>) -> Result<Vec<TicketRow>, String> {
+    let mut conn = establish_connection()?;
+    let mut q = tickets::table.into_boxed();
+
+    if let Some(search) = query {
+        let pat = format!("%{}%", search.trim());
+
+        q = q.filter(
+            tickets::display_invoice_number.ilike(pat.clone())
+                .or(tickets::customer_first_name.ilike(pat.clone()))
+                .or(tickets::customer_last_name.ilike(pat.clone()))
+                .or(tickets::customer_phone_number.ilike(pat.clone()))
+                .or(tickets::ticket_status.ilike(pat)),
+        );
+    }
+
+    q.order(tickets::invoice_dropoff_date.desc())
+        .limit(200)
+        .load::<TicketRow>(&mut conn)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub fn data_list_tickets_for_customer(customer_identifier: String) -> Result<Vec<TicketRow>, String> {
     let mut conn = establish_connection()?;
 

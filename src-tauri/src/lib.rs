@@ -3,7 +3,7 @@ use std::sync::{Arc, atomic::AtomicBool};
 use tauri::Manager;
 use tokio::sync::Mutex;
 
-use crate::{db::{connection::{establish_connection, set_database_url}, data::{data_list_customers, data_list_garments_for_ticket, data_list_tickets_for_customer}, db_migrations::run_db_migrations}, io::fileutils::read_file, opc::opc_client::{AppState, OpcClient, OpcConfig}, pos::spot::spot_file_utils::parse_spot_csv_core, settings::{load_settings, appsettings::AppSettings}};
+use crate::{db::{connection::{establish_connection, set_database_url}, data::{data_list_all_tickets, data_list_customers, data_list_garments_for_ticket, data_list_tickets_for_customer}, db_migrations::run_db_migrations}, io::fileutils::read_file, opc::opc_client::{AppState, OpcClient, OpcConfig}, pos::spot::spot_file_utils::parse_spot_csv_core, settings::{load_settings, appsettings::AppSettings}};
 
 pub mod plc;
 pub mod io;
@@ -110,8 +110,10 @@ pub fn run() {
             tauri_commands::wait_for_hanger_sensor,
             tauri_commands::check_opc_connection_tauri,
             data_list_customers,
+            data_list_all_tickets,
             data_list_tickets_for_customer,
             data_list_garments_for_ticket,
+            tauri_commands::print_ticket_tauri,
             tauri_commands::is_last_garment,
             tauri_commands::get_slot_number_from_barcode_tauri,
             tauri_commands::garment_ticket_on_conveyor_tauri,

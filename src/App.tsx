@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { LayoutDashboard, ScanLine, Settings, Database, BarChart3 } from "lucide-react";
+import { LayoutDashboard, ScanLine, Settings, Database, BarChart3, Printer } from "lucide-react";
 
 import { SideNavLayout } from "./layout/SideNavLayout";
 import Login from "./pages/login/Login";
@@ -11,6 +11,7 @@ import RecallData from "./pages/scan/RecallData";
 import CreateUser from "./pages/login/CreateUser";
 import DataPage from "./pages/Data";
 import OperatorData from "./pages/operators/OperatorData";
+import PrintTickets from "./pages/tickets/PrintTickets";
 import { endUserSessionTauri, startUserSessionTauri } from "./lib/session_manager";
 import SetupWizard from "./components/SetupWizard";
 import { checkSetupRequired } from "./lib/settings";
@@ -91,6 +92,12 @@ export default function App() {
       onClick: () => setActive("scan"),
     },
     {
+      key: "print",
+      label: "Print Tickets",
+      icon: <Printer size={20} />,
+      onClick: () => setActive("print"),
+    },
+    {
       key: "settings",
       label: "Settings",
       icon: <Settings size={20} />,
@@ -144,6 +151,7 @@ export default function App() {
         {active === "recall" && <RecallData />}
         {active === "data" && <DataPage />}
         {active === "operator-data" && <OperatorData />}
+        {active === "print" && <PrintTickets />}
         {active === "settings" && <PosSettings />}
       </SideNavLayout>
 
