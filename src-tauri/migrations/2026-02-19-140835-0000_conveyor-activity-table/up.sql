@@ -1,5 +1,5 @@
 -- Your SQL goes here
-CREATE TABLE conveyoractivity (
+CREATE TABLE IF NOT EXISTS conveyoractivity (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     item_id VARCHAR NOT NULL,

@@ -1,7 +1,7 @@
 -- Your SQL goes here
 -- Initial schema for conveyor-app
 
-CREATE TABLE customers (
+CREATE TABLE IF NOT EXISTS customers (
     id SERIAL PRIMARY KEY,
     customer_identifier VARCHAR NOT NULL,
     first_name VARCHAR NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE customers (
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE tickets (
+CREATE TABLE IF NOT EXISTS tickets (
     id SERIAL PRIMARY KEY,
     full_invoice_number VARCHAR NOT NULL,
     display_invoice_number VARCHAR NOT NULL,
@@ -24,14 +24,14 @@ CREATE TABLE tickets (
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR NOT NULL,
     pin VARCHAR NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE garments (
+CREATE TABLE IF NOT EXISTS garments (
     id SERIAL PRIMARY KEY,
     full_invoice_number VARCHAR NOT NULL,
     display_invoice_number VARCHAR NOT NULL,

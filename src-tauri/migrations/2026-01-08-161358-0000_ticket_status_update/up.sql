@@ -1,3 +1,3 @@
 -- Your SQL goes here
 ALTER TABLE tickets
-ADD COLUMN ticket_status VARCHAR NOT NULL DEFAULT 'Not Processed';
+ADD COLUMN IF NOT EXISTS ticket_status VARCHAR NOT NULL DEFAULT 'Not Processed';

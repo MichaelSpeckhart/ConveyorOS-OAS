@@ -1,6 +1,4 @@
-DROP TABLE IF EXISTS slots;
-
-CREATE TABLE slots (
+CREATE TABLE IF NOT EXISTS slots (
   slot_number     INTEGER PRIMARY KEY,
   slot_state      VARCHAR NOT NULL DEFAULT 'empty',
   assigned_ticket VARCHAR NULL,
