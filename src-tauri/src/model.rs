@@ -3,7 +3,7 @@ use diesel::{prelude::*};
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
-use crate::schema::{app_state, customers, garments, slots, tickets, users, sessions};
+use crate::schema::{app_state, conveyoractivity, customers, garments, sessions, slots, tickets, users};
 
 //
 // CUSTOMERS
@@ -217,3 +217,13 @@ pub struct OperatorStats {
     pub total_tickets: i64,
 }
 
+#[derive(AsChangeset)]
+#[diesel(table_name = conveyoractivity)]
+pub struct ConveyorActivity {
+    pub id: i32,
+    pub user_id: i32,
+    pub item_id: Option<String>,
+    pub full_invoice_number: Option<String>,
+    pub slot_number: i32,
+    pub time_stamp: NaiveDateTime,
+}   

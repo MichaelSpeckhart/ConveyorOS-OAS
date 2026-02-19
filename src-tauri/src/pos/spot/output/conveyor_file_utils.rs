@@ -3,11 +3,31 @@ use std::io::Write;
 
 
 
-const CONVEYOR_CSV_FILE_NAME: &str = "conveyor.csv";
-const CONVEYOR_CSV_TEMP_FILE_NAME: &str = "conveyor.csv.temp";
+const CONVEYOR_CSV_FILE_NAME: &str = "/Users/michaelspeckhart/conveyor.csv";
+const CONVEYOR_CSV_TEMP_FILE_NAME: &str = "/Users/michaelspeckhart/conveyor.csv.temp";
 
 
 pub fn write_conveyor_csv_file(operation_type: ConveyorOpsTypes, lines: &[String]) -> Result<(), String> {
+
+    if std::fs::exists(CONVEYOR_CSV_FILE_NAME).unwrap() == true {
+        let mut file = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(CONVEYOR_CSV_TEMP_FILE_NAME)
+            .map_err(|e| format!("Failed to open Conveyor CSV temp file: {}", e))?;
+
+        let _ = std::fs::copy(CONVEYOR_CSV_FILE_NAME, CONVEYOR_CSV_TEMP_FILE_NAME);
+
+        for line in lines {
+            writeln!(file, "{}", line).map_err(|e| format!("Failed to write to conveyor CSV temp file: {}", e))?;
+        }
+
+        std::fs::rename(CONVEYOR_CSV_TEMP_FILE_NAME, CONVEYOR_CSV_FILE_NAME)
+        .map_err(|e| format!("Failed to rename conveyor CSV temp file: {}", e))?;
+
+        return Ok(());
+    }
+
     let mut file = std::fs::OpenOptions::new()
         .create(true)
         .append(true)
@@ -24,11 +44,7 @@ pub fn write_conveyor_csv_file(operation_type: ConveyorOpsTypes, lines: &[String
     Ok(())
 }
 
-pub fn write_load_item(
-    operation_type: ConveyorOpsTypes,
-    full_invoice_number: &str,
-    item_id: &str,
-    slot_number: u32,
+pub fn write_load_item(operation_type: ConveyorOpsTypes, full_invoice_number: &str, item_id: &str, slot_number: u32,
 ) -> Result<(), String> {
     let line = format!("\"{}\",\"{}\",\"{}\",\"{}\"", ConveyorOpsTypes::LoadItem.to_string(), full_invoice_number, item_id, slot_number);
     write_conveyor_csv_file(operation_type, &[line])

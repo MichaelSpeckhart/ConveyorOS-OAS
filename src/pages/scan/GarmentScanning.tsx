@@ -18,8 +18,6 @@ const STATE_STYLE = {
 };
 
 
-
-
 export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenRecall?: () => void; sessionId?: number | null }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);

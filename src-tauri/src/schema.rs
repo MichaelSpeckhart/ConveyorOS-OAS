@@ -10,6 +10,17 @@ diesel::table! {
 }
 
 diesel::table! {
+    conveyoractivity (id) {
+        id -> Int4,
+        user_id -> Int4,
+        item_id -> Varchar,
+        full_invoice_number -> Varchar,
+        slot_number -> Int4,
+        time_stamp -> Timestamp,
+    }
+}
+
+diesel::table! {
     customers (id) {
         id -> Int4,
         customer_identifier -> Varchar,
@@ -85,8 +96,16 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(conveyoractivity -> users (user_id));
 diesel::joinable!(sessions -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
-    app_state, customers, garments, sessions, slots, tickets, users,
+    app_state,
+    conveyoractivity,
+    customers,
+    garments,
+    sessions,
+    slots,
+    tickets,
+    users,
 );

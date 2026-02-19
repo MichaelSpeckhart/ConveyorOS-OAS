@@ -4,7 +4,7 @@ use diesel::prelude::*;
 use serde::Serialize;
 use tokio::time::{sleep, timeout};
 
-use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, slot_repo::{self, SlotRepo}, ticket_repo, users_repo, sessions_repo}, domain::auth, model::{Ticket, UpdateTicket, User}, opc::{opc_client::AppState, opc_commands::get_load_hanger_sensor}, slot_manager::{SlotManager, SlotManagerStats}};
+use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, sessions_repo, slot_repo::{self, SlotRepo}, ticket_repo, users_repo}, domain::auth, model::{Ticket, UpdateTicket, User}, opc::{opc_client::AppState, opc_commands::get_load_hanger_sensor}, pos::spot::output::{conveyor_file_utils::{write_load_item, write_split_invoice, write_unload_item}, conveyor_ops_types::{self, ConveyorOpsTypes}}, slot_manager::{SlotManager, SlotManagerStats}};
 
 #[derive(Serialize)]
 pub struct LoginResult {
@@ -152,7 +152,7 @@ pub fn is_last_garment(ticket: String) -> Result<bool, String> {
     let res = ticket.garments_processed + 1 >= ticket.number_of_items;
     println!("Res:  {}", res);
 
-    
+
 
     Ok(res)
 }
@@ -410,6 +410,75 @@ pub fn get_existing_session_today_tauri(user_id_input: i32) -> Result<Option<cra
         Err(e) => Err(format!("DB Error: {}", e)),
     }
 }
+
+#[tauri::command]
+pub fn perform_load_item_op_tauri(item_id: String, slot_num: u32) -> Result<bool, String> {
+    let mut conn = establish_connection()?;
+
+    let garment = garment_repo::get_garment(&mut conn, &item_id.to_string()).unwrap();
+
+    let _ = write_load_item(ConveyorOpsTypes::LoadItem, &garment.full_invoice_number, &item_id.to_string(), slot_num);
+
+    return Ok(true);
+}
+
+
+pub fn perform_load_item_op_non_tauri(item_id: String, slot_num: u32) -> Result<bool, String> {
+    let mut conn = establish_connection()?;
+
+
+
+    let garment = garment_repo::get_garment(&mut conn, &item_id.to_string());
+
+    if garment.is_err() {
+        return Err("Garment Not Found".to_string());
+    }
+
+    let garment_info = garment.unwrap();
+
+    println!("Loading Item");
+
+    let _ = write_load_item(ConveyorOpsTypes::LoadItem, &garment_info.full_invoice_number, &item_id.to_string(), slot_num);
+
+    return Ok(true);
+}
+
+pub fn perform_unload_item_op_non_tauri(item_id: String, slot_num: u32) -> Result<bool, String> {
+    let mut conn = establish_connection()?;
+
+    let garment = garment_repo::get_garment(&mut conn, &item_id.to_string());
+
+    if garment.is_err() {
+        return Err("Garment Not Found".to_string());
+    }
+
+    let garment_info = garment.unwrap();
+
+     let _ = write_unload_item(ConveyorOpsTypes::LoadItem, &garment_info.full_invoice_number, &item_id.to_string(), slot_num);
+
+    Ok(true)
+}
+
+pub fn perform_split_invoice_op_non_tauri(full_invoice_number: String, item_id: String) -> Result<bool, String> {
+    let mut conn = establish_connection()?;
+
+    let garment = garment_repo::get_garment(&mut conn, &item_id.to_string());
+
+    if garment.is_err() {
+        return Err("Garment Not Found".to_string());
+    }
+
+    let garment_info = garment.unwrap();
+
+    if garment_info.full_invoice_number != full_invoice_number {
+        return Err("Invoice Number does not match associated item".to_string());
+    }
+
+    let _ = write_split_invoice(ConveyorOpsTypes::SplitInvoice, &full_invoice_number, &item_id);
+
+    Ok(true)
+}
+
 
 // ============ Settings Management Commands ============
 
