@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Printer, Search, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { Printer, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { TicketRow } from "../../lib/data";
 
 function fmtDate(s?: string) {
@@ -113,7 +113,7 @@ export default function PrintTickets() {
               Tickets {!loading && <span className="text-slate-400">({tickets.length})</span>}
             </div>
             <div className="relative">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              {/* <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /> */}
               <input
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-9 pr-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-400 focus:bg-white transition"
                 placeholder="Search invoice, name, phone, or status…"

@@ -4,6 +4,7 @@ import { clearConveyorTauri, getCustomerFromTicket, getSlotNumberFromBarcodeTaur
 import { GarmentRow, listGarmentsForTicket, TicketRow } from "../../lib/data";
 import type { SlotManagerStats } from "../../types/slotstats";
 import { incrementSessionGarmentsTauri, incrementSessionTicketsTauri } from "../../lib/session_manager";
+import { slotRunRequest } from "../../lib/opc";
 
 
 type ScanState = "waiting" | "success" | "error" | "oneitem" | "garmentonconveyor" | "ticketcomplete";
@@ -113,7 +114,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
       setNextSlot(slotNum);
       const info = await getCustomerFromTicket(code);
       setCustomerInfo(info);
-      // await slotRunRequest(slotNum!);
+      await slotRunRequest(slotNum!);
       if (sessionId) {
         console.log("Session ID");
         var session = await incrementSessionGarmentsTauri(sessionId);
@@ -147,6 +148,14 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
     setLastScan(code);
     setNextSlot(slot_num);
 
+    if (slot_num !== null) {
+      await slotRunRequest(slot_num);
+    } else {
+      setState("error");
+    }
+
+    if (await loadSensorHanger()) setState("garmentonconveyor"); 
+
     if (sessionId) {
       const session = await incrementSessionGarmentsTauri(sessionId);
       setScanCount(session.garments_scanned);
@@ -154,8 +163,6 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
       setScanCount((prev) => prev + 1);
     }
     await refreshSlotStats();
-
-    if (await loadSensorHanger()) setState("garmentonconveyor"); 
     return;
   };
 
