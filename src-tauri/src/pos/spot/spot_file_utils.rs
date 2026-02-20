@@ -110,6 +110,10 @@ pub fn handle_add_item_op(fields: &Vec<String>, conn: &mut PgConnection) -> Resu
     
     let end_str   = fields[13].trim().trim_end_matches('\r');
 
+    // Print the fields with their associated index
+    for (i, field) in fields.iter().enumerate() {
+        println!("Field {}: {}", i, field);
+    }
 
     
     let start_naive = NaiveDateTime::parse_from_str(start_str, "%Y-%m-%dT%H:%M:%S")
@@ -314,6 +318,8 @@ pub fn create_ticket_from_add_invoice_op(conn: &mut diesel::PgConnection, add_op
 
 /// Create a garment in the database from an AddItemOp
 pub fn create_garment_from_add_op(conn: &mut diesel::PgConnection, add_op: &spotops_types::AddItemOp) -> Result<(), String> {
+
+    println!("Garment invoice comments: {}", add_op.invoice_comments);
     
     let new_garment = crate::model::NewGarment {
     

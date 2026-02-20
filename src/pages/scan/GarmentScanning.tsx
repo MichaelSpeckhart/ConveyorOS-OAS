@@ -183,8 +183,8 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
           Options
         </button>
 
-        <h1 className="text-6xl font-black mb-3 tracking-tight uppercase">{STATE_STYLE[state].title}</h1>
-        <p className="text-xl font-semibold opacity-80">{STATE_STYLE[state].subtitle}</p>
+        <h1 className="text-8xl font-black mb-3 tracking-tight uppercase">{STATE_STYLE[state].title}</h1>
+        <p className="text-2xl font-black opacity-80">{STATE_STYLE[state].subtitle}</p>
         
         <input
           ref={inputRef}
@@ -205,7 +205,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
                 <p className="text-blue-600 font-bold uppercase tracking-widest text-[10px] mb-1">Customer + Ticket</p>
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-2xl font-black text-slate-900 leading-none">
+                    <h2 className="text-3xl font-black text-slate-900 leading-none">
                       {customerInfo.first_name} {customerInfo.last_name}
                     </h2>
                     <div className="flex flex-wrap gap-1.5 mt-2">
@@ -258,7 +258,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
           </div>
         ) : (
           <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl h-full flex items-center justify-center">
-            <span className="text-3xl text-slate-300 font-bold uppercase tracking-tighter">Ready for next garment</span>
+            <span className="text-5xl text-slate-300 font-black uppercase tracking-tighter">Ready for next garment</span>
           </div>
         )}
       </div>
@@ -282,7 +282,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
               <rect width="18" height="18" x="3" y="3" rx="2" />
               <path d="M7 7h.01M12 7h.01M17 7h.01M7 12h.01M12 12h.01M17 12h.01M7 17h.01M12 17h.01M17 17h.01" />
             </svg>
-            <span className="font-bold uppercase tracking-tighter text-xs">Manual Entry</span>
+            <span className="font-black uppercase tracking-tighter text-sm">Manual Entry</span>
           </button>
           <button
             onClick={openClear}
@@ -293,7 +293,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
               <path d="M8 6V4h8v2" />
               <path d="M6 6l1 14h10l1-14" />
             </svg>
-            <span className="font-bold uppercase tracking-tighter text-xs">Clear Conveyor</span>
+            <span className="font-black uppercase tracking-tighter text-sm">Clear Conveyor</span>
           </button>
         </div>
       </div>
@@ -361,8 +361,8 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
 function StatBox({ label, value, color, border = "", suffix = "" }: any) {
   return (
     <div className={`bg-white rounded-xl p-3 shadow-sm border border-slate-200 flex flex-col justify-center items-center ${border}`}>
-      <span className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">{label}</span>
-      <span className={`text-4xl font-black tracking-tighter ${color}`}>{value}{suffix}</span>
+      <span className="text-slate-900 text-base font-black uppercase tracking-widest mb-1">{label}</span>
+      <span className={`text-5xl font-black tracking-tighter ${color}`}>{value}{suffix}</span>
     </div>
   );
 }

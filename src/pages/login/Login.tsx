@@ -71,7 +71,7 @@ const Login: React.FC<LoginProps> = ({ onSuccess, onNoUsers }) => {
               <div className="text-xs uppercase tracking-[0.3em] text-slate-500 font-bold">Secure Access</div>
               <h1 className="text-3xl font-black tracking-tight text-slate-900">Operator Login</h1>
             </div>
-            <img src={Logo1} alt="ConveyorOS" className="h-12 w-12 object-contain" />
+            <img src={Logo1} alt="ConveyorOS" className="h-32 w-32 object-contain" />
           </div>
 
           <div className="bg-slate-100 rounded-2xl px-6 py-4 mb-6 flex items-center justify-between">
