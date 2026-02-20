@@ -157,15 +157,17 @@ pub fn async_watch(settings: AppSettings) {
                 }
             };
 
-            if let Err(e) = std::fs::remove_file(csv_path) {
-                println!("File watch: could not remove CSV: {}", e);
-            }
+            
 
             match parse_spot_csv_core(&contents) {
                 Ok(_) => {},
                 Err(e) => {
                     println!("File watch: error parsing CSV: {}", e);
                 }
+            }
+
+            if let Err(e) = std::fs::remove_file(csv_path) {
+                println!("File watch: could not remove CSV: {}", e);
             }
         }
     });
