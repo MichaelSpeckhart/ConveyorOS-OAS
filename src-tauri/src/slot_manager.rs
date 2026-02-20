@@ -40,7 +40,7 @@ impl SlotManager {
         ticket: Option<&str>,
     ) -> Result<i32, String> {
         conn.transaction::<i32, diesel::result::Error, _>(|conn| {
-            
+
             if let Some(t) = ticket {
                 if let Some(existing) = SlotRepo::find_ticket_slot(conn, t)? {
                     if existing.slot_state != "blocked" && existing.slot_state != "error" {
@@ -49,34 +49,26 @@ impl SlotManager {
                 }
             }
 
-            
-            let last = AppStateRepo::get_last_used_slot(conn)?; 
-
-            
             let empties = Self::list_empty_slots(conn)?;
+            let occupied = Self::list_occupied_slot_numbers(conn)?;
 
-            
-            let chosen = Self::pick_after(&empties, last)
+            let chosen = Self::pick_spread(&empties, &occupied)
                 .ok_or(diesel::result::Error::NotFound)?;
 
-            
             for _ in 0..10 {
-                let ok = SlotRepo::try_reserve(conn, chosen, ticket)?;
-                if ok {
-                    
+                if SlotRepo::try_reserve(conn, chosen, ticket)? {
                     AppStateRepo::set_last_used_slot(conn, chosen)?;
                     return Ok(chosen);
                 }
 
-                
+                // Slot was taken concurrently; re-query and spread-pick again.
                 let empties = Self::list_empty_slots(conn)?;
-                let next = Self::pick_after(&empties, chosen)
-                    .ok_or(diesel::result::Error::NotFound)?;
-
-                let ok2 = SlotRepo::try_reserve(conn, next, ticket)?;
-                if ok2 {
-                    AppStateRepo::set_last_used_slot(conn, next)?;
-                    return Ok(next);
+                let occupied = Self::list_occupied_slot_numbers(conn)?;
+                if let Some(next) = Self::pick_spread(&empties, &occupied) {
+                    if SlotRepo::try_reserve(conn, next, ticket)? {
+                        AppStateRepo::set_last_used_slot(conn, next)?;
+                        return Ok(next);
+                    }
                 }
             }
 
@@ -102,15 +94,72 @@ impl SlotManager {
             .load::<Slot>(conn)
     }
 
-    fn pick_after(empties: &[Slot], last: i32) -> Option<i32> {
+    fn list_occupied_slot_numbers(conn: &mut PgConnection) -> diesel::QueryResult<Vec<i32>> {
+        use crate::schema::slots::dsl::*;
+        slots
+            .filter(slot_state.ne("empty"))
+            .select(slot_number)
+            .order(slot_number.asc())
+            .load::<i32>(conn)
+    }
+
+    /// Picks the empty slot that maximises spread across the conveyor.
+    ///
+    /// Strategy: treat occupied slots as points on a circular ring and find the
+    /// largest gap between consecutive occupied slots. The empty slot whose number
+    /// is nearest to the midpoint of that gap is returned, placing new items as
+    /// far as possible from existing ones.
+    fn pick_spread(empties: &[Slot], occupied: &[i32]) -> Option<i32> {
         if empties.is_empty() {
             return None;
         }
-        
+
+        if occupied.is_empty() {
+            // Nothing occupied yet — start near the middle of the available range.
+            return empties.get(empties.len() / 2).map(|s| s.slot_number);
+        }
+
+        // Overall numeric range across all slots (occupied + empty).
+        let all_min = empties.first().unwrap().slot_number.min(*occupied.first().unwrap());
+        let all_max = empties.last().unwrap().slot_number.max(*occupied.last().unwrap());
+        let span = all_max - all_min + 1; // total positions on the ring
+
+        // Find the largest gap between consecutive occupied slots on the ring.
+        let n = occupied.len();
+        let mut best_gap = 0i32;
+        let mut best_mid = all_min;
+
+        for i in 0..n {
+            let a = occupied[i];
+            let b = occupied[(i + 1) % n];
+
+            // Gap length going forward from a to b on the circular ring.
+            let gap = if b > a {
+                b - a
+            } else {
+                // Wraps around: a → all_max → all_min → b
+                (all_max - a) + (b - all_min) + 2
+            };
+
+            if gap > best_gap {
+                best_gap = gap;
+                // Midpoint of this gap (may wrap around the ring).
+                let mid_raw = a + gap / 2;
+                best_mid = if mid_raw > all_max {
+                    all_min + (mid_raw - all_max - 1)
+                } else {
+                    mid_raw
+                };
+            }
+        }
+
+        // Return the empty slot closest to best_mid using circular distance.
         empties
             .iter()
-            .find(|s| s.slot_number > last)
-            .or_else(|| empties.first())
+            .min_by_key(|s| {
+                let d = (s.slot_number - best_mid).abs();
+                d.min(span - d)
+            })
             .map(|s| s.slot_number)
     }
 
