@@ -10,6 +10,7 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [settings, setSettings] = useState<AppSettings>({
     posCsvDir: "",
+    conveyorCsvOutputDir: "",
     dbHost: "localhost",
     dbPort: 5432,
     dbName: "conveyor-app",
