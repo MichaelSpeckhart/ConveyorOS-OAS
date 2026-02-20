@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 
 export type AppSettings = {
   posCsvDir: string;
+  conveyorCsvOutputDir: string;
   dbHost: string;
   dbPort: number;
   dbName: string;
@@ -14,6 +15,7 @@ export type AppSettings = {
 
 const DEFAULTS: AppSettings = {
   posCsvDir: "",
+  conveyorCsvOutputDir: "",
   dbHost: "localhost",
   dbPort: 5432,
   dbName: "conveyor",
@@ -46,6 +48,7 @@ export async function saveSettings(s: AppSettings): Promise<void> {
     dbPassword: s.dbPassword,
     opcServerUrl: s.opcServerUrl ?? "",
     posCsvDir: s.posCsvDir,
+    conveyorCsvOutputDir: s.conveyorCsvOutputDir,
   });
 }
 
@@ -57,6 +60,15 @@ export async function pickPosCsvFile(): Promise<string | null> {
   });
 
   return typeof file === "string" ? file : null;
+}
+
+export async function pickConveyorOutputDir(): Promise<string | null> {
+  const dir = await open({
+    multiple: false,
+    directory: true,
+  });
+
+  return typeof dir === "string" ? dir : null;
 }
 
 export async function testDatabaseConnection(

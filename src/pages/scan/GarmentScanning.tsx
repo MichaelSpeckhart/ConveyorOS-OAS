@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { clearConveyorTauri, getCustomerFromTicket, getSlotNumberFromBarcodeTauri, getSlotManagerStatsTauri, getTicketFromGarment, handleScanTauri, isLastGarmentTauri, loadSensorHanger, ticketExists } from "../../lib/slot_manager";
+import { clearConveyorTauri, completeTicketTauri, getCustomerFromTicket, getSlotManagerStatsTauri, getTicketFromGarment, handleScanTauri, isLastGarmentTauri, loadSensorHanger, ticketExists } from "../../lib/slot_manager";
 import { GarmentRow, listGarmentsForTicket, TicketRow } from "../../lib/data";
 import type { SlotManagerStats } from "../../types/slotstats";
 import { incrementSessionGarmentsTauri, incrementSessionTicketsTauri } from "../../lib/session_manager";
@@ -133,7 +133,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
     setLastScan(code);
 
     if (isLast) {
-      const slotNum = await getSlotNumberFromBarcodeTauri(code);
+      const slotNum = await completeTicketTauri(code);
       setNextSlot(slotNum);
       setState("ticketcomplete");
       if (slotNum !== null) await slotRunRequest(slotNum);

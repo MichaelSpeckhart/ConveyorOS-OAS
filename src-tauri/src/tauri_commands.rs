@@ -60,25 +60,20 @@ pub fn handle_scan_tauri(scan_code: String) -> Result<Option<i32>, String> {
 
     let mut conn = establish_connection()?;
 
-    let garment = garment_repo::get_garment(&mut conn, &code);
-    if garment.is_err() {
-        return Err(format!("Garment not found for ticket: {}", code));
-    }
+    let garment = garment_repo::get_garment(&mut conn, &code)
+        .map_err(|_| format!("Garment not found for ticket: {}", code))?;
 
     let ticket = ticket_repo::get_ticket_by_invoice_number(
         &mut conn,
-        &garment.unwrap().full_invoice_number,
-    );
+        &garment.full_invoice_number,
+    ).map_err(|_| format!("Ticket not found for garment: {}", code))?;
 
-    if ticket.is_err() {
-        return Err(format!("Ticket not found for garment: {}", code));
-    }
+    let mut ticket_info = ticket;
 
-    let mut ticket_info = ticket.unwrap();
+    let on_conveyor = slot_repo::SlotRepo::ticket_on_conveyor(&mut conn, &ticket_info.full_invoice_number)
+        .map_err(|e| format!("DB Error (on_conveyor): {e}"))?;
 
-    let on_conveyor = slot_repo::SlotRepo::ticket_on_conveyor(&mut conn, &ticket_info.full_invoice_number);
-
-    if on_conveyor.unwrap() == true {
+    if on_conveyor {
         ticket_info.garments_processed += 1;
 
         let update_ticket = &UpdateTicket {
@@ -87,26 +82,19 @@ pub fn handle_scan_tauri(scan_code: String) -> Result<Option<i32>, String> {
             garments_processed: Some(ticket_info.garments_processed),
             number_of_items: Some(ticket_info.number_of_items),
             invoice_pickup_date: ticket_info.invoice_pickup_date,
-            ticket_status: Some(ticket_info.ticket_status)
+            ticket_status: Some(ticket_info.ticket_status),
         };
-
         let _res = ticket_repo::update_ticket(&mut conn, ticket_info.id, update_ticket);
 
-        match slot_repo::SlotRepo::find_ticket_slot(&mut conn, &ticket_info.full_invoice_number)
+        let slot = slot_repo::SlotRepo::find_ticket_slot(&mut conn, &ticket_info.full_invoice_number)
             .map_err(|e| format!("DB Error (find slot): {e}"))?
-        {
-            Some(slot) => return Ok(Some(slot.slot_number)),
-            None => return Err("Garment ticket not on conveyor".to_string()),
-        }
+            .ok_or_else(|| "Garment ticket not on conveyor".to_string())?;
 
-    } else {
-
+        let _ = write_load_item(ConveyorOpsTypes::LoadItem, &ticket_info.full_invoice_number, &garment.item_id, slot.slot_number as u32);
+        return Ok(Some(slot.slot_number));
     }
 
-    
     ticket_info.garments_processed += 1;
-
-    let new_status: &str = "Processing";
 
     let update_ticket = &UpdateTicket {
         full_invoice_number: Some(ticket_info.full_invoice_number.clone()),
@@ -114,16 +102,14 @@ pub fn handle_scan_tauri(scan_code: String) -> Result<Option<i32>, String> {
         number_of_items: Some(ticket_info.number_of_items),
         garments_processed: Some(ticket_info.garments_processed),
         invoice_pickup_date: ticket_info.invoice_pickup_date,
-        ticket_status: Some(new_status.to_string())
+        ticket_status: Some("Processing".to_string()),
     };
-
-    
     let _res = ticket_repo::update_ticket(&mut conn, ticket_info.id, update_ticket);
 
-    
     let reserved_slot = SlotManager::reserve_next_slot(&mut conn, Some(&ticket_info.full_invoice_number))
         .map_err(|e| format!("DB Error (reserve slot): {e}"))?;
 
+    let _ = write_load_item(ConveyorOpsTypes::LoadItem, &ticket_info.full_invoice_number, &garment.item_id, reserved_slot as u32);
 
     Ok(Some(reserved_slot))
 }
@@ -262,6 +248,54 @@ pub async fn get_slot_number_from_barcode_tauri(
         Some(slot) => Ok(Some(slot.slot_number)),
         None => Ok(None),
     }
+}
+
+/// Called when the last garment on a ticket is scanned.
+/// Writes load_item for the scanned garment, then unload_item for every
+/// garment on the ticket, and marks the ticket as Complete.
+#[tauri::command]
+pub fn complete_ticket_tauri(barcode: String) -> Result<Option<i32>, String> {
+    let mut conn = establish_connection()?;
+
+    let garment = garment_repo::get_garment(&mut conn, &barcode)
+        .map_err(|_| format!("Garment not found: {}", barcode))?;
+
+    let mut ticket = ticket_repo::get_ticket_by_invoice_number(&mut conn, &garment.full_invoice_number)
+        .map_err(|_| format!("Ticket not found for garment: {}", barcode))?;
+
+    // Find the existing conveyor slot, or reserve one for single-item tickets
+    let slot_number = match SlotRepo::find_ticket_slot(&mut conn, &ticket.full_invoice_number)
+        .map_err(|e| format!("DB Error (find slot): {e}"))?
+    {
+        Some(slot) => slot.slot_number,
+        None => SlotManager::reserve_next_slot(&mut conn, Some(&ticket.full_invoice_number))
+            .map_err(|e| format!("DB Error (reserve slot): {e}"))?,
+    };
+
+    // Load the last garment onto the conveyor
+    let _ = write_load_item(ConveyorOpsTypes::LoadItem, &ticket.full_invoice_number, &garment.item_id, slot_number as u32);
+
+    // Unload every garment — ticket is now complete
+    let all_garments = garment_repo::list_garments_for_ticket(&mut conn, &ticket.full_invoice_number)
+        .map_err(|e| format!("DB Error (list garments): {e}"))?;
+
+    for g in &all_garments {
+        let _ = write_unload_item(ConveyorOpsTypes::UnloadItem, &ticket.full_invoice_number, &g.item_id, slot_number as u32);
+    }
+
+    // Mark ticket complete
+    ticket.garments_processed += 1;
+    let update_ticket = &UpdateTicket {
+        full_invoice_number: Some(ticket.full_invoice_number.clone()),
+        display_invoice_number: Some(ticket.display_invoice_number.clone()),
+        number_of_items: Some(ticket.number_of_items),
+        garments_processed: Some(ticket.garments_processed),
+        invoice_pickup_date: ticket.invoice_pickup_date,
+        ticket_status: Some("Complete".to_string()),
+    };
+    let _res = ticket_repo::update_ticket(&mut conn, ticket.id, update_ticket);
+
+    Ok(Some(slot_number))
 }
 
 #[tauri::command]
@@ -492,11 +526,13 @@ pub fn save_settings_tauri(
     db_password: String,
     opc_server_url: String,
     pos_csv_dir: String,
+    conveyor_csv_output_dir: String,
 ) -> Result<(), String> {
     use tauri_plugin_store::StoreExt;
 
     let settings = crate::settings::appsettings::AppSettings {
         posCsvDir: pos_csv_dir,
+        conveyorCsvOutputDir: conveyor_csv_output_dir,
         dbHost: db_host,
         dbPort: db_port,
         dbName: db_name,
@@ -513,6 +549,9 @@ pub fn save_settings_tauri(
     // Update the global database URL so establish_connection() uses the new settings
     let database_url = crate::settings::database_url(&settings);
     crate::db::connection::set_database_url(&database_url);
+
+    // Update the global conveyor CSV output directory
+    crate::pos::spot::output::conveyor_file_utils::set_conveyor_csv_output_dir(&settings.conveyorCsvOutputDir);
 
     // Run migrations on the new database
     match crate::db::connection::establish_connection() {

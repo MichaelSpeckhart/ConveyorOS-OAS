@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppSettings {
     pub posCsvDir: String,
+    pub conveyorCsvOutputDir: String,
     pub dbHost: String,
     pub dbPort: u16,
     pub dbName: String,
@@ -15,6 +16,7 @@ impl Default for AppSettings {
     fn default() -> Self {
         Self {
             posCsvDir: "".to_string(),
+            conveyorCsvOutputDir: "".to_string(),
             dbHost: "localhost".to_string(),
             dbPort: 5432,
             dbName: "conveyor-app".to_string(),

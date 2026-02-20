@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { loadSettings, pickPosCsvFile, saveSettings, testDatabaseConnection, type AppSettings } from "../../lib/settings";
+import { loadSettings, pickConveyorOutputDir, pickPosCsvFile, saveSettings, testDatabaseConnection, type AppSettings } from "../../lib/settings";
 
 export default function SettingsPage() {
   const [s, setS] = useState<AppSettings | null>(null);
@@ -37,6 +37,17 @@ export default function SettingsPage() {
       if (path) setS((prev) => (prev ? { ...prev, posCsvDir: path } : prev));
     } catch (e) {
       console.error("FAILED pickPosCsvFile:", e);
+      setErr(String(e));
+    }
+  };
+
+  const pickOutputDir = async () => {
+    setErr(null);
+    try {
+      const dir = await pickConveyorOutputDir();
+      if (dir) setS((prev) => (prev ? { ...prev, conveyorCsvOutputDir: dir } : prev));
+    } catch (e) {
+      console.error("FAILED pickConveyorOutputDir:", e);
       setErr(String(e));
     }
   };
@@ -127,6 +138,18 @@ export default function SettingsPage() {
                 </button>
                 <div className="text-sm text-slate-600 break-all">
                   {s.posCsvDir || "No file selected"}
+                </div>
+              </div>
+              <h2 className="text-2xl font-black text-slate-900">CSV Output</h2>
+              <div className="bg-white rounded-2xl p-5 flex flex-col md:flex-row md:items-center gap-4 border border-slate-200 shadow">
+                <button
+                  onClick={pickOutputDir}
+                  className="px-5 py-3 rounded-2xl bg-slate-900 text-white font-black tracking-tight shadow-md hover:bg-black"
+                >
+                  Choose Output Folder
+                </button>
+                <div className="text-sm text-slate-600 break-all">
+                  {s.conveyorCsvOutputDir || "No folder selected"}
                 </div>
               </div>
               </section>

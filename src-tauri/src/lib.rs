@@ -48,6 +48,9 @@ pub fn run() {
             set_database_url(&database_url);
             println!("Database URL configured");
 
+            crate::pos::spot::output::conveyor_file_utils::set_conveyor_csv_output_dir(&settings.conveyorCsvOutputDir);
+            println!("Conveyor CSV output dir configured: {}", settings.conveyorCsvOutputDir);
+
             match establish_connection() {
                 Ok(mut conn) => {
                     
@@ -116,6 +119,7 @@ pub fn run() {
             tauri_commands::print_ticket_tauri,
             tauri_commands::is_last_garment,
             tauri_commands::get_slot_number_from_barcode_tauri,
+            tauri_commands::complete_ticket_tauri,
             tauri_commands::garment_ticket_on_conveyor_tauri,
             tauri_commands::get_slot_manager_stats,
             tauri_commands::clear_conveyor_tauri,

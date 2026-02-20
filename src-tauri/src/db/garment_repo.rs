@@ -32,6 +32,14 @@ pub fn get_garment(conn: &mut PgConnection, item_identifier: &str) -> Result<Gar
         .map_err(|e| e.to_string())
 }
 
+pub fn list_garments_for_ticket(conn: &mut PgConnection, invoice_number: &str) -> Result<Vec<Garment>, String> {
+    garments
+        .filter(full_invoice_number.eq(invoice_number))
+        .order(id.asc())
+        .load::<Garment>(conn)
+        .map_err(|e| e.to_string())
+}
+
 pub fn delete_garment(conn: &mut PgConnection, item_identifier: &str) -> Result<usize, String> {
     if !garment_exists(conn, item_identifier.to_string()) {
         return Ok(0);
