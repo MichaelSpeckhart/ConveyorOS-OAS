@@ -148,26 +148,44 @@ pub fn async_watch(settings: AppSettings) {
         loop {
             tokio::time::sleep(std::time::Duration::from_secs(5)).await;
 
-            let csv_path = std::path::Path::new(&csv_dir);//.join("newpos.csv");
+            let csv_path = std::path::Path::new(&csv_dir);
+
+            if !csv_path.exists() {
+                println!("[FileWatch] No file at: {}", csv_path.display());
+                continue;
+            }
+
+            println!("[FileWatch] File detected: {}", csv_path.display());
+
             let contents = match read_file(csv_path.to_str().unwrap_or_default()) {
                 Ok(c) => c,
                 Err(e) => {
-                    println!("File watch: could not read CSV: {}", e);
+                    println!("[FileWatch] ERROR reading file: {}", e);
                     continue;
                 }
             };
 
-            
+            println!("[FileWatch] Read {} lines from file", contents.len());
+            for (i, line) in contents.iter().enumerate() {
+                println!("[FileWatch] Line {}: {:?}", i, line);
+            }
 
             match parse_spot_csv_core(&contents) {
-                Ok(_) => {},
+                Ok(count) => {
+                    println!("[FileWatch] Parsing succeeded (result={})", count);
+                }
                 Err(e) => {
-                    println!("File watch: error parsing CSV: {}", e);
+                    println!("[FileWatch] ERROR parsing CSV: {}", e);
+                    println!("[FileWatch] File NOT deleted due to parse error");
+                    continue;
                 }
             }
 
+            println!("[FileWatch] Removing processed file: {}", csv_path.display());
             if let Err(e) = std::fs::remove_file(csv_path) {
-                println!("File watch: could not remove CSV: {}", e);
+                println!("[FileWatch] ERROR removing file: {}", e);
+            } else {
+                println!("[FileWatch] File removed successfully");
             }
         }
     });

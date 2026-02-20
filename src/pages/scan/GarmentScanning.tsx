@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { clearConveyorTauri, getCustomerFromTicket, getSlotNumberFromBarcodeTauri, getSlotManagerStatsTauri, getTicketFromGarment, handleScanTauri, isLastGarmentTauri, loadSensorHanger, ticketExists } from "../../lib/slot_manager";
-// import { slotRunRequest } from "../../lib/opc";
 import { GarmentRow, listGarmentsForTicket, TicketRow } from "../../lib/data";
 import type { SlotManagerStats } from "../../types/slotstats";
 import { incrementSessionGarmentsTauri, incrementSessionTicketsTauri } from "../../lib/session_manager";
@@ -87,11 +86,12 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
   const handleScan = async (value: string) => {
     const code = value.trim();
     if (!code || code.length < 4) {
-      setState("error");
       if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+      setState("error");
       errorTimeoutRef.current = setTimeout(() => setState("waiting"), 1500);
       return;
     }
+
     if (keypadOpen) closeKeypad();
     if (errorTimeoutRef.current) {
       clearTimeout(errorTimeoutRef.current);
@@ -107,28 +107,14 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
       return;
     }
 
-    let isLast = await isLastGarmentTauri(code);
-    if (isLast) {
-      setState("ticketcomplete");
-      let slotNum = await getSlotNumberFromBarcodeTauri(code);
-      setNextSlot(slotNum);
-      const info = await getCustomerFromTicket(code);
-      setCustomerInfo(info);
-      await slotRunRequest(slotNum!);
-      if (sessionId) {
-        console.log("Session ID");
-        var session = await incrementSessionGarmentsTauri(sessionId);
-        setScanCount(session.garments_scanned);
-        session = await incrementSessionTicketsTauri(sessionId);
-        setTicketsCompeted(session.tickets_completed);
-        setLastScan(value);
-      }
-      await refreshSlotStats();
-      return;
-    }
-
-    const info = await getCustomerFromTicket(code);
+    // Fetch customer info and last-garment flag concurrently
+    const [info, isLast] = await Promise.all([
+      getCustomerFromTicket(code),
+      isLastGarmentTauri(code),
+    ]);
     setCustomerInfo(info);
+
+    // Load ticket + garment list for both branches
     try {
       const ticket = await getTicketFromGarment(code);
       if (ticket) {
@@ -143,18 +129,42 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
       setTicketMeta(null);
       setGarments([]);
     }
-    let slot_num = await handleScanTauri(code);
-    setState("success");
-    setLastScan(code);
-    setNextSlot(slot_num);
 
-    if (slot_num !== null) {
-      await slotRunRequest(slot_num);
+    setLastScan(code);
+
+    if (isLast) {
+      const slotNum = await getSlotNumberFromBarcodeTauri(code);
+      setNextSlot(slotNum);
+      setState("ticketcomplete");
+      if (slotNum !== null) await slotRunRequest(slotNum);
+      if (sessionId) {
+        const garmentSession = await incrementSessionGarmentsTauri(sessionId);
+        setScanCount(garmentSession.garments_scanned);
+        const ticketSession = await incrementSessionTicketsTauri(sessionId);
+        setTicketsCompeted(ticketSession.tickets_completed);
+      }
+      await refreshSlotStats();
+      return;
+    }
+
+    let slotNum: number | null;
+    try {
+      slotNum = await handleScanTauri(code);
+      console.log("handleScanTauri result:", slotNum);
+    } catch (err) {
+      console.error("handleScanTauri failed:", err);
+      setState("error");
+      return;
+    }
+    setNextSlot(slotNum);
+
+    if (slotNum !== null) {
+      setState("success");
+      await slotRunRequest(slotNum);
+      if (await loadSensorHanger()) setState("garmentonconveyor");
     } else {
       setState("error");
     }
-
-    if (await loadSensorHanger()) setState("garmentonconveyor"); 
 
     if (sessionId) {
       const session = await incrementSessionGarmentsTauri(sessionId);
@@ -163,7 +173,6 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
       setScanCount((prev) => prev + 1);
     }
     await refreshSlotStats();
-    return;
   };
 
   return (

@@ -96,7 +96,7 @@ pub fn handle_scan_tauri(scan_code: String) -> Result<Option<i32>, String> {
             .map_err(|e| format!("DB Error (find slot): {e}"))?
         {
             Some(slot) => return Ok(Some(slot.slot_number)),
-            None => return Ok(None),
+            None => return Err("Garment ticket not on conveyor".to_string()),
         }
 
     } else {
