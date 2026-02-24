@@ -1,4 +1,4 @@
-use conveyoros_oas_lib::pos::spot::spot_file_utils;
+use conveyoros_oas_lib::{io::fileutils::read_file, pos::spot::spot_file_utils};
 
 const TEST_FILE_PATH: &str = "tests/test_data/pos.csv";
 
@@ -27,6 +27,24 @@ pub fn test_empty_file() {
     }
 }
 
+#[test]
+pub fn test_delete_item() {
+    let contents =  read_file("/Users/michaelspeckhart/Developer/Samples/Tauri-Sample/ConveyorOS-OAS/src-tauri/tests/test_data/pos.csv").unwrap();
+
+    use conveyoros_oas_lib::db::connection::set_database_url;
+
+    set_database_url("postgres://postgres:postgres123@localhost:5432/conveyor-app");
+
+    match spot_file_utils::parse_spot_csv_core(&contents) {
+        Ok(count) => {
+            println!("Parsed {} operations successfully.", count);
+            assert_eq!(count, 1, "Expected to parse exactly one operation.");
+        },
+        Err(e) => {
+            panic!("Failed to parse spot CSV file: {}", e);
+        }
+    }
+}
 
 // #[test]
 // pub fn test_parse_spot_csv_core() {

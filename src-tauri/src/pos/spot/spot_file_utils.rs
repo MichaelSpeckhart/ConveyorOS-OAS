@@ -161,9 +161,9 @@ pub fn handle_add_item_op(fields: &Vec<String>, conn: &mut PgConnection) -> Resu
     
         &fields[6],
     
-        &fields[7],
-    
         &fields[8],
+    
+        &fields[7],
     
         &fields[9],
     
