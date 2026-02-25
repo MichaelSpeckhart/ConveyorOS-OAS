@@ -28,21 +28,27 @@ fn get_conveyor_csv_paths() -> Result<(String, String), String> {
 pub fn write_conveyor_csv_file(operation_type: ConveyorOpsTypes, lines: &[String]) -> Result<(), String> {
     let (csv_file, temp_file) = get_conveyor_csv_paths()?;
 
+    let dir = CONVEYOR_CSV_OUTPUT_DIR.read().unwrap().clone();
+    std::fs::create_dir_all(&dir)
+        .map_err(|e| format!("Failed to create conveyor CSV output directory: {}", e))?;
+
     if std::fs::exists(&csv_file).unwrap() == true {
+        std::fs::copy(&csv_file, &temp_file)
+            .map_err(|e| format!("Failed to copy Conveyor CSV to temp file: {}", e))?;
+
         let mut file = std::fs::OpenOptions::new()
-            .create(true)
             .append(true)
             .open(&temp_file)
             .map_err(|e| format!("Failed to open Conveyor CSV temp file: {}", e))?;
-
-        let _ = std::fs::copy(&csv_file, &temp_file);
 
         for line in lines {
             writeln!(file, "{}", line).map_err(|e| format!("Failed to write to conveyor CSV temp file: {}", e))?;
         }
 
+        drop(file);
+
         std::fs::rename(&temp_file, &csv_file)
-        .map_err(|e| format!("Failed to rename conveyor CSV temp file: {}", e))?;
+            .map_err(|e| format!("Failed to rename conveyor CSV temp file: {}", e))?;
 
         return Ok(());
     }
