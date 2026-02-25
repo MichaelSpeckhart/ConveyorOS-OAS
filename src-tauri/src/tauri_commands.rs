@@ -4,7 +4,7 @@ use diesel::prelude::*;
 use serde::Serialize;
 use tokio::time::{sleep, timeout};
 
-use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, sessions_repo, slot_repo::{self, SlotRepo}, ticket_repo, users_repo}, domain::auth, io::printer::printer_details, model::{Ticket, UpdateTicket, User}, opc::{opc_client::AppState, opc_commands::get_load_hanger_sensor}, pos::spot::output::{conveyor_file_utils::{write_load_item, write_split_invoice, write_unload_item}, conveyor_ops_types::{self, ConveyorOpsTypes}}, slot_manager::{SlotManager, SlotManagerStats}};
+use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, sessions_repo, slot_repo::{self, SlotRepo}, ticket_repo, users_repo}, domain::auth, io::printer::printer_details, model::{Ticket, UpdateTicket, User}, opc::{opc_client::AppState, opc_commands::get_load_hanger_sensor}, pos::spot::output::{conveyor_file_utils::{self, write_load_item, write_print_invoice, write_split_invoice, write_unload_item}, conveyor_ops_types::{self, ConveyorOpsTypes}}, slot_manager::{SlotManager, SlotManagerStats}};
 
 #[derive(Serialize)]
 pub struct LoginResult {
@@ -294,6 +294,8 @@ pub fn complete_ticket_tauri(barcode: String) -> Result<Option<i32>, String> {
         ticket_status: Some("Complete".to_string()),
     };
     let _res = ticket_repo::update_ticket(&mut conn, ticket.id, update_ticket);
+
+    write_print_invoice(ConveyorOpsTypes::PrintInvoice, &ticket.full_invoice_number, 1)?;
 
     Ok(Some(slot_number))
 }
@@ -598,7 +600,7 @@ pub fn print_ticket_tauri(full_invoice_number: String) -> Result<(), String> {
     let mut conn = establish_connection()?;
     let ticket = ticket_repo::get_ticket_by_invoice_number(&mut conn, &full_invoice_number)
         .map_err(|e| format!("Ticket not found: {}", e))?;
-    printer_details::print_ticket(&ticket);
+    conveyor_file_utils::write_print_invoice(ConveyorOpsTypes::PrintInvoice, &ticket.full_invoice_number, 1)?;
     Ok(())
 }
 
@@ -629,4 +631,37 @@ pub fn check_setup_required_tauri(app: tauri::AppHandle) -> bool {
         }
         Err(_) => true, // Connection fails, setup required
     }
+}
+
+
+#[tauri::command]
+pub fn unload_item_tauri(item_id: String) -> Result<(), String> {
+    let mut conn = establish_connection()?;
+
+    let garment = garment_repo::get_garment(&mut conn, &item_id.to_string());
+
+    if garment.is_err() {
+        return Err("Garment Not Found".to_string());
+    }
+
+    let ticket_info = ticket_repo::get_ticket_by_invoice_number(&mut conn, &garment.as_ref().unwrap().full_invoice_number);
+
+    let garments = garment_repo::list_garments_for_ticket(&mut conn, &garment.as_ref().unwrap().full_invoice_number);
+
+    let garment_infos = garments.unwrap();
+
+    for g in garment_infos {
+        let _ = write_unload_item(ConveyorOpsTypes::UnloadItem, &g.full_invoice_number, &g.item_id, 0);
+    }
+
+    print_invoice_tauri(garment.as_ref().unwrap().full_invoice_number.clone())?;
+    Ok(())
+}
+
+pub fn print_invoice_tauri(full_invoice_number: String) -> Result<(), String> {
+    let mut conn = establish_connection()?;
+    let ticket = ticket_repo::get_ticket_by_invoice_number(&mut conn, &full_invoice_number)
+        .map_err(|e| format!("Ticket not found: {}", e))?;
+    conveyor_file_utils::write_print_invoice(ConveyorOpsTypes::PrintInvoice, &ticket.full_invoice_number, 1)?;
+    Ok(())
 }

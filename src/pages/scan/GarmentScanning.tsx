@@ -4,6 +4,7 @@ import { GarmentRow, listGarmentsForTicket, TicketRow } from "../../lib/data";
 import type { SlotManagerStats } from "../../types/slotstats";
 import { incrementSessionGarmentsTauri, incrementSessionTicketsTauri } from "../../lib/session_manager";
 import { slotRunRequest } from "../../lib/opc";
+import { UnloadItem } from "../../lib/pos";
 
 
 type ScanState = "waiting" | "success" | "error" | "oneitem" | "garmentonconveyor" | "ticketcomplete";
@@ -143,7 +144,12 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
         const ticketSession = await incrementSessionTicketsTauri(sessionId);
         setTicketsCompeted(ticketSession.tickets_completed);
       }
+
+      await UnloadItem(code);
+
       await refreshSlotStats();
+
+
       return;
     }
 
@@ -160,8 +166,11 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
 
     if (slotNum !== null) {
       setState("success");
-      await slotRunRequest(slotNum);
-      if (await loadSensorHanger()) setState("garmentonconveyor");
+      const [, sensorTriggered] = await Promise.all([
+        slotRunRequest(slotNum),
+        loadSensorHanger(),
+      ]);
+      if (sensorTriggered) setState("garmentonconveyor");
     } else {
       setState("error");
     }

@@ -133,6 +133,7 @@ pub fn run() {
             tauri_commands::test_database_connection_tauri,
             tauri_commands::get_current_settings_tauri,
             tauri_commands::check_setup_required_tauri,
+            tauri_commands::unload_item_tauri,
             greet
         ])
         .run(tauri::generate_context!())

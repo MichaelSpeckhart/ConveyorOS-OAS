@@ -103,63 +103,42 @@ impl SlotManager {
             .load::<i32>(conn)
     }
 
-    /// Picks the empty slot that maximises spread across the conveyor.
+    /// Picks the next slot to assign based on current conveyor fill level.
     ///
-    /// Strategy: treat occupied slots as points on a circular ring and find the
-    /// largest gap between consecutive occupied slots. The empty slot whose number
-    /// is nearest to the midpoint of that gap is returned, placing new items as
-    /// far as possible from existing ones.
+    /// - Below 50% capacity: space garments at least 5 slots apart so they
+    ///   are evenly distributed across the conveyor.
+    /// - At or above 50% capacity: fall back to the first available empty slot
+    ///   (linear fill) so the conveyor does not run out of space prematurely.
     fn pick_spread(empties: &[Slot], occupied: &[i32]) -> Option<i32> {
         if empties.is_empty() {
             return None;
         }
 
+        let total = empties.len() + occupied.len();
+        let capacity_pct = if total > 0 {
+            (occupied.len() as f64 / total as f64) * 100.0
+        } else {
+            0.0
+        };
+
+        // ≥ 50% full: just take the next available slot linearly.
+        if capacity_pct >= 50.0 {
+            return empties.first().map(|s| s.slot_number);
+        }
+
+        // < 50% full: find the first empty slot that is at least 5 away from
+        // every currently occupied slot.
         if occupied.is_empty() {
-            // Nothing occupied yet — start near the middle of the available range.
-            return empties.get(empties.len() / 2).map(|s| s.slot_number);
+            return empties.first().map(|s| s.slot_number);
         }
 
-        // Overall numeric range across all slots (occupied + empty).
-        let all_min = empties.first().unwrap().slot_number.min(*occupied.first().unwrap());
-        let all_max = empties.last().unwrap().slot_number.max(*occupied.last().unwrap());
-        let span = all_max - all_min + 1; // total positions on the ring
+        let candidate = empties.iter().find(|s| {
+            occupied.iter().all(|&o| (s.slot_number - o).abs() >= 5)
+        });
 
-        // Find the largest gap between consecutive occupied slots on the ring.
-        let n = occupied.len();
-        let mut best_gap = 0i32;
-        let mut best_mid = all_min;
-
-        for i in 0..n {
-            let a = occupied[i];
-            let b = occupied[(i + 1) % n];
-
-            // Gap length going forward from a to b on the circular ring.
-            let gap = if b > a {
-                b - a
-            } else {
-                // Wraps around: a → all_max → all_min → b
-                (all_max - a) + (b - all_min) + 2
-            };
-
-            if gap > best_gap {
-                best_gap = gap;
-                // Midpoint of this gap (may wrap around the ring).
-                let mid_raw = a + gap / 2;
-                best_mid = if mid_raw > all_max {
-                    all_min + (mid_raw - all_max - 1)
-                } else {
-                    mid_raw
-                };
-            }
-        }
-
-        // Return the empty slot closest to best_mid using circular distance.
-        empties
-            .iter()
-            .min_by_key(|s| {
-                let d = (s.slot_number - best_mid).abs();
-                d.min(span - d)
-            })
+        // Fall back to first available if no 5-apart slot exists.
+        candidate
+            .or_else(|| empties.first())
             .map(|s| s.slot_number)
     }
 
