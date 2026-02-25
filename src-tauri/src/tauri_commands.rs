@@ -665,3 +665,20 @@ pub fn print_invoice_tauri(full_invoice_number: String) -> Result<(), String> {
     conveyor_file_utils::write_print_invoice(ConveyorOpsTypes::PrintInvoice, &ticket.full_invoice_number, 1)?;
     Ok(())
 }
+
+#[tauri::command]
+pub fn load_item_tauri(item_id: String) -> Result<(), String> {
+    let mut conn = establish_connection()?;
+
+    let garment = garment_repo::get_garment(&mut conn, &item_id.to_string());
+
+    if garment.is_err() {
+        return Err("Garment Not Found".to_string());
+    }
+
+    let garment_info = garment.unwrap();
+
+     let _ = write_load_item(ConveyorOpsTypes::LoadItem, &garment_info.full_invoice_number, &item_id.to_string(), 0);
+
+    Ok(())
+}
