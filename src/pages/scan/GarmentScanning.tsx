@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { clearConveyorTauri, completeTicketTauri, getCustomerFromTicket, getSlotManagerStatsTauri, getTicketFromGarment, handleScanTauri, isLastGarmentTauri, loadSensorHanger, ticketExists } from "../../lib/slot_manager";
+import { clearConveyorTauri, completeTicketTauri, getCustomerFromTicket, getSlotManagerStatsTauri, getTicketFromGarment, handleScanTauri, isLastGarmentTauri, loadSensorHanger, ticketExists, updateGarmentSlotTauri } from "../../lib/slot_manager";
 import { GarmentRow, listGarmentsForTicket, TicketRow } from "../../lib/data";
 import type { SlotManagerStats } from "../../types/slotstats";
 import { incrementSessionGarmentsTauri, incrementSessionTicketsTauri } from "../../lib/session_manager";
@@ -78,6 +78,10 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
   };
 
   useEffect(() => {
+    refreshSlotStats();
+  }, []);
+
+  useEffect(() => {
     const focusInput = () => inputRef.current?.focus();
     focusInput();
     window.addEventListener("click", focusInput);
@@ -116,9 +120,23 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
     setCustomerInfo(info);
 
     // Load ticket + garment list for both branches
-    try {
+    
+
+    setLastScan(code);
+
+    if (isLast) {
+      const slotNum = await completeTicketTauri(code);
+      setNextSlot(slotNum);
+      setState("ticketcomplete");
+      if (sessionId) {
+        const garmentSession = await incrementSessionGarmentsTauri(sessionId);
+        setScanCount(garmentSession.garments_scanned);
+        const ticketSession = await incrementSessionTicketsTauri(sessionId);
+        setTicketsCompeted(ticketSession.tickets_completed);
+        try {
       const ticket = await getTicketFromGarment(code);
       if (ticket) {
+        if (slotNum !== null) updateGarmentSlotTauri(code, slotNum);
         setTicketMeta(ticket);
         const rows = await listGarmentsForTicket(ticket.full_invoice_number);
         setGarments(rows);
@@ -130,26 +148,17 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
       setTicketMeta(null);
       setGarments([]);
     }
-
-    setLastScan(code);
-
-    if (isLast) {
-      const slotNum = await completeTicketTauri(code);
-      setNextSlot(slotNum);
-      setState("ticketcomplete");
-      if (slotNum !== null) await slotRunRequest(slotNum);
-      if (sessionId) {
-        const garmentSession = await incrementSessionGarmentsTauri(sessionId);
-        setScanCount(garmentSession.garments_scanned);
-        const ticketSession = await incrementSessionTicketsTauri(sessionId);
-        setTicketsCompeted(ticketSession.tickets_completed);
+      } else {
+        setScanCount((prev) => prev + 1);
+        setTicketsCompeted((prev) => prev + 1);
       }
-
-      await UnloadItem(code);
-
       await refreshSlotStats();
-
-
+      try {
+        if (slotNum !== null) await slotRunRequest(slotNum);
+        await UnloadItem(code);
+      } catch (err) {
+        console.error("Hardware operation failed:", err);
+      }
       return;
     }
 
@@ -166,23 +175,42 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
 
     if (slotNum !== null) {
       setState("success");
-      const [, sensorTriggered] = await Promise.all([
-        slotRunRequest(slotNum),
-        loadSensorHanger(),
-      ]);
-      if (sensorTriggered) setState("garmentonconveyor");
-      await LoadItem(code);
+      if (sessionId) {
+        const session = await incrementSessionGarmentsTauri(sessionId);
+        setScanCount(session.garments_scanned);
+      } else {
+        setScanCount((prev) => prev + 1);
+      }
+      await refreshSlotStats();
+      try {
+        try {
+      const ticket = await getTicketFromGarment(code);
+      if (ticket) {
+        try { await updateGarmentSlotTauri(code, slotNum); } catch (err) { console.error("updateGarmentSlotTauri failed:", err); }
+        setTicketMeta(ticket);
+        const rows = await listGarmentsForTicket(ticket.full_invoice_number);
+        setGarments(rows);
+      } else {
+        setTicketMeta(null);
+        setGarments([]);
+      }
+    } catch {
+      setTicketMeta(null);
+      setGarments([]);
+    }
+        const [, sensorTriggered] = await Promise.all([
+          slotRunRequest(slotNum),
+          loadSensorHanger(),
+        ]);
+        if (sensorTriggered) setState("garmentonconveyor");
+        await LoadItem(code);
+      } catch (err) {
+        console.error("Hardware operation failed:", err);
+      }
     } else {
       setState("error");
     }
 
-    if (sessionId) {
-      const session = await incrementSessionGarmentsTauri(sessionId);
-      setScanCount(session.garments_scanned);
-    } else {
-      setScanCount((prev) => prev + 1);
-    }
-    await refreshSlotStats();
   };
 
   return (
@@ -248,24 +276,24 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
             </div>
 
             <div className="flex-1 min-h-0">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-2 flex flex-col min-h-0 h-full">
-                <div className="flex items-center justify-between">
-                  <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Garments</div>
-                  <div className="text-slate-900 font-black text-xs">{garments.length}</div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 flex flex-col min-h-0 h-full">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="text-xs uppercase tracking-widest text-slate-500 font-bold">Garments</div>
+                  <div className="text-slate-900 font-black text-sm">{garments.length}</div>
                 </div>
-                <div className="mt-1 flex-1 min-h-0 overflow-auto divide-y divide-slate-200">
+                <div className="flex-1 min-h-0 overflow-auto divide-y divide-slate-200">
                   {garments.length === 0 ? (
-                    <div className="py-1 text-slate-500 text-[10px]">No garments found.</div>
+                    <div className="py-2 text-slate-500 text-sm">No garments found.</div>
                   ) : (
                     garments.map((g) => (
-                      <div key={g.id} className="py-1">
-                        <div className="flex items-start justify-between gap-1.5">
+                      <div key={g.id} className="py-2.5">
+                        <div className="flex items-center justify-between gap-3">
                           <div className="min-w-0">
-                            <div className="font-bold text-slate-900 text-[10px] break-words leading-snug">{g.item_description}</div>
-                            <div className="text-[8px] text-slate-500 font-mono mt-0.5 break-all">Item ID: {g.item_id}</div>
+                            <div className="font-bold text-slate-900 text-sm break-words leading-snug">{g.item_description}</div>
+                            <div className="text-xs text-slate-500 font-mono mt-0.5">ID: {g.item_id}</div>
                           </div>
-                          <div className="px-1.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[8px] font-bold shrink-0">
-                            Slot {g.slot_number}
+                          <div className="px-3 py-1 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 text-sm font-black shrink-0">
+                            {g.slot_number === -1 ? "Unassigned" : `Slot ${g.slot_number}`}
                           </div>
                         </div>
                       </div>
@@ -286,7 +314,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
       <div className="grid grid-cols-1 lg:grid-cols-[1fr,240px] gap-3 h-full min-h-0">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 h-full">
           <StatBox label="Last Scan" value={lastScan ?? "---"} color="text-slate-700" />
-          <StatBox label="Next Slot" value={nextSlot ?? "--"} color="text-green-600" border="border-b-[6px] border-green-500" />
+          <StatBox label="Slot" value={nextSlot ?? "--"} color="text-green-600" border="border-b-[6px] border-green-500" />
           <StatBox label="Processed" value={scanCount} color="text-blue-600" border="border-b-[6px] border-blue-500" />
           <StatBox label="Tickets Completed" value={ticketsCompleted} color="text-slate-900" />
           <StatBox label="Conveyor Capacity" value={conveyorCapacity} color="text-slate-900" suffix="%" />

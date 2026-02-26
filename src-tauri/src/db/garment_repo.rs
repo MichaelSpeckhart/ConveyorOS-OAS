@@ -50,3 +50,11 @@ pub fn delete_garment(conn: &mut PgConnection, item_identifier: &str) -> Result<
         .map_err(|e| e.to_string())
 }
 
+pub fn update_garment_slot(conn: &mut PgConnection, barcode: &str, slot_num: i32) -> Result<(), String> {
+    diesel::update(garments.filter(item_id.eq(barcode)))
+        .set(slot_number.eq(slot_num))
+        .execute(conn)
+        .map(|_| ())
+        .map_err(|e| e.to_string())
+}
+

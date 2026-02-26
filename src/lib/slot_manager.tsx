@@ -50,6 +50,11 @@ export async function garmentTicketOnConveyorTauri(ticket: string): Promise<numb
     return invoke<number | string>("garment_ticket_on_conveyor_tauri", { ticket });
 }
 
+export async function updateGarmentSlotTauri(barcode: string, slot_number: number): Promise<void> {
+    console.log("Invoking update_garment_slot_tauri with barcode:", barcode, "and slot_number:", slot_number);
+    await invoke<void>("update_garment_slot_tauri", { barcode, slotNumber: slot_number });
+}
+
 type RawSlotManagerStats = {
     occupied_slots: number;
     total_slots: number;

@@ -134,6 +134,7 @@ pub fn run() {
             tauri_commands::get_current_settings_tauri,
             tauri_commands::check_setup_required_tauri,
             tauri_commands::unload_item_tauri,
+            tauri_commands::update_garment_slot_tauri,
             greet
         ])
         .run(tauri::generate_context!())

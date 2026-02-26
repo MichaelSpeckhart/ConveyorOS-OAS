@@ -682,3 +682,23 @@ pub fn load_item_tauri(item_id: String) -> Result<(), String> {
 
     Ok(())
 }
+
+#[tauri::command]
+pub fn update_garment_slot_tauri(barcode: String, slot_number: i32) -> Result<(), String> {
+    println!("Updating garment slot for barcode {}: slot {}", barcode, slot_number);
+    let mut conn = establish_connection()?;
+
+    let garment = garment_repo::get_garment(&mut conn, &barcode);
+
+    if garment.is_err() {
+        return Err("Garment Not Found".to_string());
+    }
+
+    let mut garment_info = garment.unwrap();
+    garment_info.slot_number = slot_number;
+
+    garment_repo::update_garment_slot(&mut conn, &barcode, garment_info.slot_number)
+        .map_err(|e| format!("DB Error: {}", e))?;
+
+    Ok(())
+}
