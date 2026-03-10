@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 
 export async function station1JogFwd(): Promise<void> {
-  return invoke("station1_jog_fwd");
+    return invoke("station1_jog_fwd");
 }
 
 export async function getTargetSlot(): Promise<number> {
@@ -13,8 +13,8 @@ export async function setTargetSlot(value: number): Promise<void> {
 }
 
 export async function slotRunRequest(targetSlot: number): Promise<void> {
-  console.log(`Requesting slot run for target slot: ${targetSlot}`);
-  await invoke("slot_run_request_tauri", { targetSlot: Math.trunc(targetSlot) });
+    console.log(`Requesting slot run for target slot: ${targetSlot}`);
+    await invoke("slot_run_request_tauri", { targetSlot: Math.trunc(targetSlot) });
 }
 
 export async function opcConnected(): Promise<boolean> {

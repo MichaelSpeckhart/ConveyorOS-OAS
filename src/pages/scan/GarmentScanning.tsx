@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { clearConveyorTauri, completeTicketTauri, getCustomerFromTicket, getSlotManagerStatsTauri, getTicketFromGarment, handleScanTauri, isLastGarmentTauri, loadSensorHanger, ticketExists, updateGarmentSlotTauri } from "../../lib/slot_manager";
+import GarmentKeyboard from "../../components/GarmentKeyboard";
+import { clearConveyorTauri, completeTicketTauri, getCustomerFromTicket, getOccupiedSlotsTauri, getSlotManagerStatsTauri, getTicketFromGarment, handleScanTauri, isLastGarmentTauri, loadSensorHanger, removeGarmentFromSlotTauri, ticketExists, updateGarmentSlotTauri } from "../../lib/slot_manager";
 import { GarmentRow, listGarmentsForTicket, TicketRow } from "../../lib/data";
 import type { SlotManagerStats } from "../../types/slotstats";
 import { incrementSessionGarmentsTauri, incrementSessionTicketsTauri } from "../../lib/session_manager";
@@ -7,7 +8,7 @@ import { slotRunRequest } from "../../lib/opc";
 import { LoadItem, UnloadItem } from "../../lib/pos";
 
 
-type ScanState = "waiting" | "success" | "error" | "oneitem" | "garmentonconveyor" | "ticketcomplete";
+type ScanState = "waiting" | "success" | "error" | "oneitem" | "garmentonconveyor" | "ticketcomplete" | "removegarment";
 
 const STATE_STYLE = {
   waiting: { bg: "bg-yellow-400", text: "text-yellow-950", title: "WAITING FOR SCAN", subtitle: "Position barcode under scanner" },
@@ -16,6 +17,7 @@ const STATE_STYLE = {
   oneitem: { bg: "bg-green-600", text: "text-white", title: "SINGLE ITEM TICKET", subtitle: "DO NOT RACK ITEM" },
   garmentonconveyor: { bg: "bg-blue-600", text: "text-white", title: "GARMENT ON CONVEYOR", subtitle: "" },
   ticketcomplete: { bg: "bg-green-600", text: "text-white", title: "TICKET COMPLETE", subtitle: "REMOVE GARMENTS AND PROCEED" },
+  removegarment: { bg: "bg-red-600", text: "text-white", title: "REMOVE GARMENT", subtitle: "Please remove garments from conveyor" },
 };
 
 
@@ -34,6 +36,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
   const [manualCode, setManualCode] = useState("");
   const [clearOpen, setClearOpen] = useState(false);
   const [clearSequence, setClearSequence] = useState("");
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const [nextSlot, setNextSlot] = useState<number | null>(null);
   const [ticketsCompleted, setTicketsCompeted] = useState(0);
   const conveyorCapacity = slotStats ? Math.round(slotStats.capacity_percentage) : "—";
@@ -52,12 +55,6 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
   const openClear = () => { setClearSequence(""); setClearOpen(true); };
   const closeClear = () => { setClearOpen(false); setTimeout(() => inputRef.current?.focus(), 0); };
 
-  const pressKey = (k: string) => {
-    if (k === "⌫") return setManualCode((s) => s.slice(0, -1));
-    if (k === "CLR") return setManualCode("");
-    setManualCode((s) => s + k);
-  };
-
   const submitManual = async () => {
     await handleScan(manualCode);
     closeKeypad();
@@ -67,7 +64,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
     const next = (clearSequence + k).slice(-3);
     setClearSequence(next);
     if (next === "123") {
-      await clearConveyorTauri();
+      await handleClearConveyor();
       await refreshSlotStats();
       closeClear();
       setCustomerInfo(null);
@@ -87,6 +84,40 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
     window.addEventListener("click", focusInput);
     return () => window.removeEventListener("click", focusInput);
   }, []);
+
+  const handleClearConveyor = async () => {
+    const slotsToClear = await getOccupiedSlotsTauri();
+
+    console.log("Slots to clear:", slotsToClear);
+
+    if (slotsToClear.length === 0) {
+      return;
+    }
+
+    for (const slot of slotsToClear) {
+      try {
+        if (slot.slot_number !== undefined)
+        {
+
+
+          await slotRunRequest(slot.slot_number);
+        }
+
+        setState("removegarment");
+          
+        
+        await loadSensorHanger();
+
+        // Update Database
+        await removeGarmentFromSlotTauri(slot.assigned_ticket ?? "", slot.slot_number);
+
+
+
+      } catch (err) {
+        console.error(`Failed to clear slot ${slot}:`, err);
+      }
+    }
+  }
 
   const handleScan = async (value: string) => {
     const code = value.trim();
@@ -219,16 +250,38 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
       {/* 1. TOP SECTION: Status Hero */}
       <div className={`relative flex flex-col items-center justify-center rounded-3xl shadow-xl transition-all duration-300 ${STATE_STYLE[state].bg} ${STATE_STYLE[state].text}`}>
         
-        {/* More Options Button - Anchored top-right of hero
-            Need to display recall screen
-        */}
-        <button 
-          onClick={() => (onOpenRecall ? onOpenRecall() : console.log("Open Options - Not Implemented"))}
-          className="absolute top-5 right-5 bg-black/10 hover:bg-black/20 backdrop-blur-md rounded-xl px-4 py-2 font-bold flex items-center gap-2 border border-black/5 transition-all active:scale-95"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-          Options
-        </button>
+        {/* Options Dropdown - Anchored top-right of hero */}
+        <div className="absolute top-5 right-5">
+          <button
+            onClick={() => setOptionsOpen((o) => !o)}
+            className="bg-black/10 hover:bg-black/20 backdrop-blur-md rounded-xl px-4 py-2 font-bold flex items-center gap-2 border border-black/5 transition-all active:scale-95"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+            Options
+          </button>
+          {optionsOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setOptionsOpen(false)} />
+              <div className="absolute right-0 top-full mt-2 z-50 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden min-w-[200px]">
+                <button
+                  onClick={() => { setOptionsOpen(false); onOpenRecall ? onOpenRecall() : console.log("Open Recall - Not Implemented"); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-50 font-bold text-sm text-left"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                  Recall
+                </button>
+                <div className="border-t border-slate-100" />
+                <button
+                  onClick={() => { setOptionsOpen(false); openClear(); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 font-bold text-sm text-left"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg>
+                  Clear Conveyor
+                </button>
+              </div>
+            </>
+          )}
+        </div>
 
         <h1 className="text-8xl font-black mb-3 tracking-tight uppercase">{STATE_STYLE[state].title}</h1>
         <p className="text-2xl font-black opacity-80">{STATE_STYLE[state].subtitle}</p>
@@ -320,58 +373,25 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
           <StatBox label="Conveyor Capacity" value={conveyorCapacity} color="text-slate-900" suffix="%" />
         </div>
 
-        <div className="grid grid-cols-2 gap-3 h-full">
-          <button
-            onClick={openKeypad}
-            className="flex flex-col items-center justify-center gap-1 bg-slate-900 hover:bg-slate-700 text-white rounded-xl transition-all active:scale-95 shadow-sm border border-slate-200 h-full"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect width="18" height="18" x="3" y="3" rx="2" />
-              <path d="M7 7h.01M12 7h.01M17 7h.01M7 12h.01M12 12h.01M17 12h.01M7 17h.01M12 17h.01M17 17h.01" />
-            </svg>
-            <span className="font-black uppercase tracking-tighter text-sm">Manual Entry</span>
-          </button>
-          <button
-            onClick={openClear}
-            className="flex flex-col items-center justify-center gap-1 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all active:scale-95 shadow-sm h-full"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 6h18" />
-              <path d="M8 6V4h8v2" />
-              <path d="M6 6l1 14h10l1-14" />
-            </svg>
-            <span className="font-black uppercase tracking-tighter text-sm">Clear Conveyor</span>
-          </button>
-        </div>
+        <button
+          onClick={openKeypad}
+          className="flex flex-col items-center justify-center gap-1 bg-slate-900 hover:bg-slate-700 text-white rounded-xl transition-all active:scale-95 shadow-sm border border-slate-200 h-full"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect width="18" height="18" x="3" y="3" rx="2" />
+            <path d="M7 7h.01M12 7h.01M17 7h.01M7 12h.01M12 12h.01M17 12h.01M7 17h.01M12 17h.01M17 17h.01" />
+          </svg>
+          <span className="font-black uppercase tracking-tighter text-sm">Manual Entry</span>
+        </button>
       </div>
 
-      {/* Keypad Modal (Condensed) */}
       {keypadOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onMouseDown={(e) => e.target === e.currentTarget && closeKeypad()}>
-          <div className="w-full max-w-sm rounded-[2.5rem] bg-white shadow-2xl p-8">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-black text-slate-800">BARCODE ENTRY</h3>
-              <button onClick={closeKeypad} className="text-slate-400 hover:text-red-500 text-2xl">✕</button>
-            </div>
-            <div className="bg-slate-100 rounded-2xl p-4 mb-6 text-center">
-              <span className="text-3xl font-mono font-bold tracking-widest text-blue-600">{manualCode || "---"}</span>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              {["1","2","3","4","5","6","7","8","9","CLR","0","⌫"].map((k) => (
-                <button
-                  key={k}
-                  onClick={() => pressKey(k)}
-                  className={`h-16 rounded-2xl text-2xl font-black transition-all active:scale-90 ${k === 'CLR' || k === '⌫' ? 'bg-slate-200 text-slate-700' : 'bg-slate-800 text-white hover:bg-black'}`}
-                >
-                  {k}
-                </button>
-              ))}
-            </div>
-            <button onClick={submitManual} disabled={manualCode.length < 4} className="w-full mt-6 py-5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xl font-black shadow-lg disabled:opacity-30">
-              SUBMIT SCAN
-            </button>
-          </div>
-        </div>
+        <GarmentKeyboard
+          value={manualCode}
+          onChange={setManualCode}
+          onSubmit={submitManual}
+          onClose={closeKeypad}
+        />
       )}
 
       {clearOpen && (

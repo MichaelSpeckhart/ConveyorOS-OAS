@@ -23,3 +23,12 @@ export interface SlotStatReport {
     stats: SlotStatRow[];
     summary: SlotStatSummary;
 }
+
+export interface Slot {
+    slot_number: number;
+    slot_state: string;
+    assigned_ticket: string | null;
+    item_id: string | null;
+    created_at: string;
+    updated_at: string;
+}

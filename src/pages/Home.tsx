@@ -2,214 +2,172 @@ import { useEffect, useState } from "react";
 import { loadSettings, type AppSettings } from "../lib/settings";
 import { invoke } from "@tauri-apps/api/core";
 
-// If you already have wrappers for these, use them instead of invoke():
-// - opc_is_connected (bool)
-// - load_sensor_hanger_tauri (bool)
-// - get_target_slot (number)   (optional)
-// - (optional) items_today / last_scan if you store them somewhere
-
 export default function HomePage() {
   const [settings, setSettings] = useState<AppSettings | null>(null);
-
-  const [opcConnected, setOpcConnected] = useState<boolean>(false);
-  const [hanger, setHanger] = useState<boolean>(false);
-
+  const [opcConnected, setOpcConnected] = useState(false);
+  const [hanger, setHanger] = useState(false);
+  const [targetSlot, setTargetSlot] = useState<number | null>(null);
   const [itemsToday] = useState<number>(0);
   const [lastScan] = useState<string>("—");
 
-  const [targetSlot, setTargetSlot] = useState<number | null>(null);
-
   useEffect(() => {
     let alive = true;
-
     (async () => {
       try {
         const s = await loadSettings();
         if (alive) setSettings(s);
-      } catch {
-        // settings can fail if permissions aren’t set; don’t kill home screen
-      }
+      } catch {}
     })();
-
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, []);
 
   useEffect(() => {
     let alive = true;
-
     const tick = async () => {
       try {
-        // OPTIONAL: implement these commands in Rust if you haven’t yet.
         const connected = await invoke<boolean>("check_opc_connection_tauri").catch(() => false);
         const hangerVal = await invoke<boolean>("load_sensor_hanger_tauri").catch(() => false);
-
-        // Optional target slot command if you have it
         const slotVal = await invoke<number>("get_target_slot_tauri").catch(() => null);
-
         if (!alive) return;
         setOpcConnected(connected);
         setHanger(hangerVal);
         setTargetSlot(slotVal);
-      } catch {
-        // ignore
-      }
+      } catch {}
     };
-
     tick();
-    const id = setInterval(tick, 500); // refresh twice per second
-
-    return () => {
-      alive = false;
-      clearInterval(id);
-    };
+    const id = setInterval(tick, 500);
+    return () => { alive = false; clearInterval(id); };
   }, []);
 
-  // quick “fake” stats until you wire them
-  // replace these with your real app state if you have it
-  // setItemsToday(...) and setLastScan(...) from scanner page storage later
-
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-4xl font-black text-slate-900">Home</h1>
-            <div className="text-slate-600 mt-1">
-              Quick status + key stats
+    <div className="min-h-screen bg-slate-100">
+
+      {/* Hero */}
+      <div className="bg-slate-900 px-8 py-10">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-start justify-between gap-6">
+            <div>
+              <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-2">ConveyorOS</p>
+              <h1 className="text-5xl font-black text-white leading-none">Dashboard</h1>
+              <div className={`inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-full text-sm font-black ${
+                opcConnected ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
+              }`}>
+                <span className={`w-2 h-2 rounded-full ${opcConnected ? "bg-green-400" : "bg-red-400"}`} />
+                {opcConnected ? "System Online" : "System Offline"}
+              </div>
+            </div>
+            <div className="flex flex-col gap-3 pt-1">
+              <a
+                href="/scanner"
+                className="px-6 py-3 rounded-2xl bg-blue-500 hover:bg-blue-400 active:scale-95 text-white font-black shadow-lg transition-all text-center"
+              >
+                Open Scanner
+              </a>
+              <a
+                href="/settings"
+                className="px-6 py-3 rounded-2xl bg-white/10 hover:bg-white/20 active:scale-95 text-white font-black transition-all text-center"
+              >
+                Settings
+              </a>
             </div>
           </div>
-
-          <div className="flex gap-3">
-            <a
-              href="/scanner"
-              className="px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black shadow"
-            >
-              Open Scanner
-            </a>
-            <a
-              href="/settings"
-              className="px-5 py-3 rounded-2xl bg-slate-900 hover:bg-black text-white font-black shadow"
-            >
-              Settings
-            </a>
-          </div>
         </div>
+      </div>
 
-        {/* Top status cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <StatusCard
-            title="OPC Connection"
+      <div className="max-w-5xl mx-auto px-8 py-8 space-y-6">
+
+        {/* Status Row */}
+        <div className="grid grid-cols-3 gap-4">
+          <StatusTile
+            label="OPC / PLC"
             value={opcConnected ? "Connected" : "Disconnected"}
-            pill={opcConnected ? "ok" : "bad"}
-            subtitle="Live PLC link"
+            on={opcConnected}
+            onColor="bg-green-500"
+            offColor="bg-red-500"
           />
-
-          <StatusCard
-            title="Hanger Sensor"
-            value={hanger ? "TRUE" : "FALSE"}
-            pill={hanger ? "warn" : "ok"}
-            subtitle="Load hanger detect"
+          <StatusTile
+            label="Hanger Sensor"
+            value={hanger ? "Triggered" : "Clear"}
+            on={!hanger}
+            onColor="bg-green-500"
+            offColor="bg-yellow-500"
           />
-
-          <StatusCard
-            title="Target Slot"
-            value={targetSlot ?? "—"}
-            pill={targetSlot ? "ok" : "neutral"}
-            subtitle="Current requested slot"
-          />
-        </div>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <BigStat title="Items Today" value={itemsToday} />
-          <BigStat title="Last Scan" value={lastScan} mono />
-          <BigStat
-            title="POS CSV"
-            value={settings?.posCsvDir ? "Configured" : "Not set"}
-            subValue={settings?.posCsvDir || "Pick a CSV in Settings"}
+          <StatusTile
+            label="Target Slot"
+            value={targetSlot !== null ? `Slot ${targetSlot}` : "None"}
+            on={targetSlot !== null}
+            onColor="bg-blue-500"
+            offColor="bg-slate-400"
           />
         </div>
 
-        {/* Helpful details */}
-        <div className="bg-white rounded-3xl shadow p-6">
-          <div className="text-lg font-black text-slate-900 mb-3">Quick Details</div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <DetailRow label="POS CSV file" value={settings?.posCsvDir || "—"} />
-            <DetailRow
-              label="Database"
-              value={
-                settings
-                  ? `${settings.dbHost}:${settings.dbPort} / ${settings.dbName} (user: ${settings.dbUser})`
-                  : "—"
-              }
-            />
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-white rounded-2xl p-6 shadow-sm">
+            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Items Today</p>
+            <p className="text-6xl font-black text-slate-900 mt-2 leading-none">{itemsToday}</p>
           </div>
-
-          <div className="mt-5 text-sm text-slate-500">
-            Tip: If OPC shows disconnected, check PLC network + endpoint URL in Settings.
+          <div className="bg-white rounded-2xl p-6 shadow-sm">
+            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Last Scan</p>
+            <p className="text-4xl font-black font-mono text-slate-900 mt-2 leading-none">{lastScan}</p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow-sm">
+            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">POS CSV</p>
+            <p className={`text-3xl font-black mt-2 leading-none ${settings?.posCsvDir ? "text-green-600" : "text-slate-300"}`}>
+              {settings?.posCsvDir ? "Configured" : "Not set"}
+            </p>
+            {settings?.posCsvDir && (
+              <p className="text-xs text-slate-400 font-mono mt-2 break-all leading-snug">{settings.posCsvDir}</p>
+            )}
           </div>
         </div>
+
+        {/* Config */}
+        <div className="bg-white rounded-2xl shadow-sm divide-y divide-slate-100">
+          <div className="px-6 py-4">
+            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Configuration</p>
+          </div>
+          <ConfigRow label="POS CSV File" value={settings?.posCsvDir || "Not configured"} empty={!settings?.posCsvDir} />
+          <ConfigRow
+            label="Database"
+            value={settings ? `${settings.dbHost}:${settings.dbPort} / ${settings.dbName}` : "Not configured"}
+            empty={!settings}
+          />
+          <ConfigRow
+            label="DB User"
+            value={settings?.dbUser || "Not configured"}
+            empty={!settings?.dbUser}
+          />
+        </div>
+
       </div>
     </div>
   );
 }
 
-function StatusCard(props: {
-  title: string;
-  value: string | number;
-  subtitle?: string;
-  pill: "ok" | "bad" | "warn" | "neutral";
+function StatusTile({ label, value, on, onColor, offColor }: {
+  label: string;
+  value: string;
+  on: boolean;
+  onColor: string;
+  offColor: string;
 }) {
-  const pillClass =
-    props.pill === "ok"
-      ? "bg-green-100 text-green-800"
-      : props.pill === "bad"
-      ? "bg-red-100 text-red-800"
-      : props.pill === "warn"
-      ? "bg-yellow-100 text-yellow-900"
-      : "bg-slate-100 text-slate-800";
-
   return (
-    <div className="bg-white rounded-3xl shadow p-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="text-slate-500 font-bold text-sm uppercase tracking-widest">
-            {props.title}
-          </div>
-          <div className="text-3xl font-black text-slate-900 mt-2">{props.value}</div>
-          {props.subtitle && <div className="text-slate-500 mt-1">{props.subtitle}</div>}
-        </div>
-        <div className={`px-3 py-1 rounded-full text-sm font-black ${pillClass}`}>
-          {props.pill.toUpperCase()}
-        </div>
+    <div className="bg-white rounded-2xl p-6 shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{label}</p>
+        <span className={`w-3 h-3 rounded-full ${on ? onColor : offColor}`} />
       </div>
+      <p className="text-2xl font-black text-slate-900 leading-none">{value}</p>
     </div>
   );
 }
 
-function BigStat(props: { title: string; value: string | number; subValue?: string; mono?: boolean }) {
+function ConfigRow({ label, value, empty }: { label: string; value: string; empty?: boolean }) {
   return (
-    <div className="bg-white rounded-3xl shadow p-6">
-      <div className="text-slate-500 font-bold text-sm uppercase tracking-widest">
-        {props.title}
-      </div>
-      <div className={`mt-2 text-5xl font-black text-slate-900 ${props.mono ? "font-mono" : ""}`}>
-        {props.value}
-      </div>
-      {props.subValue && <div className="text-slate-600 mt-2 break-all">{props.subValue}</div>}
-    </div>
-  );
-}
-
-function DetailRow(props: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 p-4 bg-slate-50">
-      <div className="text-slate-500 font-bold text-xs uppercase tracking-widest">{props.label}</div>
-      <div className="text-slate-900 font-mono mt-1 break-all">{props.value}</div>
+    <div className="px-6 py-4 flex items-center justify-between gap-8">
+      <p className="text-sm font-bold text-slate-500 shrink-0">{label}</p>
+      <p className={`text-sm font-mono text-right break-all ${empty ? "text-slate-300" : "text-slate-800"}`}>{value}</p>
     </div>
   );
 }

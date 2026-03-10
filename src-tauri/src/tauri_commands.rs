@@ -4,7 +4,7 @@ use diesel::prelude::*;
 use serde::Serialize;
 use tokio::time::{sleep, timeout};
 
-use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, sessions_repo, slot_repo::{self, SlotRepo}, ticket_repo, users_repo}, domain::auth, io::printer::printer_details, model::{Ticket, UpdateTicket, User}, opc::{opc_client::AppState, opc_commands::get_load_hanger_sensor}, pos::spot::output::{conveyor_file_utils::{self, write_load_item, write_print_invoice, write_split_invoice, write_unload_item}, conveyor_ops_types::{self, ConveyorOpsTypes}}, slot_manager::{SlotManager, SlotManagerStats}};
+use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, sessions_repo, slot_repo::{self, SlotRepo}, ticket_repo, users_repo}, domain::auth, io::printer::printer_details, model::{Ticket, UpdateTicket, User}, opc::{opc_client::AppState, opc_commands::get_load_hanger_sensor}, pos::spot::output::{conveyor_file_utils::{self, write_load_item, write_print_invoice, write_split_invoice, write_unload_item}, conveyor_ops_types::{self, ConveyorOpsTypes}}, slot_manager::{self, SlotManager, SlotManagerStats}};
 
 #[derive(Serialize)]
 pub struct LoginResult {
@@ -644,7 +644,7 @@ pub fn unload_item_tauri(item_id: String) -> Result<(), String> {
         return Err("Garment Not Found".to_string());
     }
 
-    let ticket_info = ticket_repo::get_ticket_by_invoice_number(&mut conn, &garment.as_ref().unwrap().full_invoice_number);
+    let _ticket_info = ticket_repo::get_ticket_by_invoice_number(&mut conn, &garment.as_ref().unwrap().full_invoice_number);
 
     let garments = garment_repo::list_garments_for_ticket(&mut conn, &garment.as_ref().unwrap().full_invoice_number);
 
@@ -699,6 +699,39 @@ pub fn update_garment_slot_tauri(barcode: String, slot_number: i32) -> Result<()
 
     garment_repo::update_garment_slot(&mut conn, &barcode, garment_info.slot_number)
         .map_err(|e| format!("DB Error: {}", e))?;
+
+    Ok(())
+}
+
+#[tauri::command] 
+pub fn get_occupied_slots_tauri() -> Result<Vec<crate::model::Slot>, String> {
+    let mut conn = establish_connection()?;
+    SlotManager::get_occupied_slots(&mut conn)
+        .map_err(|e| format!("DB Error: {}", e))
+}
+
+#[tauri::command] 
+pub fn remove_garment_from_slot_tauri(ticket: String, slot_num: i32) -> Result<(), String> {
+    let mut conn = establish_connection()?;
+    
+    let garments = garment_repo::list_garments_for_ticket(&mut conn, &ticket)
+        .map_err(|e| format!("DB Error (list garments): {e}"))?;
+
+    for garment in garments {
+        if garment.slot_number != -1 {
+            garment_repo::update_garment_slot(&mut conn, &garment.item_id, -1)
+                .map_err(|e| format!("DB Error (update garment slot): {e}"))?;
+
+            let _ = write_unload_item(ConveyorOpsTypes::UnloadItem, &garment.full_invoice_number, &garment.item_id, garment.slot_number as u32);
+            
+        }   
+    }
+
+    ticket_repo::update_ticket_status(&mut conn, &ticket, "Not Processed")
+        .map_err(|e| format!("DB Error (update ticket status): {e}"))?;
+
+    slot_manager::SlotManager::free_slot(&mut conn, slot_num)
+        .map_err(|e| format!("DB Error (free slot): {e}"))?;
 
     Ok(())
 }

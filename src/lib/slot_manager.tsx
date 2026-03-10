@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { customer } from "../types/customer";
 import type { TicketRow } from "./data";
-import type { SlotManagerStats } from "../types/slotstats";
+import type { Slot, SlotManagerStats } from "../types/slotstats";
 
 
 export async function ticketExists(ticket: string): Promise<boolean> {
@@ -72,6 +72,14 @@ export async function getSlotManagerStatsTauri(): Promise<SlotManagerStats> {
 
 export async function clearConveyorTauri(): Promise<void> {
     await invoke<void>("clear_conveyor_tauri");
+}
+
+export async function getOccupiedSlotsTauri(): Promise<Slot[]> {
+    return invoke<Slot[]>("get_occupied_slots_tauri");
+}   
+
+export async function removeGarmentFromSlotTauri(ticket: string, slot_number: number): Promise<void> {
+    await invoke<void>("remove_garment_from_slot_tauri", { ticket, slotNum: slot_number });
 }
 
 

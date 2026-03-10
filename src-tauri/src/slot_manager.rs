@@ -103,12 +103,6 @@ impl SlotManager {
             .load::<i32>(conn)
     }
 
-    /// Picks the next slot to assign based on current conveyor fill level.
-    ///
-    /// - Below 50% capacity: space garments at least 5 slots apart so they
-    ///   are evenly distributed across the conveyor.
-    /// - At or above 50% capacity: fall back to the first available empty slot
-    ///   (linear fill) so the conveyor does not run out of space prematurely.
     fn pick_spread(empties: &[Slot], occupied: &[i32]) -> Option<i32> {
         if empties.is_empty() {
             return None;
@@ -150,6 +144,16 @@ impl SlotManager {
             .filter(slot_state.ne("empty"))
             .count()
             .get_result::<i64>(conn)
+    }
+
+    pub fn get_occupied_slots(
+        conn: &mut PgConnection,
+    ) -> diesel::QueryResult<Vec<Slot>> {
+        use crate::schema::slots::dsl::*;
+        slots
+            .filter(slot_state.ne("empty"))
+            .order(slot_number.asc())
+            .load::<Slot>(conn)
     }
 
     pub fn get_total_slots(
