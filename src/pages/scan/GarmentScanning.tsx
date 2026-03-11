@@ -37,6 +37,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
   const [clearOpen, setClearOpen] = useState(false);
   const [clearSequence, setClearSequence] = useState("");
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [clearingSlot, setClearingSlot] = useState<{ slotNumber: number; ticket: string } | null>(null);
   const [ticketsCompleted, setTicketsCompleted] = useState(0);
   const conveyorCapacity = slotStats ? Math.round(slotStats.capacity_percentage) : "—";
 
@@ -53,7 +54,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
   const openKeypad = () => { setManualCode(""); setKeypadOpen(true); };
   const closeKeypad = () => { setKeypadOpen(false); setTimeout(() => inputRef.current?.focus(), 0); };
   const openClear = () => { setClearSequence(""); setClearOpen(true); };
-  const closeClear = () => { setClearOpen(false); setTimeout(() => inputRef.current?.focus(), 0); };
+  const closeClear = () => { setClearOpen(false); setClearingSlot(null); setTimeout(() => inputRef.current?.focus(), 0); };
 
   const submitManual = async () => {
     await handleScan(manualCode);
@@ -94,7 +95,8 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
   }, []);
 
   const handleClearConveyor = async () => {
-    await clearConveyorTauri();
+
+    // await clearConveyorTauri();
 
     const slotsToClear = await getOccupiedSlotsTauri();
 
@@ -110,13 +112,13 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
 
         if (slot.slot_number !== undefined){
 
-
+          setClearingSlot({ slotNumber: slot.slot_number, ticket: slot.assigned_ticket ?? "" });
           await slotRunRequest(slot.slot_number);
         }
 
         setState("removegarment");
-          
-        
+
+
         await loadSensorHanger();
 
         // Update Database
@@ -128,6 +130,8 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
         console.error(`Failed to clear slot ${slot}:`, err);
       }
     }
+
+    setClearingSlot(null);
   }
 
   
@@ -419,6 +423,20 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
 
         <h1 className="text-8xl font-black mb-3 tracking-tight uppercase">{STATE_STYLE[state].title}</h1>
         <p className="text-2xl font-black opacity-80">{STATE_STYLE[state].subtitle}</p>
+        {state === "removegarment" && clearingSlot && (
+          <div className="mt-4 flex items-center gap-6">
+            <div className="bg-black/20 rounded-2xl px-6 py-3 text-center">
+              <div className="text-xs uppercase tracking-widest font-bold opacity-70 mb-1">Slot</div>
+              <div className="text-5xl font-black">{clearingSlot.slotNumber}</div>
+            </div>
+            {clearingSlot.ticket && (
+              <div className="bg-black/20 rounded-2xl px-6 py-3 text-center">
+                <div className="text-xs uppercase tracking-widest font-bold opacity-70 mb-1">Ticket</div>
+                <div className="text-3xl font-black">{clearingSlot.ticket}</div>
+              </div>
+            )}
+          </div>
+        )}
 
         <input
           ref={inputRef}

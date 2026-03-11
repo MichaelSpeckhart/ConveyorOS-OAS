@@ -1,4 +1,4 @@
-use std::{sync::atomic::Ordering, time::Duration};
+use std::{any::Any, sync::atomic::Ordering, time::Duration};
 
 use diesel::prelude::*;
 use serde::Serialize;
@@ -742,8 +742,21 @@ pub fn remove_garment_from_slot_tauri(ticket: String, slot_num: i32) -> Result<(
         }   
     }
 
-    ticket_repo::update_ticket_status(&mut conn, &ticket, "Not Processed")
-        .map_err(|e| format!("DB Error (update ticket status): {e}"))?;
+    let ticket = ticket_repo::get_ticket_by_invoice_number(&mut conn, &ticket)
+        .map_err(|e| format!("DB Error (get ticket): {e}"))?;
+
+    let updated_ticket =  UpdateTicket {
+        full_invoice_number: Some(ticket.full_invoice_number.clone()),
+        display_invoice_number: Some(ticket.display_invoice_number.clone()),
+        garments_processed: Some(0),
+        number_of_items: Some(ticket.number_of_items),
+        invoice_pickup_date: ticket.invoice_pickup_date,
+        ticket_status: Some("Not Processed".to_string()),
+    };
+
+    ticket_repo::update_ticket(&mut conn, ticket.id, &updated_ticket)
+        .map_err(|e| format!("DB Error (update garments processed): {e}"))?;
+
 
     slot_manager::SlotManager::free_slot(&mut conn, slot_num)
         .map_err(|e| format!("DB Error (free slot): {e}"))?;
