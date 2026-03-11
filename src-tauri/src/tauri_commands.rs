@@ -74,7 +74,11 @@ pub fn handle_scan_tauri(scan_code: String) -> Result<Option<i32>, String> {
         .map_err(|e| format!("DB Error (on_conveyor): {e}"))?;
 
     if on_conveyor {
-        ticket_info.garments_processed += 1;
+        // // We do not need to update the ticket status or reserve a slot, but we still need to increment garments_processed and write the load_item for the garment that was just scanned.
+        if garment.slot_number == -1 {
+            ticket_info.garments_processed += 1;
+        }
+        
 
         let update_ticket = &UpdateTicket {
             full_invoice_number: Some(ticket_info.full_invoice_number.clone()),
@@ -84,6 +88,9 @@ pub fn handle_scan_tauri(scan_code: String) -> Result<Option<i32>, String> {
             invoice_pickup_date: ticket_info.invoice_pickup_date,
             ticket_status: Some(ticket_info.ticket_status),
         };
+
+
+
         let _res = ticket_repo::update_ticket(&mut conn, ticket_info.id, update_ticket);
 
         let slot = slot_repo::SlotRepo::find_ticket_slot(&mut conn, &ticket_info.full_invoice_number)
@@ -514,9 +521,6 @@ pub fn perform_split_invoice_op_non_tauri(full_invoice_number: String, item_id: 
 
     Ok(true)
 }
-
-
-// ============ Settings Management Commands ============
 
 #[tauri::command]
 pub fn save_settings_tauri(

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import GarmentKeyboard from "../../components/GarmentKeyboard";
-import { completeTicketTauri, getCustomerFromTicket, getOccupiedSlotsTauri, getSlotManagerStatsTauri, getTicketFromGarment, handleScanTauri, isLastGarmentTauri, loadSensorHanger, removeGarmentFromSlotTauri, ticketExists, updateGarmentSlotTauri } from "../../lib/slot_manager";
+import { clearConveyorTauri, completeTicketTauri, getCustomerFromTicket, getOccupiedSlotsTauri, getSlotManagerStatsTauri, getTicketFromGarment, handleScanTauri, isLastGarmentTauri, loadSensorHanger, removeGarmentFromSlotTauri, ticketExists, updateGarmentSlotTauri } from "../../lib/slot_manager";
 import { GarmentRow, listGarmentsForTicket, TicketRow } from "../../lib/data";
 import type { SlotManagerStats } from "../../types/slotstats";
 import { incrementSessionGarmentsTauri, incrementSessionTicketsTauri } from "../../lib/session_manager";
@@ -37,8 +37,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
   const [clearOpen, setClearOpen] = useState(false);
   const [clearSequence, setClearSequence] = useState("");
   const [optionsOpen, setOptionsOpen] = useState(false);
-  const [nextSlot, setNextSlot] = useState<number | null>(null);
-  const [ticketsCompleted, setTicketsCompeted] = useState(0);
+  const [ticketsCompleted, setTicketsCompleted] = useState(0);
   const conveyorCapacity = slotStats ? Math.round(slotStats.capacity_percentage) : "—";
 
   const refreshSlotStats = async () => {
@@ -86,6 +85,8 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
   }, []);
 
   const handleClearConveyor = async () => {
+    await clearConveyorTauri();
+
     const slotsToClear = await getOccupiedSlotsTauri();
 
     console.log("Slots to clear:", slotsToClear);
@@ -95,9 +96,10 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
     }
 
     for (const slot of slotsToClear) {
+
       try {
-        if (slot.slot_number !== undefined)
-        {
+
+        if (slot.slot_number !== undefined){
 
 
           await slotRunRequest(slot.slot_number);
@@ -119,137 +121,246 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
     }
   }
 
+  
   const handleScan = async (value: string) => {
+  
     const code = value.trim();
+  
     if (!code || code.length < 4) {
+  
       if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+  
       setState("error");
+  
       errorTimeoutRef.current = setTimeout(() => setState("waiting"), 1500);
+  
       return;
+  
     }
 
+
+  
     if (keypadOpen) closeKeypad();
+  
     if (errorTimeoutRef.current) {
+  
       clearTimeout(errorTimeoutRef.current);
+  
       errorTimeoutRef.current = null;
+  
     }
 
+
+  
     const exists = await ticketExists(code);
+  
     if (!exists) {
+  
       setState("error");
+  
       setCustomerInfo(null);
+  
       setTicketMeta(null);
+  
       setGarments([]);
+  
       return;
+  
     }
 
+
+  
     // Fetch customer info and last-garment flag concurrently
+  
     const [info, isLast] = await Promise.all([
+  
       getCustomerFromTicket(code),
+  
       isLastGarmentTauri(code),
+  
     ]);
+  
     setCustomerInfo(info);
+
 
     // Load ticket + garment list for both branches
     
 
     setLastScan(code);
 
+    
     if (isLast) {
+    
       const slotNum = await completeTicketTauri(code);
-      setNextSlot(slotNum);
+    
       setState("ticketcomplete");
+    
       if (sessionId) {
+    
         const garmentSession = await incrementSessionGarmentsTauri(sessionId);
         setScanCount(garmentSession.garments_scanned);
+
         const ticketSession = await incrementSessionTicketsTauri(sessionId);
-        setTicketsCompeted(ticketSession.tickets_completed);
+        setTicketsCompleted(ticketSession.tickets_completed);
+
         try {
-      const ticket = await getTicketFromGarment(code);
+    
+          const ticket = await getTicketFromGarment(code);
+    
       if (ticket) {
+    
         if (slotNum !== null) updateGarmentSlotTauri(code, slotNum);
+    
         setTicketMeta(ticket);
+    
         const rows = await listGarmentsForTicket(ticket.full_invoice_number);
+    
         setGarments(rows);
+
+        await refreshSlotStats();
+    
       } else {
+    
         setTicketMeta(null);
+    
         setGarments([]);
+    
       }
+    
     } catch {
+    
       setTicketMeta(null);
+    
       setGarments([]);
+    
     }
-      } else {
+    
+  } else {
         setScanCount((prev) => prev + 1);
-        setTicketsCompeted((prev) => prev + 1);
+        
+        setTicketsCompleted((prev) => prev + 1);
       }
-      await refreshSlotStats();
+    
       try {
+
         if (slotNum !== null) await slotRunRequest(slotNum);
+
         await UnloadItem(code);
+
       } catch (err) {
+
         console.error("Hardware operation failed:", err);
-      }
-      return;
-    }
 
-    let slotNum: number | null;
-    try {
-      slotNum = await handleScanTauri(code);
-      console.log("handleScanTauri result:", slotNum);
-    } catch (err) {
-      console.error("handleScanTauri failed:", err);
-      setState("error");
-      return;
-    }
-    setNextSlot(slotNum);
-
-    if (slotNum !== null) {
-      setState("success");
-      if (sessionId) {
-        const session = await incrementSessionGarmentsTauri(sessionId);
-        setScanCount(session.garments_scanned);
-      } else {
-        setScanCount((prev) => prev + 1);
       }
+
       await refreshSlotStats();
-      try {
-        try {
-      const ticket = await getTicketFromGarment(code);
-      if (ticket) {
-        try { await updateGarmentSlotTauri(code, slotNum); } catch (err) { console.error("updateGarmentSlotTauri failed:", err); }
-        setTicketMeta(ticket);
-        const rows = await listGarmentsForTicket(ticket.full_invoice_number);
-        setGarments(rows);
-      } else {
-        setTicketMeta(null);
-        setGarments([]);
-      }
-    } catch {
-      setTicketMeta(null);
-      setGarments([]);
+
+      return;
+    
     }
-        const [, sensorTriggered] = await Promise.all([
-          slotRunRequest(slotNum),
-          loadSensorHanger(),
-        ]);
-        if (sensorTriggered) setState("garmentonconveyor");
-        await LoadItem(code);
-      } catch (err) {
-        console.error("Hardware operation failed:", err);
-      }
-    } else {
+
+    
+    let slotNum: number | null;
+    
+    try {
+    
+      slotNum = await handleScanTauri(code);
+    
+      console.log("handleScanTauri result:", slotNum);
+    
+    } catch (err) {
+    
+      console.error("handleScanTauri failed:", err);
+    
       setState("error");
+    
+      return;
+    
+    }
+    
+    
+    if (slotNum !== null) {
+    
+      setState("success");
+    
+      if (sessionId) {
+    
+        const session = await incrementSessionGarmentsTauri(sessionId);
+    
+        setScanCount(session.garments_scanned);
+    
+      } else {
+    
+        setScanCount((prev) => prev + 1);
+    
+      }
+    
+      await refreshSlotStats();
+    
+      try {
+    
+        try {
+    
+          const ticket = await getTicketFromGarment(code);
+    
+      if (ticket) {
+    
+        try { await updateGarmentSlotTauri(code, slotNum); } catch (err) { console.error("updateGarmentSlotTauri failed:", err); }
+    
+        setTicketMeta(ticket);
+    
+        const rows = await listGarmentsForTicket(ticket.full_invoice_number);
+    
+        setGarments(rows);
+    
+      } else {
+    
+        setTicketMeta(null);
+    
+        setGarments([]);
+    
+      }
+    
+    } catch {
+    
+      setTicketMeta(null);
+    
+      setGarments([]);
+    
+    }
+    
+    const [, sensorTriggered] = await Promise.all([
+    
+          slotRunRequest(slotNum),
+    
+          loadSensorHanger(),
+    
+        ]);
+    
+        if (sensorTriggered) setState("garmentonconveyor");
+    
+        await LoadItem(code);
+    
+      } catch (err) {
+    
+        console.error("Hardware operation failed:", err);
+    
+      }
+    
+    } else {
+    
+      setState("error");
+    
     }
 
   };
 
   return (
     <div className="flex-1 bg-slate-50 grid grid-rows-[32vh,1fr,104px] p-5 gap-5 overflow-hidden h-full min-h-0">
-      
+
       {/* 1. TOP SECTION: Status Hero */}
       <div className={`relative flex flex-col items-center justify-center rounded-3xl shadow-xl transition-all duration-300 ${STATE_STYLE[state].bg} ${STATE_STYLE[state].text}`}>
-        
+
         {/* Options Dropdown - Anchored top-right of hero */}
         <div className="absolute top-5 right-5">
           <button
@@ -285,7 +396,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
 
         <h1 className="text-8xl font-black mb-3 tracking-tight uppercase">{STATE_STYLE[state].title}</h1>
         <p className="text-2xl font-black opacity-80">{STATE_STYLE[state].subtitle}</p>
-        
+
         <input
           ref={inputRef}
           value={barcode}
@@ -296,80 +407,78 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
         />
       </div>
 
-      {/* 2. MIDDLE SECTION: Customer Info */}
-      <div className="min-h-0 flex flex-col">
-        {customerInfo ? (
-          <div className="bg-white border border-slate-200 border-l-[6px] border-l-blue-500 rounded-3xl p-4 shadow-sm flex flex-col gap-3 h-full min-h-0 overflow-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 flex-shrink-0">
-              <div className="lg:col-span-2">
-                <p className="text-blue-600 font-bold uppercase tracking-widest text-[10px] mb-1">Customer + Ticket</p>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h2 className="text-3xl font-black text-slate-900 leading-none">
-                      {customerInfo.first_name} {customerInfo.last_name}
-                    </h2>
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      <span className="px-2 py-0.5 bg-slate-100 rounded-md font-mono text-[11px] text-slate-600">ID: {customerInfo.customer_identifier}</span>
-                      <span className="px-2 py-0.5 bg-slate-100 rounded-md font-mono text-[11px] text-slate-600">{customerInfo.phone_number}</span>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="inline-block bg-green-50 text-green-700 border border-green-200 px-2.5 py-1 rounded-xl font-bold text-xs">Active Profile</div>
-                  </div>
+      {/* 2. MIDDLE SECTION: Customer Info (left) + Current Garment (right) */}
+      <div className="grid grid-cols-[1fr_320px] gap-5 min-h-0">
+        {/* Left: Customer + Garment List */}
+        <div className="min-h-0 flex flex-col">
+          {customerInfo ? (
+            <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm flex flex-col gap-4 h-full min-h-0 overflow-hidden">
+              {/* Customer header */}
+              <div className="flex items-center justify-between gap-4 flex-shrink-0">
+                <div>
+                  <p className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-0.5">Customer</p>
+                  <h2 className="text-3xl font-black text-slate-900 leading-none">
+                    {customerInfo.first_name} {customerInfo.last_name}
+                  </h2>
                 </div>
+                {ticketMeta && (
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-0.5">Pickup</p>
+                    <div className="text-lg font-black text-slate-700">{fmtDate(ticketMeta.invoice_pickup_date)}</div>
+                  </div>
+                )}
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-2">
-                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Ticket</div>
-                <div className="mt-1 space-y-0.5 text-slate-700 text-[11px]">
-                  <Detail label="Display #" value={ticketMeta?.display_invoice_number ?? "—"} mono />
-                  <Detail label="Pickup" value={fmtDate(ticketMeta?.invoice_pickup_date)} />
-                  <Detail label="Items" value={ticketMeta?.number_of_items ?? garments.length} />
-                </div>
-              </div>
-            </div>
 
-            <div className="flex-1 min-h-0">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 flex flex-col min-h-0 h-full">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="text-xs uppercase tracking-widest text-slate-500 font-bold">Garments</div>
-                  <div className="text-slate-900 font-black text-sm">{garments.length}</div>
-                </div>
-                <div className="flex-1 min-h-0 overflow-auto divide-y divide-slate-200">
-                  {garments.length === 0 ? (
-                    <div className="py-2 text-slate-500 text-sm">No garments found.</div>
-                  ) : (
-                    garments.map((g) => (
-                      <div key={g.id} className="py-2.5">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="min-w-0">
-                            <div className="font-bold text-slate-900 text-sm break-words leading-snug">{g.item_description}</div>
-                            <div className="text-xs text-slate-500 font-mono mt-0.5">ID: {g.item_id}</div>
-                          </div>
-                          <div className="px-3 py-1 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 text-sm font-black shrink-0">
-                            {g.slot_number === -1 ? "Unassigned" : `Slot ${g.slot_number}`}
-                          </div>
-                        </div>
+              {/* Garment list */}
+              <div className="flex-1 min-h-0 overflow-auto divide-y divide-slate-100">
+                {garments.length === 0 ? (
+                  <div className="py-4 text-slate-400 text-sm text-center">No garments on this ticket.</div>
+                ) : (
+                  garments.map((g) => (
+                    <div key={g.id} className={`py-2.5 flex items-center justify-between gap-3 ${g.item_id === lastScan ? "bg-green-50 -mx-1 px-1 rounded-lg" : ""}`}>
+                      <div className="font-semibold text-slate-800 text-sm">{g.item_description}</div>
+                      <div className={`px-3 py-1 rounded-lg text-sm font-black shrink-0 ${g.slot_number === -1 ? "bg-slate-100 text-slate-400" : "bg-blue-50 border border-blue-200 text-blue-700"}`}>
+                        {g.slot_number === -1 ? "—" : `Slot ${g.slot_number}`}
                       </div>
-                    ))
-                  )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl h-full flex items-center justify-center">
+              <span className="text-4xl text-slate-300 font-black uppercase tracking-tighter">Ready for next garment</span>
+            </div>
+          )}
+        </div>
+
+        {/* Right: Current Garment Slot */}
+        {(() => {
+          const currentGarment = garments.find((g) => g.item_id === lastScan);
+          return currentGarment ? (
+            <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm flex flex-col gap-3 h-full min-h-0">
+              <p className="text-xs uppercase tracking-widest text-slate-400 font-bold">Current Garment</p>
+              <h2 className="text-xl font-black text-slate-900 leading-snug break-words">{currentGarment.item_description}</h2>
+              <div className="mt-auto rounded-2xl bg-green-50 border border-green-200 p-6 text-center">
+                <div className="text-xs uppercase tracking-widest text-green-600 font-bold mb-2">Place in Slot</div>
+                <div className="text-7xl font-black text-green-700">
+                  {currentGarment.slot_number === -1 ? "—" : currentGarment.slot_number}
                 </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl h-full flex items-center justify-center">
-            <span className="text-5xl text-slate-300 font-black uppercase tracking-tighter">Ready for next garment</span>
-          </div>
-        )}
+          ) : (
+            <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl h-full flex items-center justify-center">
+              <span className="text-slate-300 font-black uppercase tracking-tighter text-center px-4">No Garment</span>
+            </div>
+          );
+        })()}
       </div>
 
       {/* 3. BOTTOM SECTION: Stats + Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr,240px] gap-3 h-full min-h-0">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 h-full">
-          <StatBox label="Last Scan" value={lastScan ?? "---"} color="text-slate-700" />
-          <StatBox label="Slot" value={nextSlot ?? "--"} color="text-green-600" border="border-b-[6px] border-green-500" />
-          <StatBox label="Processed" value={scanCount} color="text-blue-600" border="border-b-[6px] border-blue-500" />
-          <StatBox label="Tickets Completed" value={ticketsCompleted} color="text-slate-900" />
+        <div className="grid grid-cols-3 gap-3 h-full">
+          <StatBox label="Tickets Completed" value={ticketsCompleted} color="text-green-600" border="border-b-[6px] border-green-500" />
+          <StatBox label="Garments Scanned" value={scanCount} color="text-blue-600" border="border-b-[6px] border-blue-500" />
           <StatBox label="Conveyor Capacity" value={conveyorCapacity} color="text-slate-900" suffix="%" />
         </div>
 
@@ -440,11 +549,3 @@ function fmtDate(s?: string) {
   return isNaN(d.getTime()) ? s : d.toLocaleDateString();
 }
 
-function Detail({ label, value, mono }: { label: string; value: string | number; mono?: boolean }) {
-  return (
-    <div className="flex items-start justify-between gap-3">
-      <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">{label}</div>
-      <div className={`text-slate-900 text-right min-w-0 break-words ${mono ? "font-mono" : ""}`}>{value}</div>
-    </div>
-  );
-}
