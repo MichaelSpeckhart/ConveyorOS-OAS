@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import GarmentKeyboard from "../../components/GarmentKeyboard";
-import { clearConveyorTauri, completeTicketTauri, getCustomerFromTicket, getOccupiedSlotsTauri, getSlotManagerStatsTauri, getTicketFromGarment, handleScanTauri, isLastGarmentTauri, loadSensorHanger, removeGarmentFromSlotTauri, ticketExists, updateGarmentSlotTauri } from "../../lib/slot_manager";
+import { completeTicketTauri, getCustomerFromTicket, getOccupiedSlotsTauri, getSlotManagerStatsTauri, getTicketFromGarment, handleScanTauri, isLastGarmentTauri, loadSensorHanger, removeGarmentFromSlotTauri, ticketExists, updateGarmentSlotTauri } from "../../lib/slot_manager";
 import { GarmentRow, listGarmentsForTicket, TicketRow } from "../../lib/data";
 import type { SlotManagerStats } from "../../types/slotstats";
 import { getSessionByIdTauri, incrementSessionGarmentsTauri, incrementSessionTicketsTauri } from "../../lib/session_manager";
