@@ -38,6 +38,16 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
   const [clearSequence, setClearSequence] = useState("");
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [clearingSlot, setClearingSlot] = useState<{ slotNumber: number; ticket: string } | null>(null);
+  const nextResolveRef = useRef<(() => void) | null>(null);
+
+  const waitForNext = () => new Promise<void>((resolve) => { nextResolveRef.current = resolve; });
+
+  const handleNextClear = () => {
+    if (nextResolveRef.current) {
+      nextResolveRef.current();
+      nextResolveRef.current = null;
+    }
+  };
   const [ticketsCompleted, setTicketsCompleted] = useState(0);
   const conveyorCapacity = slotStats ? Math.round(slotStats.capacity_percentage) : "—";
 
@@ -65,9 +75,10 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
     const next = (clearSequence + k).slice(-3);
     setClearSequence(next);
     if (next === "123") {
+      closeClear();
       await handleClearConveyor();
       await refreshSlotStats();
-      closeClear();
+      
       setCustomerInfo(null);
       setTicketMeta(null);
       setGarments([]);
@@ -119,7 +130,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
         setState("removegarment");
 
 
-        await loadSensorHanger();
+        await waitForNext();
 
         // Update Database
         await removeGarmentFromSlotTauri(slot.assigned_ticket ?? "", slot.slot_number);
@@ -435,6 +446,12 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
                 <div className="text-3xl font-black">{clearingSlot.ticket}</div>
               </div>
             )}
+            <button
+              onClick={handleNextClear}
+              className="bg-white text-red-600 hover:bg-red-50 font-black text-xl px-8 py-4 rounded-2xl shadow-lg border-2 border-white/60 active:scale-95 transition-all"
+            >
+              NEXT →
+            </button>
           </div>
         )}
 
