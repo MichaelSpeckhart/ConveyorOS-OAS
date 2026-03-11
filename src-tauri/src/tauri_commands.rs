@@ -279,6 +279,10 @@ pub fn complete_ticket_tauri(barcode: String) -> Result<Option<i32>, String> {
             .map_err(|e| format!("DB Error (reserve slot): {e}"))?,
     };
 
+    // Clear the slot
+    slot_manager::SlotManager::free_slot(&mut conn, slot_number)
+        .map_err(|e| format!("DB Error (free slot): {e}"))?;
+
     // Load the last garment onto the conveyor
     let _ = write_load_item(ConveyorOpsTypes::LoadItem, &ticket.full_invoice_number, &garment.item_id, slot_number as u32);
 
@@ -391,6 +395,13 @@ pub fn increment_session_garments(session_id: i32) -> Result<crate::model::Sessi
 pub fn increment_session_tickets(session_id: i32) -> Result<crate::model::Session, String> {
     let mut conn = establish_connection()?;
     sessions_repo::increment_tickets(&mut conn, session_id)
+        .map_err(|e| format!("DB Error: {}", e))
+}
+
+#[tauri::command]
+pub fn get_session_by_id_tauri(session_id: i32) -> Result<Option<crate::model::Session>, String> {
+    let mut conn = establish_connection()?;
+    sessions_repo::get_session_by_id(&mut conn, session_id)
         .map_err(|e| format!("DB Error: {}", e))
 }
 

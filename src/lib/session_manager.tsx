@@ -26,6 +26,10 @@ export async function incrementSessionTicketsTauri(sessionId: number): Promise<S
   return invoke<SessionRow>("increment_session_tickets", { sessionId });
 }
 
+export async function getSessionByIdTauri(sessionId: number): Promise<SessionRow | null> {
+  return invoke<SessionRow | null>("get_session_by_id_tauri", { sessionId });
+}
+
 export async function sessionExistsTodayTauri(userId: number): Promise<boolean> {
   return invoke<boolean>("session_exists_today_tauri", { userIdInput: userId });
 }

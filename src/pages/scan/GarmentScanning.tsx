@@ -3,7 +3,7 @@ import GarmentKeyboard from "../../components/GarmentKeyboard";
 import { clearConveyorTauri, completeTicketTauri, getCustomerFromTicket, getOccupiedSlotsTauri, getSlotManagerStatsTauri, getTicketFromGarment, handleScanTauri, isLastGarmentTauri, loadSensorHanger, removeGarmentFromSlotTauri, ticketExists, updateGarmentSlotTauri } from "../../lib/slot_manager";
 import { GarmentRow, listGarmentsForTicket, TicketRow } from "../../lib/data";
 import type { SlotManagerStats } from "../../types/slotstats";
-import { incrementSessionGarmentsTauri, incrementSessionTicketsTauri } from "../../lib/session_manager";
+import { getSessionByIdTauri, incrementSessionGarmentsTauri, incrementSessionTicketsTauri } from "../../lib/session_manager";
 import { slotRunRequest } from "../../lib/opc";
 import { LoadItem, UnloadItem } from "../../lib/pos";
 
@@ -46,6 +46,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
       setSlotStats(stats);
     } catch {
       // keep previous stats on error
+      console.error("Failed to fetch slot manager stats");
     }
   };
 
@@ -75,7 +76,15 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
 
   useEffect(() => {
     refreshSlotStats();
-  }, []);
+    if (sessionId) {
+      getSessionByIdTauri(sessionId).then((session) => {
+        if (session) {
+          setScanCount(session.garments_scanned);
+          setTicketsCompleted(session.tickets_completed);
+        }
+      });
+    }
+  }, [sessionId]);
 
   useEffect(() => {
     const focusInput = () => inputRef.current?.focus();
@@ -194,58 +203,72 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
       const slotNum = await completeTicketTauri(code);
     
       setState("ticketcomplete");
-    
-      if (sessionId) {
-    
-        const garmentSession = await incrementSessionGarmentsTauri(sessionId);
-        setScanCount(garmentSession.garments_scanned);
 
-        const ticketSession = await incrementSessionTicketsTauri(sessionId);
-        setTicketsCompleted(ticketSession.tickets_completed);
+      let completedTicketNum: string | null = null;
+
+      if (sessionId) {
 
         try {
-    
-          const ticket = await getTicketFromGarment(code);
-    
-      if (ticket) {
-    
-        if (slotNum !== null) updateGarmentSlotTauri(code, slotNum);
-    
-        setTicketMeta(ticket);
-    
-        const rows = await listGarmentsForTicket(ticket.full_invoice_number);
-    
-        setGarments(rows);
 
-        await refreshSlotStats();
-    
-      } else {
-    
-        setTicketMeta(null);
-    
-        setGarments([]);
-    
-      }
-    
-    } catch {
-    
-      setTicketMeta(null);
-    
-      setGarments([]);
-    
-    }
-    
+          const ticket = await getTicketFromGarment(code);
+
+          if (ticket) {
+          
+            completedTicketNum = ticket.full_invoice_number;
+          
+            if (slotNum !== null) updateGarmentSlotTauri(code, slotNum);
+          
+            setTicketMeta(ticket);
+          
+            const rows = await listGarmentsForTicket(ticket.full_invoice_number);
+          
+            setGarments(rows);
+
+            if (ticket.ticket_status !== "completed") {
+              const ticketSession = await incrementSessionTicketsTauri(sessionId);
+              setTicketsCompleted(ticketSession.tickets_completed);
+            }
+
+            const garmentSession = await incrementSessionGarmentsTauri(sessionId);
+            setScanCount(garmentSession.garments_scanned);
+
+            
+          
+          } else {
+          
+            setTicketMeta(null);
+          
+            setGarments([]);
+          
+          }
+        
+        } catch {
+
+          setTicketMeta(null);
+
+          setGarments([]);
+
+        }
+
+        
+
+        
+
   } else {
         setScanCount((prev) => prev + 1);
-        
+
         setTicketsCompleted((prev) => prev + 1);
       }
-    
+
       try {
 
         if (slotNum !== null) await slotRunRequest(slotNum);
 
         await UnloadItem(code);
+
+        if (slotNum !== null && completedTicketNum) {
+          await removeGarmentFromSlotTauri(completedTicketNum, slotNum);
+        }
 
       } catch (err) {
 

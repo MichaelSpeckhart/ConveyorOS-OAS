@@ -127,6 +127,7 @@ pub fn run() {
             tauri_commands::end_user_session,
             tauri_commands::increment_session_garments,
             tauri_commands::increment_session_tickets,
+            tauri_commands::get_session_by_id_tauri,
             tauri_commands::session_exists_today_tauri,
             tauri_commands::get_existing_session_today_tauri,
             tauri_commands::save_settings_tauri,

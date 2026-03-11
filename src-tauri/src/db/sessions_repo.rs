@@ -73,6 +73,13 @@ pub fn session_exists_today(conn: &mut PgConnection, user_id_val: i32) -> QueryR
     Ok(count > 0)
 }
 
+pub fn get_session_by_id(conn: &mut PgConnection, session_id: i32) -> QueryResult<Option<Session>> {
+    sessions
+        .filter(id.eq(session_id))
+        .first::<Session>(conn)
+        .optional()
+}
+
 pub fn get_existing_session_today(conn: &mut PgConnection, user_id_val: i32) -> QueryResult<Option<Session>> {
     use diesel::dsl::sql;
     use diesel::sql_types::Date;
