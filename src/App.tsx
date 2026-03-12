@@ -27,7 +27,6 @@ export default function App() {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [setupRequired, setSetupRequired] = useState<boolean | null>(null);
   const [showKeyboard, setShowKeyboard] = useState(false);
-  const [keyboardValue, setKeyboardValue] = useState("");
 
   // Check if initial setup is required
   useEffect(() => {
@@ -174,10 +173,7 @@ export default function App() {
 
       {showKeyboard && (
         <RegularKeyboard
-          value={keyboardValue}
-          onChange={setKeyboardValue}
           onClose={() => setShowKeyboard(false)}
-          title="KEYBOARD"
         />
       )}
 
