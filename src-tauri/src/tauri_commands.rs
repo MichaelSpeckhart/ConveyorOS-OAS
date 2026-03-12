@@ -758,6 +758,8 @@ pub fn remove_garment_from_slot_tauri(ticket: String, slot_num: i32) -> Result<(
         .map_err(|e| format!("DB Error (update garments processed): {e}"))?;
 
 
+    println!("Freeing slot {}", slot_num);
+
     slot_manager::SlotManager::free_slot(&mut conn, slot_num)
         .map_err(|e| format!("DB Error (free slot): {e}"))?;
 

@@ -135,7 +135,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
         // Update Database
         await removeGarmentFromSlotTauri(slot.assigned_ticket ?? "", slot.slot_number);
 
-
+        await refreshSlotStats();
 
       } catch (err) {
         console.error(`Failed to clear slot ${slot}:`, err);

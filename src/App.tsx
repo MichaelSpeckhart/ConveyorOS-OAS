@@ -15,6 +15,8 @@ import PrintTickets from "./pages/tickets/PrintTickets";
 import { endUserSessionTauri, startUserSessionTauri } from "./lib/session_manager";
 import SetupWizard from "./components/SetupWizard";
 import { checkSetupRequired } from "./lib/settings";
+import RegularKeyboard from "./components/RegularKeyboard";
+import { Keyboard } from "lucide-react";
 
 export default function App() {
   const [user, setUser] = useState<LoginResult | null>(null);
@@ -24,6 +26,8 @@ export default function App() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [setupRequired, setSetupRequired] = useState<boolean | null>(null);
+  const [showKeyboard, setShowKeyboard] = useState(false);
+  const [keyboardValue, setKeyboardValue] = useState("");
 
   // Check if initial setup is required
   useEffect(() => {
@@ -154,6 +158,28 @@ export default function App() {
         {active === "print" && <PrintTickets />}
         {active === "settings" && <PosSettings />}
       </SideNavLayout>
+
+      {/* Floating keyboard toggle button */}
+      <button
+        onClick={() => setShowKeyboard((v) => !v)}
+        className={`fixed bottom-5 right-5 z-[90] w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all active:scale-90 ${
+          showKeyboard
+            ? "bg-blue-600 text-white hover:bg-blue-700"
+            : "bg-slate-800 text-white hover:bg-black"
+        }`}
+        title={showKeyboard ? "Close keyboard" : "Open keyboard"}
+      >
+        <Keyboard size={20} />
+      </button>
+
+      {showKeyboard && (
+        <RegularKeyboard
+          value={keyboardValue}
+          onChange={setKeyboardValue}
+          onClose={() => setShowKeyboard(false)}
+          title="KEYBOARD"
+        />
+      )}
 
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
