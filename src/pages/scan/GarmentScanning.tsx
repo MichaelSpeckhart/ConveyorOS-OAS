@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import GarmentKeyboard from "../../components/GarmentKeyboard";
 import { completeTicketTauri, getCustomerFromTicket, getOccupiedSlotsTauri, getSlotManagerStatsTauri, getTicketFromGarment, handleScanTauri, isLastGarmentTauri, loadSensorHanger, removeGarmentFromSlotTauri, ticketExists, updateGarmentSlotTauri } from "../../lib/slot_manager";
 import { GarmentRow, listGarmentsForTicket, TicketRow } from "../../lib/data";
-import type { SlotManagerStats } from "../../types/slotstats";
+import type { Slot, SlotManagerStats } from "../../types/slotstats";
 import { getSessionByIdTauri, incrementSessionGarmentsTauri, incrementSessionTicketsTauri } from "../../lib/session_manager";
 import { slotRunRequest } from "../../lib/opc";
 import { LoadItem, UnloadItem } from "../../lib/pos";
@@ -38,6 +38,8 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
   const [clearSequence, setClearSequence] = useState("");
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [clearingSlot, setClearingSlot] = useState<{ slotNumber: number; ticket: string } | null>(null);
+  const [slotMapOpen, setSlotMapOpen] = useState(false);
+  const [slotMapData, setSlotMapData] = useState<Slot[]>([]);
   const nextResolveRef = useRef<(() => void) | null>(null);
 
   const waitForNext = () => new Promise<void>((resolve) => { nextResolveRef.current = resolve; });
@@ -65,6 +67,12 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
   const closeKeypad = () => { setKeypadOpen(false); setTimeout(() => inputRef.current?.focus(), 0); };
   const openClear = () => { setClearSequence(""); setClearOpen(true); };
   const closeClear = () => { setClearOpen(false); setClearingSlot(null); setTimeout(() => inputRef.current?.focus(), 0); };
+  const openSlotMap = async () => {
+    const occupied = await getOccupiedSlotsTauri();
+    setSlotMapData(occupied);
+    setSlotMapOpen(true);
+  };
+  const closeSlotMap = () => { setSlotMapOpen(false); setTimeout(() => inputRef.current?.focus(), 0); };
 
   const submitManual = async () => {
     await handleScan(manualCode);
@@ -421,6 +429,14 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
                 </button>
                 <div className="border-t border-slate-100" />
                 <button
+                  onClick={() => { setOptionsOpen(false); openSlotMap(); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-50 font-bold text-sm text-left"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                  Slot Map
+                </button>
+                <div className="border-t border-slate-100" />
+                <button
                   onClick={() => { setOptionsOpen(false); openClear(); }}
                   className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 font-bold text-sm text-left"
                 >
@@ -559,6 +575,72 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
           onSubmit={submitManual}
           onClose={closeKeypad}
         />
+      )}
+
+      {slotMapOpen && slotStats && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-6" onMouseDown={(e) => e.target === e.currentTarget && closeSlotMap()}>
+          <div className="w-full max-w-3xl max-h-[85vh] rounded-[2.5rem] bg-white shadow-2xl flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="flex justify-between items-center px-8 py-5 border-b border-slate-100 flex-shrink-0">
+              <div>
+                <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">Slot Map</h3>
+                <p className="text-sm text-slate-400 font-semibold mt-0.5">
+                  {slotMapData.length} of {slotStats.total_slots} slots occupied &mdash; {Math.round(slotStats.capacity_percentage)}% full
+                </p>
+              </div>
+              <button onClick={closeSlotMap} className="text-slate-400 hover:text-red-500 text-2xl font-bold leading-none">✕</button>
+            </div>
+
+            {/* Legend */}
+            <div className="flex items-center gap-5 px-8 py-3 border-b border-slate-100 flex-shrink-0">
+              <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
+                <div className="w-4 h-4 rounded bg-slate-100 border border-slate-200" /> Empty
+              </div>
+              <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
+                <div className="w-4 h-4 rounded bg-blue-500" /> Occupied
+              </div>
+            </div>
+
+            {/* Grid */}
+            <div className="flex-1 overflow-auto p-6">
+              <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))" }}>
+                {Array.from({ length: slotStats.total_slots }, (_, i) => {
+                  const slotNum = i + 1;
+                  const occupied = slotMapData.find((s) => s.slot_number === slotNum);
+                  return (
+                    <div
+                      key={slotNum}
+                      title={occupied ? `Ticket: ${occupied.assigned_ticket ?? "—"}` : "Empty"}
+                      className={`relative flex flex-col items-center justify-center rounded-xl aspect-square text-center transition-all select-none
+                        ${occupied
+                          ? "bg-blue-500 text-white shadow-md shadow-blue-200"
+                          : "bg-slate-100 text-slate-400 border border-slate-200"
+                        }`}
+                    >
+                      <span className="text-lg font-black leading-none">{slotNum}</span>
+                      {occupied && (
+                        <span className="text-[9px] font-bold opacity-80 mt-0.5 px-1 leading-tight truncate w-full text-center">
+                          {occupied.assigned_ticket ?? ""}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Footer refresh */}
+            <div className="flex justify-end px-8 py-4 border-t border-slate-100 flex-shrink-0">
+              <button
+                onClick={async () => { await refreshSlotStats(); const occupied = await getOccupiedSlotsTauri(); setSlotMapData(occupied); }}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-sm hover:bg-slate-700 active:scale-95 transition-all"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                Refresh
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {clearOpen && (
