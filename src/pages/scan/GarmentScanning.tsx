@@ -602,32 +602,10 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
             </div>
 
             {/* Grid */}
-            <div className="flex-1 overflow-auto p-6">
-              <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))" }}>
-                {Array.from({ length: slotStats.total_slots }, (_, i) => {
-                  const slotNum = i + 1;
-                  const occupied = slotMapData.find((s) => s.slot_number === slotNum);
-                  return (
-                    <div
-                      key={slotNum}
-                      title={occupied ? `Ticket: ${occupied.assigned_ticket ?? "—"}` : "Empty"}
-                      className={`relative flex flex-col items-center justify-center rounded-xl aspect-square text-center transition-all select-none
-                        ${occupied
-                          ? "bg-blue-500 text-white shadow-md shadow-blue-200"
-                          : "bg-slate-100 text-slate-400 border border-slate-200"
-                        }`}
-                    >
-                      <span className="text-lg font-black leading-none">{slotNum}</span>
-                      {occupied && (
-                        <span className="text-[9px] font-bold opacity-80 mt-0.5 px-1 leading-tight truncate w-full text-center">
-                          {occupied.assigned_ticket ?? ""}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <SlotMapGrid
+              totalSlots={slotStats.total_slots}
+              occupiedSlots={slotMapData}
+            />
 
             {/* Footer refresh */}
             <div className="flex justify-end px-8 py-4 border-t border-slate-100 flex-shrink-0">
@@ -670,6 +648,61 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function SlotMapGrid({ totalSlots, occupiedSlots }: { totalSlots: number; occupiedSlots: Slot[] }) {
+  const [runningSlot, setRunningSlot] = useState<number | null>(null);
+
+  const handleSlotClick = async (slotNum: number) => {
+    if (runningSlot !== null) return;
+    setRunningSlot(slotNum);
+    try {
+      await slotRunRequest(slotNum);
+    } catch (err) {
+      console.error(`slotRunRequest failed for slot ${slotNum}:`, err);
+    } finally {
+      setRunningSlot(null);
+    }
+  };
+
+  return (
+    <div className="flex-1 overflow-auto p-6">
+      <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))" }}>
+        {Array.from({ length: totalSlots }, (_, i) => {
+          const slotNum = i + 1;
+          const occupied = occupiedSlots.find((s) => s.slot_number === slotNum);
+          const isRunning = runningSlot === slotNum;
+          return (
+            <button
+              key={slotNum}
+              onClick={() => handleSlotClick(slotNum)}
+              disabled={runningSlot !== null}
+              title={occupied ? `Ticket: ${occupied.assigned_ticket ?? "—"} — Click to run` : "Empty — Click to run"}
+              className={`relative flex flex-col items-center justify-center rounded-xl aspect-square text-center transition-all select-none
+                active:scale-90
+                disabled:opacity-50 disabled:cursor-not-allowed
+                ${isRunning
+                  ? "bg-amber-400 text-amber-900 shadow-md shadow-amber-200 animate-pulse"
+                  : occupied
+                    ? "bg-blue-500 text-white shadow-md shadow-blue-200 hover:bg-blue-600 cursor-pointer"
+                    : "bg-slate-100 text-slate-400 border border-slate-200 hover:bg-slate-200 cursor-pointer"
+                }`}
+            >
+              <span className="text-lg font-black leading-none">{slotNum}</span>
+              {occupied && !isRunning && (
+                <span className="text-[9px] font-bold opacity-80 mt-0.5 px-1 leading-tight truncate w-full text-center">
+                  {occupied.assigned_ticket ?? ""}
+                </span>
+              )}
+              {isRunning && (
+                <span className="text-[9px] font-bold mt-0.5">Running…</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
