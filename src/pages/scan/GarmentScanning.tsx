@@ -524,7 +524,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
           const currentGarment = garments.find((g) => g.item_id === lastScan);
           return currentGarment ? (
             <div className="bg-green-50 border border-green-200 rounded-3xl shadow-sm flex flex-col items-center justify-center h-full min-h-0">
-              <div className="text-xs uppercase tracking-widest text-green-600 font-bold mb-3">Slot</div>
+              <div className="text-2xl uppercase tracking-widest text-green-600 font-bold mb-3">Slot</div>
               <div className="text-[10rem] font-black text-green-700 leading-none">
                 {currentGarment.slot_number === -1 ? "—" : currentGarment.slot_number}
               </div>
