@@ -1,17 +1,22 @@
 use std::str::FromStr;
 use chrono::{DateTime, Local, NaiveDateTime, TimeZone};
 use diesel::PgConnection;
+use std::collections::HashMap;
 
 use crate::{
   db::{connection::establish_connection, customer_repo, garment_repo, ticket_repo::{self, ticket_exists}},
   model::{NewCustomer, UpdateTicket},
-  pos::spot::spotops_types::{self, spot_ops_types},
+  pos::spot::{output::{conveyor_file_utils::write_split_invoice, conveyor_ops_types::ConveyorOpsTypes}, spotops_types::{self, spot_ops_types}},
 };
 
 pub fn parse_spot_csv_core(contents: &[String]) -> Result<u32, String> {
     if contents.is_empty() {
         return Err("EMPTY_FILE".to_string());
     }
+
+    let mut invoice_counts = std::collections::HashMap::new();
+
+    
     
     // Single DB connection
     let mut conn = establish_connection()?;
@@ -35,7 +40,19 @@ pub fn parse_spot_csv_core(contents: &[String]) -> Result<u32, String> {
             .map_err(|_| "BAD_OP".to_string())?;
 
         if op == spot_ops_types::AddItem {
-            handle_add_item_op(&fields, &mut conn)?;
+
+            
+            let count = invoice_counts.entry(fields[1].clone()).or_insert(0);
+            *count += 1;
+
+            if count > &mut 5 {
+                write_split_invoice(ConveyorOpsTypes::SplitInvoice, &fields[1].clone(), &fields[10].clone())?;
+                let ticket = ticket_repo::get_ticket_by_invoice_number(&mut conn, &fields[1].clone())?;
+                ticket_repo::update_ticket_item_count(&mut conn, &fields[1].clone(), 5)?;
+            } else {
+                handle_add_item_op(&fields, &mut conn)?;
+            }
+            
             
         } else if op == spot_ops_types::DeleteItem {
 
@@ -111,9 +128,9 @@ pub fn handle_add_item_op(fields: &Vec<String>, conn: &mut PgConnection) -> Resu
     let end_str   = fields[13].trim().trim_end_matches('\r');
 
     // Print the fields with their associated index
-    for (i, field) in fields.iter().enumerate() {
-        println!("Field {}: {}", i, field);
-    }
+    // for (i, field) in fields.iter().enumerate() {
+    //     println!("Field {}: {}", i, field);
+    // }
 
     
     let start_naive = NaiveDateTime::parse_from_str(start_str, "%Y-%m-%dT%H:%M:%S")

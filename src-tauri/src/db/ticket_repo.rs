@@ -96,3 +96,11 @@ pub fn update_ticket_status(conn: &mut PgConnection, invoice_number: &str, new_s
         .get_result::<Ticket>(conn)
         .map_err(|e| e.to_string())
 }
+
+// pub fn update_ticket_item_count(conn: &mut PgConnection, invoice_number: &str, new_item_count: i32) -> Result<Ticket, String> {
+//     use crate::schema::tickets::dsl as tickets_dsl;
+//     diesel::update(tickets_dsl::tickets.filter(tickets_dsl::full_invoice_number.eq(invoice_number)))
+//         .set(number_of_items.eq(new_item_count))
+//         .get_result::<Ticket>(conn)
+//         .map_err(|e| e.to_string())
+// }

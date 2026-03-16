@@ -222,69 +222,47 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
 
     
     if (isLast) {
-    
+
       const slotNum = await completeTicketTauri(code);
-    
+
       setState("ticketcomplete");
 
       let completedTicketNum: string | null = null;
 
-      if (sessionId) {
+      try {
+        const ticket = await getTicketFromGarment(code);
 
-        try {
+        if (ticket) {
+          completedTicketNum = ticket.full_invoice_number;
 
-          const ticket = await getTicketFromGarment(code);
+          if (slotNum !== null) await updateGarmentSlotTauri(code, slotNum);
 
-          if (ticket) {
-          
-            completedTicketNum = ticket.full_invoice_number;
-          
-            if (slotNum !== null) updateGarmentSlotTauri(code, slotNum);
-          
-            setTicketMeta(ticket);
-          
-            const rows = await listGarmentsForTicket(ticket.full_invoice_number);
-          
-            setGarments(rows);
+          setTicketMeta(ticket);
 
-            if (ticket.ticket_status !== "completed") {
-              const ticketSession = await incrementSessionTicketsTauri(sessionId);
-              setTicketsCompleted(ticketSession.tickets_completed);
-            }
-
-            const garmentSession = await incrementSessionGarmentsTauri(sessionId);
-            setScanCount(garmentSession.garments_scanned);
-
-            
-          
-          } else {
-          
-            setTicketMeta(null);
-          
-            setGarments([]);
-          
-          }
-        
-        } catch {
-
+          const rows = await listGarmentsForTicket(ticket.full_invoice_number);
+          setGarments(rows);
+        } else {
           setTicketMeta(null);
-
           setGarments([]);
-
         }
+      } catch {
+        setTicketMeta(null);
+        setGarments([]);
+      }
 
-        
-
-        
-
-  } else {
+      if (sessionId) {
+        if (completedTicketNum) {
+          const ticketSession = await incrementSessionTicketsTauri(sessionId);
+          setTicketsCompleted(ticketSession.tickets_completed);
+        }
+        const garmentSession = await incrementSessionGarmentsTauri(sessionId);
+        setScanCount(garmentSession.garments_scanned);
+      } else {
         setScanCount((prev) => prev + 1);
-
         setTicketsCompleted((prev) => prev + 1);
       }
 
       try {
-
         if (slotNum !== null) await slotRunRequest(slotNum);
 
         await UnloadItem(code);
@@ -292,17 +270,14 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
         if (slotNum !== null && completedTicketNum) {
           await removeGarmentFromSlotTauri(completedTicketNum, slotNum);
         }
-
       } catch (err) {
-
         console.error("Hardware operation failed:", err);
-
       }
 
       await refreshSlotStats();
 
       return;
-    
+
     }
 
     
@@ -375,14 +350,8 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
     
     }
     
-    const [, sensorTriggered] = await Promise.all([
-    
-          slotRunRequest(slotNum),
-    
-          loadSensorHanger(),
-    
-        ]);
-    
+        await slotRunRequest(slotNum);
+        const sensorTriggered = await loadSensorHanger();
         if (sensorTriggered) setState("garmentonconveyor");
     
         await LoadItem(code);
