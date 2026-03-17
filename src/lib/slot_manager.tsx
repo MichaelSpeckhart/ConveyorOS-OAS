@@ -38,6 +38,10 @@ export async function isLastGarmentTauri(ticket: string): Promise<boolean> {
     return invoke<boolean>("is_last_garment", { ticket });
 }
 
+export async function isTicketCompleteTauri(ticket: string): Promise<boolean> {
+    return invoke<boolean>("is_ticket_complete_tauri", { ticket });
+}   
+
 export async function getSlotNumberFromBarcodeTauri(ticket: string): Promise<number | null> {
     return invoke<number | null>("get_slot_number_from_barcode_tauri", { barcode: ticket });
 }

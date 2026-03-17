@@ -765,3 +765,13 @@ pub fn remove_garment_from_slot_tauri(ticket: String, slot_num: i32) -> Result<(
 
     Ok(())
 }
+
+#[tauri::command]
+pub fn is_ticket_complete_tauri(ticket: String) -> Result<bool, String> {
+    let mut conn = establish_connection()?;
+
+    let ticket_info = ticket_repo::get_ticket_by_invoice_number(&mut conn, &ticket)
+        .map_err(|e| format!("DB Error (get ticket): {e}"))?;
+
+    Ok(ticket_info.ticket_status == "Complete")
+}

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import GarmentKeyboard from "../../components/GarmentKeyboard";
-import { completeTicketTauri, getCustomerFromTicket, getOccupiedSlotsTauri, getSlotManagerStatsTauri, getTicketFromGarment, handleScanTauri, isLastGarmentTauri, loadSensorHanger, removeGarmentFromSlotTauri, ticketExists, updateGarmentSlotTauri } from "../../lib/slot_manager";
+import { clearConveyorTauri, completeTicketTauri, getCustomerFromTicket, getOccupiedSlotsTauri, getSlotManagerStatsTauri, getTicketFromGarment, handleScanTauri, isLastGarmentTauri, isTicketCompleteTauri, loadSensorHanger, removeGarmentFromSlotTauri, ticketExists, updateGarmentSlotTauri } from "../../lib/slot_manager";
 import { GarmentRow, listGarmentsForTicket, TicketRow } from "../../lib/data";
 import type { Slot, SlotManagerStats } from "../../types/slotstats";
 import { getSessionByIdTauri, incrementSessionGarmentsTauri, incrementSessionTicketsTauri } from "../../lib/session_manager";
@@ -24,6 +24,7 @@ const STATE_STYLE = {
 export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenRecall?: () => void; sessionId?: number | null }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isScanningRef = useRef(false);
   const [barcode, setBarcode] = useState("");
   const [state, setState] = useState<ScanState>("waiting");
   const [lastScan, setLastScan] = useState<string | null>(null);
@@ -128,7 +129,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
 
   const handleClearConveyor = async () => {
 
-    // await clearConveyorTauri();
+    await clearConveyorTauri();
 
     const slotsToClear = await getOccupiedSlotsTauri();
 
@@ -168,9 +169,12 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
 
   
   const handleScan = async (value: string) => {
-  
+    if (isScanningRef.current) return;
+    isScanningRef.current = true;
+
+    try {
     const code = value.trim();
-  
+
     if (!code || code.length < 4) {
   
       if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
@@ -214,16 +218,57 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
     }
 
 
-  
+    let ticketinfo = await getTicketFromGarment(code);
     // Fetch customer info and last-garment flag concurrently
   
-    const [info, isLast] = await Promise.all([
+    const [info, isLast, isCompleted] = await Promise.all([
   
       getCustomerFromTicket(code),
   
       isLastGarmentTauri(code),
   
+      isTicketCompleteTauri(ticketinfo.full_invoice_number),
+  
     ]);
+
+    if (isCompleted) {
+      setState("ticketcomplete");
+      let completedTicketNum: string | null = null;
+      let garmentCount = 0;
+
+      try {
+        const ticket = await getTicketFromGarment(code);
+
+        if (ticket) {
+          completedTicketNum = ticket.full_invoice_number;
+
+
+          setTicketMeta(ticket);
+
+          const rows = await listGarmentsForTicket(ticket.full_invoice_number);
+          setGarments(rows);
+          garmentCount = rows.length;
+        } else {
+          setTicketMeta(null);
+          setGarments([]);
+        }
+      } catch {
+        setTicketMeta(null);
+        setGarments([]);
+      }
+
+      // Show acknowledgment popup and wait for OK before proceeding
+      setTicketAckData({
+        ticketNum: completedTicketNum ?? code,
+        customerName: info ? `${info.first_name} ${info.last_name}` : "Unknown",
+        garmentCount,
+      });
+      setTicketAckOpen(true);
+      await waitForTicketAck();
+
+      return;
+
+    }
   
     setCustomerInfo(info);
 
@@ -305,39 +350,49 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
     }
 
     
-    let slotNum: number | null;
-    
+    // Check if garment is already assigned to a slot before scanning
+    let wasAlreadyOnConveyor = false;
     try {
-    
+      const currentGarments = await listGarmentsForTicket(ticketinfo.full_invoice_number);
+      const thisGarment = currentGarments.find((g) => g.item_id === code);
+      wasAlreadyOnConveyor = thisGarment ? thisGarment.slot_number !== -1 : false;
+    } catch { /* ignore */ }
+
+    let slotNum: number | null;
+
+    try {
+
       slotNum = await handleScanTauri(code);
-    
+
       console.log("handleScanTauri result:", slotNum);
-    
+
     } catch (err) {
-    
+
       console.error("handleScanTauri failed:", err);
-    
+
       setState("error");
-    
+
       return;
-    
+
     }
-    
-    
+
+
     if (slotNum !== null) {
-    
+
       setState("success");
-    
-      if (sessionId) {
-    
-        const session = await incrementSessionGarmentsTauri(sessionId);
-    
-        setScanCount(session.garments_scanned);
-    
-      } else {
-    
-        setScanCount((prev) => prev + 1);
-    
+
+      if (!wasAlreadyOnConveyor) {
+        if (sessionId) {
+
+          const session = await incrementSessionGarmentsTauri(sessionId);
+
+          setScanCount(session.garments_scanned);
+
+        } else {
+
+          setScanCount((prev) => prev + 1);
+
+        }
       }
     
       await refreshSlotStats();
@@ -387,11 +442,14 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
       }
     
     } else {
-    
+
       setState("error");
-    
+
     }
 
+    } finally {
+      isScanningRef.current = false;
+    }
   };
 
   return (
@@ -524,14 +582,14 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
           const currentGarment = garments.find((g) => g.item_id === lastScan);
           return currentGarment ? (
             <div className="bg-green-50 border border-green-200 rounded-3xl shadow-sm flex flex-col items-center justify-center h-full min-h-0">
-              <div className="text-2xl uppercase tracking-widest text-green-600 font-bold mb-3">Slot</div>
+              <div className="text-5xl uppercase tracking-widest text-green-600 font-bold mb-3">Slot</div>
               <div className="text-[10rem] font-black text-green-700 leading-none">
                 {currentGarment.slot_number === -1 ? "—" : currentGarment.slot_number}
               </div>
             </div>
           ) : (
             <div className="bg-slate-100 border-2 border-dashed border-slate-200 rounded-3xl h-full flex flex-col items-center justify-center">
-              <div className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-3">Slot</div>
+              <div className="text-5xl uppercase tracking-widest text-slate-400 font-bold mb-3">Slot</div>
               <div className="text-[10rem] font-black text-slate-300 leading-none">—</div>
             </div>
           );
