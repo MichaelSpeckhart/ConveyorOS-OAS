@@ -351,100 +351,74 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
 
     
     // Check if garment is already assigned to a slot before scanning
-    let wasAlreadyOnConveyor = false;
+    let existingSlotNum: number | null = null;
+    let preloadedGarments: GarmentRow[] = [];
     try {
-      const currentGarments = await listGarmentsForTicket(ticketinfo.full_invoice_number);
-      const thisGarment = currentGarments.find((g) => g.item_id === code);
-      wasAlreadyOnConveyor = thisGarment ? thisGarment.slot_number !== -1 : false;
+      preloadedGarments = await listGarmentsForTicket(ticketinfo.full_invoice_number);
+      const thisGarment = preloadedGarments.find((g) => g.item_id === code);
+      if (thisGarment && thisGarment.slot_number !== -1) {
+        existingSlotNum = thisGarment.slot_number;
+      }
     } catch { /* ignore */ }
+
+    // If garment is already on the conveyor, just send conveyor to that slot — no count update
+    if (existingSlotNum !== null) {
+      setState("garmentonconveyor");
+      setTicketMeta(ticketinfo);
+      setGarments(preloadedGarments);
+      try {
+        await slotRunRequest(existingSlotNum);
+      } catch (err) {
+        console.error("Hardware operation failed:", err);
+      }
+      return;
+    }
 
     let slotNum: number | null;
 
     try {
-
       slotNum = await handleScanTauri(code);
-
       console.log("handleScanTauri result:", slotNum);
-
     } catch (err) {
-
       console.error("handleScanTauri failed:", err);
-
       setState("error");
-
       return;
-
     }
-
 
     if (slotNum !== null) {
-
       setState("success");
 
-      if (!wasAlreadyOnConveyor) {
-        if (sessionId) {
-
-          const session = await incrementSessionGarmentsTauri(sessionId);
-
-          setScanCount(session.garments_scanned);
-
-        } else {
-
-          setScanCount((prev) => prev + 1);
-
-        }
-      }
-    
-      await refreshSlotStats();
-    
-      try {
-    
-        try {
-    
-          const ticket = await getTicketFromGarment(code);
-    
-      if (ticket) {
-    
-        try { await updateGarmentSlotTauri(code, slotNum); } catch (err) { console.error("updateGarmentSlotTauri failed:", err); }
-    
-        setTicketMeta(ticket);
-    
-        const rows = await listGarmentsForTicket(ticket.full_invoice_number);
-    
-        setGarments(rows);
-    
+      if (sessionId) {
+        const session = await incrementSessionGarmentsTauri(sessionId);
+        setScanCount(session.garments_scanned);
       } else {
-    
-        setTicketMeta(null);
-    
-        setGarments([]);
-    
+        setScanCount((prev) => prev + 1);
       }
-    
-    } catch {
-    
-      setTicketMeta(null);
-    
-      setGarments([]);
-    
-    }
-    
+
+      await refreshSlotStats();
+
+      try {
+        const ticket = await getTicketFromGarment(code);
+        if (ticket) {
+          try { await updateGarmentSlotTauri(code, slotNum); } catch (err) { console.error("updateGarmentSlotTauri failed:", err); }
+          setTicketMeta(ticket);
+          const rows = await listGarmentsForTicket(ticket.full_invoice_number);
+          setGarments(rows);
+        } else {
+          setTicketMeta(null);
+          setGarments([]);
+        }
+
         await slotRunRequest(slotNum);
         const sensorTriggered = await loadSensorHanger();
         if (sensorTriggered) setState("garmentonconveyor");
-    
+
         await LoadItem(code);
-    
       } catch (err) {
-    
         console.error("Hardware operation failed:", err);
-    
       }
-    
     } else {
-
       setState("error");
-
     }
 
     } finally {
