@@ -219,16 +219,40 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
 
 
     let ticketinfo = await getTicketFromGarment(code);
+
+    // Check if garment is already on conveyor BEFORE isLast/isCompleted checks.
+    // If already assigned, re-scanning it would incorrectly trigger isLast
+    // (e.g. scanning 111222 twice when 111444 is the only remaining unscanned garment).
+    let existingSlotNum: number | null = null;
+    let preloadedGarments: GarmentRow[] = [];
+    try {
+      preloadedGarments = await listGarmentsForTicket(ticketinfo.full_invoice_number);
+      const thisGarment = preloadedGarments.find((g) => g.item_id === code);
+      if (thisGarment && thisGarment.slot_number !== -1) {
+        existingSlotNum = thisGarment.slot_number;
+      }
+    } catch { /* ignore */ }
+
+    if (existingSlotNum !== null) {
+      const info = await getCustomerFromTicket(code);
+      setCustomerInfo(info);
+      setLastScan(code);
+      setState("garmentonconveyor");
+      setTicketMeta(ticketinfo);
+      setGarments(preloadedGarments);
+      try {
+        await slotRunRequest(existingSlotNum);
+      } catch (err) {
+        console.error("Hardware operation failed:", err);
+      }
+      return;
+    }
+
     // Fetch customer info and last-garment flag concurrently
-  
     const [info, isLast, isCompleted] = await Promise.all([
-  
       getCustomerFromTicket(code),
-  
       isLastGarmentTauri(code),
-  
       isTicketCompleteTauri(ticketinfo.full_invoice_number),
-  
     ]);
 
     if (isCompleted) {
@@ -349,30 +373,6 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
 
     }
 
-    
-    // Check if garment is already assigned to a slot before scanning
-    let existingSlotNum: number | null = null;
-    let preloadedGarments: GarmentRow[] = [];
-    try {
-      preloadedGarments = await listGarmentsForTicket(ticketinfo.full_invoice_number);
-      const thisGarment = preloadedGarments.find((g) => g.item_id === code);
-      if (thisGarment && thisGarment.slot_number !== -1) {
-        existingSlotNum = thisGarment.slot_number;
-      }
-    } catch { /* ignore */ }
-
-    // If garment is already on the conveyor, just send conveyor to that slot — no count update
-    if (existingSlotNum !== null) {
-      setState("garmentonconveyor");
-      setTicketMeta(ticketinfo);
-      setGarments(preloadedGarments);
-      try {
-        await slotRunRequest(existingSlotNum);
-      } catch (err) {
-        console.error("Hardware operation failed:", err);
-      }
-      return;
-    }
 
     let slotNum: number | null;
 
