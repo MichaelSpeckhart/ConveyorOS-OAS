@@ -129,7 +129,7 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
 
   const handleClearConveyor = async () => {
 
-    await clearConveyorTauri();
+    
 
     const slotsToClear = await getOccupiedSlotsTauri();
 
@@ -163,6 +163,8 @@ export default function GarmentScanner({ onOpenRecall, sessionId }: { onOpenReca
         console.error(`Failed to clear slot ${slot}:`, err);
       }
     }
+
+    await clearConveyorTauri();
 
     setClearingSlot(null);
   }
