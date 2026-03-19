@@ -1,11 +1,20 @@
 import { useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { loadSettings, pickConveyorOutputDir, pickPosCsvFile, saveSettings, testDatabaseConnection, type AppSettings } from "../../lib/settings";
 
 export default function SettingsPage() {
   const [s, setS] = useState<AppSettings | null>(null);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [section, setSection] = useState<"pos" | "db" | "opc">("pos");
+  const [section, setSection] = useState<"pos" | "db" | "opc" | "operators">("pos");
+
+  // Add operator form state
+  const [opUsername, setOpUsername] = useState("");
+  const [opPin, setOpPin] = useState("");
+  const [opConfirmPin, setOpConfirmPin] = useState("");
+  const [opError, setOpError] = useState<string | null>(null);
+  const [opSuccess, setOpSuccess] = useState<string | null>(null);
+  const [opLoading, setOpLoading] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
   const [connectionResult, setConnectionResult] = useState<{ success: boolean; message: string } | null>(null);
 
@@ -76,6 +85,32 @@ export default function SettingsPage() {
     }
   };
 
+  const onAddOperator = async () => {
+    setOpError(null);
+    setOpSuccess(null);
+
+    if (!opUsername.trim()) return setOpError("Username is required.");
+    if (opPin.length !== 4 || !/^\d{4}$/.test(opPin)) return setOpError("PIN must be exactly 4 digits.");
+    if (opPin !== opConfirmPin) return setOpError("PINs do not match.");
+
+    setOpLoading(true);
+    try {
+      const result = await invoke<{ username: string }>("auth_create_user_tauri", {
+        usernameInput: opUsername.trim(),
+        pinInput: opPin,
+      });
+      setOpSuccess(`Operator "${result.username}" created successfully.`);
+      setOpUsername("");
+      setOpPin("");
+      setOpConfirmPin("");
+      setTimeout(() => setOpSuccess(null), 3000);
+    } catch (e) {
+      setOpError(typeof e === "string" ? e : "Failed to create operator.");
+    } finally {
+      setOpLoading(false);
+    }
+  };
+
   const onSave = async () => {
     setErr(null);
     setSaved(false);
@@ -120,6 +155,12 @@ export default function SettingsPage() {
                 className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${section === "opc" ? "bg-slate-900 text-white shadow" : "text-slate-600 hover:text-slate-900"}`}
               >
                 OPC
+              </button>
+              <button
+                onClick={() => setSection("operators")}
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${section === "operators" ? "bg-slate-900 text-white shadow" : "text-slate-600 hover:text-slate-900"}`}
+              >
+                Operators
               </button>
             </div>
           </div>
@@ -246,15 +287,78 @@ export default function SettingsPage() {
               </div>
               </section>
             )}
+            {section === "operators" && (
+              <section className="space-y-4">
+                <div className="text-xs uppercase tracking-[0.3em] text-slate-500 font-bold">Operators</div>
+                <h2 className="text-2xl font-black text-slate-900">Add Operator</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label className="space-y-2 md:col-span-2">
+                    <div className="text-xs font-bold uppercase tracking-widest text-slate-500">Username</div>
+                    <input
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+                      value={opUsername}
+                      onChange={(e) => setOpUsername(e.target.value)}
+                      autoComplete="off"
+                      disabled={opLoading}
+                    />
+                  </label>
+                  <label className="space-y-2">
+                    <div className="text-xs font-bold uppercase tracking-widest text-slate-500">PIN (4 digits)</div>
+                    <input
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+                      type="password"
+                      maxLength={4}
+                      inputMode="numeric"
+                      value={opPin}
+                      onChange={(e) => { if (/^\d{0,4}$/.test(e.target.value)) setOpPin(e.target.value); }}
+                      disabled={opLoading}
+                    />
+                  </label>
+                  <label className="space-y-2">
+                    <div className="text-xs font-bold uppercase tracking-widest text-slate-500">Confirm PIN</div>
+                    <input
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+                      type="password"
+                      maxLength={4}
+                      inputMode="numeric"
+                      value={opConfirmPin}
+                      onChange={(e) => { if (/^\d{0,4}$/.test(e.target.value)) setOpConfirmPin(e.target.value); }}
+                      disabled={opLoading}
+                    />
+                  </label>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <button
+                    onClick={onAddOperator}
+                    disabled={opLoading}
+                    className="px-5 py-3 rounded-2xl bg-slate-900 text-white font-black tracking-tight shadow-md hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {opLoading ? "Creating..." : "Add Operator"}
+                  </button>
+                  {opSuccess && (
+                    <div className="rounded-xl border border-green-500/40 bg-green-500/10 px-4 py-2 text-sm font-semibold text-green-700">
+                      {opSuccess}
+                    </div>
+                  )}
+                  {opError && (
+                    <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-700">
+                      {opError}
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
+            {section !== "operators" && (
             <button
               onClick={onSave}
               className="px-6 py-3 rounded-2xl bg-slate-900 text-white font-black tracking-tight shadow-md hover:bg-black"
             >
               Save Settings
             </button>
+            )}
             {saved && (
               <div className="rounded-xl border border-green-500/40 bg-green-500/10 px-4 py-2 text-sm font-semibold text-green-700">
                 Saved.

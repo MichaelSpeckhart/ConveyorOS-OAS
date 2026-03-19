@@ -48,3 +48,7 @@ pub fn create_user(username_input: &str, pin_input: &str) -> Result<User, String
     .map_err(|e| format!("DB insert error: {}", e))
 }
 
+pub fn is_user_admin(user: &User) -> bool {
+    user.is_admin != 0
+}
+
