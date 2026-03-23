@@ -94,9 +94,9 @@ pub fn test_split_invoice_valid() {
 pub fn test_split_invoice_six_add_items() {
     db_setup();
 
-    set_conveyor_csv_output_dir("/Users/michaelspeckhart/");
+    set_conveyor_csv_output_dir("/Users/michaelspeckhart/Developer/Samples/Tauri-Sample/ConveyorOS-OAS/src-tauri/tests/test_data/");
 
-    let csv_file = "/Users/michaelspeckhart/pos.csv";
+    let csv_file = "/Users/michaelspeckhart/Developer/Samples/Tauri-Sample/ConveyorOS-OAS/src-tauri/tests/test_data/pos.csv";
 
     let contents = match read_file(csv_file) {
                 Ok(c) => c,

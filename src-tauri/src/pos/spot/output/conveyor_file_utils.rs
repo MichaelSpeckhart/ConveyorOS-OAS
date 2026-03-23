@@ -95,6 +95,15 @@ pub fn write_split_invoice(operation_type: ConveyorOpsTypes, full_invoice_number
     write_conveyor_csv_file(operation_type, &[line])
 }
 
+pub fn write_split_invoice_batch(operation_type: ConveyorOpsTypes, full_invoice_number: &str, item_ids: &[String]) -> Result<(), String> {
+    let mut lines = Vec::new();
+    for item_id in item_ids {
+        let line = format!("\"{}\",\"{}\",\"{}\"", ConveyorOpsTypes::SplitInvoice.to_string(), full_invoice_number, item_id);
+        lines.push(line);
+    }
+    write_conveyor_csv_file(operation_type, &lines)
+}
+
 pub fn write_print_invoice(operation_type: ConveyorOpsTypes, full_invoice_number: &str, print_number: u32) -> Result<(), String> {
     let line = format!("\"{}\",\"{}\",\"{}\"", ConveyorOpsTypes::PrintInvoice.to_string(), full_invoice_number, print_number);
     write_conveyor_csv_file(operation_type, &[line])

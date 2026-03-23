@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use crate::{
   db::{connection::establish_connection, customer_repo, garment_repo, ticket_repo::{self, ticket_exists}},
   model::{NewCustomer, UpdateTicket},
-  pos::spot::{output::{conveyor_file_utils::write_split_invoice, conveyor_ops_types::ConveyorOpsTypes}, spotops_types::{self, spot_ops_types}},
+  pos::spot::{output::{conveyor_file_utils::{write_split_invoice, write_split_invoice_batch}, conveyor_ops_types::ConveyorOpsTypes}, spotops_types::{self, spot_ops_types}},
 };
 
 pub fn parse_spot_csv_core(contents: &[String]) -> Result<u32, String> {
@@ -16,6 +16,7 @@ pub fn parse_spot_csv_core(contents: &[String]) -> Result<u32, String> {
 
     let mut invoice_counts = std::collections::HashMap::new();
 
+   let mut invoice_mappings: HashMap<String, Vec<String>> = HashMap::new();
     
     
     // Single DB connection
@@ -46,9 +47,10 @@ pub fn parse_spot_csv_core(contents: &[String]) -> Result<u32, String> {
             *count += 1;
 
             if count > &mut 5 {
-                write_split_invoice(ConveyorOpsTypes::SplitInvoice, &fields[1].clone(), &fields[10].clone())?;
-                let ticket = ticket_repo::get_ticket_by_invoice_number(&mut conn, &fields[1].clone())?;
-                ticket_repo::update_ticket_item_count(&mut conn, &fields[1].clone(), 5)?;
+                // write_split_invoice(ConveyorOpsTypes::SplitInvoice, &fields[1].clone(), &fields[10].clone())?;
+                // let ticket = ticket_repo::get_ticket_by_invoice_number(&mut conn, &fields[1].clone())?;
+                // ticket_repo::update_ticket_item_count(&mut conn, &fields[1].clone(), 5)?;
+                invoice_mappings.entry(fields[1].clone()).or_insert_with(Vec::new).push(fields[10].clone());
             } else {
                 handle_add_item_op(&fields, &mut conn)?;
             }
@@ -73,7 +75,11 @@ pub fn parse_spot_csv_core(contents: &[String]) -> Result<u32, String> {
         }
     }
 
-    
+    // Handle split invoice operations after processing all lines
+    for (invoice_number, item_ids) in invoice_mappings {
+        write_split_invoice_batch(ConveyorOpsTypes::SplitInvoice, &invoice_number, &item_ids)?;
+        ticket_repo::update_ticket_item_count(&mut conn, &invoice_number, 5)?;
+    }
 
     Ok(0)
 }
