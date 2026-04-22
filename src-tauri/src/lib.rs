@@ -19,6 +19,7 @@ pub mod opc;
 pub mod slot_manager;
 pub mod result;
 pub mod admin;
+pub mod configurator_config;
 
 
 #[tauri::command]
@@ -48,12 +49,28 @@ pub fn run() {
             set_database_url(&database_url);
             println!("Database URL configured");
 
-            crate::pos::spot::output::conveyor_file_utils::set_conveyor_csv_output_dir(&settings.conveyorCsvOutputDir);
-            println!("Conveyor CSV output dir configured: {}", settings.conveyorCsvOutputDir);
+            // Resolve POS dirs: prefer Configurator config, fall back to OAS settings
+            let (pos_csv_path, output_dir) = match crate::configurator_config::read_dirs() {
+                Ok(dirs) => {
+                    println!("POS dirs from Configurator: csv={:?}, output={:?}", dirs.pos_csv_path, dirs.output_directory);
+                    (dirs.pos_csv_path, dirs.output_directory)
+                }
+                Err(e) => {
+                    println!("Configurator config unavailable ({}); using OAS settings", e);
+                    (settings.posCsvDir.clone(), settings.conveyorCsvOutputDir.clone())
+                }
+            };
+
+            crate::pos::spot::output::conveyor_file_utils::set_conveyor_csv_output_dir(&output_dir);
+            println!("Conveyor CSV output dir: {}", output_dir);
+
+            let mut watch_settings = settings.clone();
+            watch_settings.posCsvDir = pos_csv_path;
+            watch_settings.conveyorCsvOutputDir = output_dir;
 
             match establish_connection() {
                 Ok(mut conn) => {
-                    
+
                     std::thread::spawn(move || {
                         if let Err(e) = run_db_migrations(&mut conn) {
                             eprintln!("Failed to run database migrations: {}", e);
@@ -70,9 +87,9 @@ pub fn run() {
                 }
             }
 
-            
+
             // start file watch
-            async_watch(settings.clone());
+            async_watch(watch_settings);
 
             let opc = OpcClient::new(OpcConfig {
                 endpoint_url: settings.opcServerUrl.to_string(),
@@ -139,6 +156,7 @@ pub fn run() {
             tauri_commands::remove_garment_from_slot_tauri,
             tauri_commands::get_occupied_slots_tauri,
             tauri_commands::is_ticket_complete_tauri,
+            configurator_config::get_configurator_dirs_tauri,
             greet
         ])
         .run(tauri::generate_context!())

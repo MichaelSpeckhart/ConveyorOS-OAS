@@ -619,9 +619,17 @@ pub fn print_ticket_tauri(app: tauri::AppHandle, full_invoice_number: String) ->
     let mut conn = establish_connection()?;
     let ticket = ticket_repo::get_ticket_by_invoice_number(&mut conn, &full_invoice_number)
         .map_err(|e| format!("Ticket not found: {}", e))?;
-    conveyor_file_utils::write_print_invoice(ConveyorOpsTypes::PrintInvoice, &ticket.full_invoice_number, 1)?;
     let settings = crate::settings::load_settings(&app);
-    crate::io::printer::printer_details::print_ticket(&ticket, &settings.printer);
+    let printer = &settings.printer;
+
+    let usb_configured = printer.connection_type == "usb" && !printer.port_path.is_empty();
+
+    if !usb_configured {
+        // No direct USB printer configured: delegate to SPOT POS via conveyor CSV
+        conveyor_file_utils::write_print_invoice(ConveyorOpsTypes::PrintInvoice, &ticket.full_invoice_number, 1)?;
+    }
+
+    crate::io::printer::printer_details::print_ticket(&ticket, printer);
     Ok(())
 }
 
