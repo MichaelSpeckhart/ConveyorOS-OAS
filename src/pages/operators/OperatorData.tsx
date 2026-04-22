@@ -60,7 +60,7 @@ export default function OperatorData() {
   );
 
   return (
-    <div className="min-h-full w-full bg-slate-50 p-6">
+    <div className="min-h-full w-full bg-surface p-6">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>

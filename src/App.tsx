@@ -149,7 +149,7 @@ export default function App() {
         user={user}
         onLogout={() => setShowLogoutConfirm(true)}
       >
-        {active === "dashboard" && <Home />}
+        {active === "dashboard" && <Home onNavigate={setActive} />}
         {active === "scan" && <GarmentScanningPage onOpenRecall={() => setActive("recall")} sessionId={sessionId} />}
         {active === "recall" && <RecallData />}
         {active === "data" && <DataPage />}
@@ -204,22 +204,20 @@ export default function App() {
                 No, stay
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (isLoggingOut) return;
                   setIsLoggingOut(true);
-                  setTimeout(async () => {
-                    try {
-                      if (sessionId) await endUserSessionTauri(sessionId);
-                    } catch (e) {
-                      console.error("Failed to end session", e);
-                    } finally {
-                      setIsLoggingOut(false);
-                      setShowLogoutConfirm(false);
-                      setUser(null);
-                      setSessionId(null);
-                      setActive("dashboard");
-                    }
-                  }, 2000);
+                  try {
+                    if (sessionId) await endUserSessionTauri(sessionId);
+                  } catch (e) {
+                    console.error("Failed to end session", e);
+                  } finally {
+                    setIsLoggingOut(false);
+                    setShowLogoutConfirm(false);
+                    setUser(null);
+                    setSessionId(null);
+                    setActive("dashboard");
+                  }
                 }}
                 className="py-3 rounded-2xl bg-slate-900 hover:bg-black text-white font-bold disabled:opacity-50"
                 disabled={isLoggingOut}

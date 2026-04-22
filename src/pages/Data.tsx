@@ -7,12 +7,7 @@ import {
   listGarmentsForTicket,
   listTicketsForCustomer,
 } from "../lib/data";
-
-function fmtDate(s?: string) {
-  if (!s) return "—";
-  const d = new Date(s);
-  return isNaN(d.getTime()) ? s : d.toLocaleString();
-}
+import { fmtDateTime as fmtDate } from "../lib/format";
 
 export default function DataPage() {
   const [search, setSearch] = useState("");
@@ -120,7 +115,7 @@ export default function DataPage() {
   }, [selectedTicket]);
 
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full p-5 overflow-auto bg-surface">
       <div className="flex items-start justify-between gap-4 mb-4">
         <div>
           <h1 className="text-3xl font-black text-slate-900">Data</h1>
@@ -129,7 +124,7 @@ export default function DataPage() {
 
         <div className="w-[420px] max-w-full">
           <input
-            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 shadow-sm"
+            className="w-full rounded-2xl border border-[#ddd8d0] bg-white px-4 py-3 text-slate-900 shadow-sm"
             placeholder="Search customer name, phone, or identifier…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -146,9 +141,9 @@ export default function DataPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Customers */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-200">
-            <div className="text-sm uppercase tracking-widest text-slate-500 font-bold">Customers</div>
+        <div className="bg-white rounded-3xl border border-[#ddd8d0] shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-[#ddd8d0]">
+            <div className="text-sm font-bold text-slate-500">Customers</div>
             <div className="text-slate-900 font-black mt-1">{customers.length}</div>
           </div>
 
@@ -159,7 +154,7 @@ export default function DataPage() {
                 <button
                   key={c.id}
                   onClick={() => setSelectedCustomer(c)}
-                  className={`w-full text-left px-5 py-4 border-b border-slate-100 hover:bg-slate-50 transition ${
+                  className={`w-full text-left px-5 py-4 border-b border-[#f0ede8] hover:bg-surface transition ${
                     active ? "bg-blue-50" : ""
                   }`}
                 >
@@ -181,9 +176,9 @@ export default function DataPage() {
         </div>
 
         {/* Tickets */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-200">
-            <div className="text-sm uppercase tracking-widest text-slate-500 font-bold">Tickets</div>
+        <div className="bg-white rounded-3xl border border-[#ddd8d0] shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-[#ddd8d0]">
+            <div className="text-sm font-bold text-slate-500">Tickets</div>
             <div className="text-slate-900 font-black mt-1">{customerTitle}</div>
             {loadingTickets && <div className="text-sm text-slate-500 mt-2">Loading tickets…</div>}
           </div>
@@ -196,7 +191,7 @@ export default function DataPage() {
                 <button
                   key={t.id}
                   onClick={() => setSelectedTicket(t)}
-                  className={`w-full text-left px-5 py-4 border-b border-slate-100 hover:bg-slate-50 transition ${
+                  className={`w-full text-left px-5 py-4 border-b border-[#f0ede8] hover:bg-surface transition ${
                     active ? "bg-blue-50" : ""
                   }`}
                 >
@@ -237,16 +232,16 @@ export default function DataPage() {
         </div>
 
         {/* Garments */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-200">
-            <div className="text-sm uppercase tracking-widest text-slate-500 font-bold">Garments</div>
+        <div className="bg-white rounded-3xl border border-[#ddd8d0] shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-[#ddd8d0]">
+            <div className="text-sm font-bold text-slate-500">Garments</div>
             <div className="text-slate-900 font-black mt-1">{ticketTitle}</div>
             {loadingGarments && <div className="text-sm text-slate-500 mt-2">Loading garments…</div>}
           </div>
 
           <div className="max-h-[70vh] overflow-auto">
             {garments.map((g) => (
-              <div key={g.id} className="px-5 py-4 border-b border-slate-100">
+              <div key={g.id} className="px-5 py-4 border-b border-[#f0ede8]">
                 <div className="flex items-start justify-between gap-3">
                   <div className="font-black text-slate-900">{g.item_description}</div>
                   <div className="text-xs font-black px-2 py-1 rounded-full bg-slate-100 text-slate-800">

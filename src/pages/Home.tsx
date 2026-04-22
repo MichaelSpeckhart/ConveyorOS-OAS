@@ -2,13 +2,11 @@ import { useEffect, useState } from "react";
 import { loadSettings, type AppSettings } from "../lib/settings";
 import { invoke } from "@tauri-apps/api/core";
 
-export default function HomePage() {
+export default function HomePage({ onNavigate }: { onNavigate?: (page: string) => void }) {
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [opcConnected, setOpcConnected] = useState(false);
   const [hanger, setHanger] = useState(false);
   const [targetSlot, setTargetSlot] = useState<number | null>(null);
-  const [itemsToday] = useState<number>(0);
-  const [lastScan] = useState<string>("—");
 
   useEffect(() => {
     let alive = true;
@@ -40,10 +38,10 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="h-full overflow-auto bg-surface">
 
       {/* Hero */}
-      <div className="bg-slate-900 px-8 py-10">
+      <div className="bg-navy px-8 py-10">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-start justify-between gap-6">
             <div>
@@ -57,18 +55,18 @@ export default function HomePage() {
               </div>
             </div>
             <div className="flex flex-col gap-3 pt-1">
-              <a
-                href="/scanner"
+              <button
+                onClick={() => onNavigate?.("scan")}
                 className="px-6 py-3 rounded-2xl bg-blue-500 hover:bg-blue-400 active:scale-95 text-white font-black shadow-lg transition-all text-center"
               >
                 Open Scanner
-              </a>
-              <a
-                href="/settings"
+              </button>
+              <button
+                onClick={() => onNavigate?.("settings")}
                 className="px-6 py-3 rounded-2xl bg-white/10 hover:bg-white/20 active:scale-95 text-white font-black transition-all text-center"
               >
                 Settings
-              </a>
+              </button>
             </div>
           </div>
         </div>
@@ -102,18 +100,10 @@ export default function HomePage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Items Today</p>
-            <p className="text-6xl font-black text-slate-900 mt-2 leading-none">{itemsToday}</p>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Last Scan</p>
-            <p className="text-4xl font-black font-mono text-slate-900 mt-2 leading-none">{lastScan}</p>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">POS CSV</p>
-            <p className={`text-3xl font-black mt-2 leading-none ${settings?.posCsvDir ? "text-green-600" : "text-slate-300"}`}>
+        <div>
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#ddd8d0]">
+            <p className="text-sm font-bold text-slate-500">POS CSV Folder</p>
+            <p className={`text-3xl font-extrabold mt-2 leading-none ${settings?.posCsvDir ? "text-green-600" : "text-slate-300"}`}>
               {settings?.posCsvDir ? "Configured" : "Not set"}
             </p>
             {settings?.posCsvDir && (
@@ -123,9 +113,9 @@ export default function HomePage() {
         </div>
 
         {/* Config */}
-        <div className="bg-white rounded-2xl shadow-sm divide-y divide-slate-100">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#ddd8d0] divide-y divide-[#f0ede8]">
           <div className="px-6 py-4">
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Configuration</p>
+            <p className="text-sm font-bold text-slate-500">Configuration</p>
           </div>
           <ConfigRow label="POS CSV File" value={settings?.posCsvDir || "Not configured"} empty={!settings?.posCsvDir} />
           <ConfigRow
@@ -153,9 +143,9 @@ function StatusTile({ label, value, on, onColor, offColor }: {
   offColor: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm">
+    <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#ddd8d0]">
       <div className="flex items-center justify-between mb-4">
-        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{label}</p>
+        <p className="text-sm font-bold text-slate-500">{label}</p>
         <span className={`w-3 h-3 rounded-full ${on ? onColor : offColor}`} />
       </div>
       <p className="text-2xl font-black text-slate-900 leading-none">{value}</p>

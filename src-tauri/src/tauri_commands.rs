@@ -547,6 +547,7 @@ pub fn save_settings_tauri(
 ) -> Result<(), String> {
     use tauri_plugin_store::StoreExt;
 
+    let existing = crate::settings::load_settings(&app);
     let settings = crate::settings::appsettings::AppSettings {
         posCsvDir: pos_csv_dir,
         conveyorCsvOutputDir: conveyor_csv_output_dir,
@@ -556,6 +557,9 @@ pub fn save_settings_tauri(
         dbUser: db_user,
         dbPassword: db_password,
         opcServerUrl: opc_server_url,
+        posSystem: existing.posSystem,
+        fieldMappings: existing.fieldMappings,
+        printer: existing.printer,
     };
 
     let store = app.store("settings.json").map_err(|e| format!("Store error: {}", e))?;
@@ -611,11 +615,13 @@ pub fn get_current_settings_tauri(app: tauri::AppHandle) -> Result<crate::settin
 }
 
 #[tauri::command]
-pub fn print_ticket_tauri(full_invoice_number: String) -> Result<(), String> {
+pub fn print_ticket_tauri(app: tauri::AppHandle, full_invoice_number: String) -> Result<(), String> {
     let mut conn = establish_connection()?;
     let ticket = ticket_repo::get_ticket_by_invoice_number(&mut conn, &full_invoice_number)
         .map_err(|e| format!("Ticket not found: {}", e))?;
     conveyor_file_utils::write_print_invoice(ConveyorOpsTypes::PrintInvoice, &ticket.full_invoice_number, 1)?;
+    let settings = crate::settings::load_settings(&app);
+    crate::io::printer::printer_details::print_ticket(&ticket, &settings.printer);
     Ok(())
 }
 

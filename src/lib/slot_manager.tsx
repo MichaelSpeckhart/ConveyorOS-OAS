@@ -87,8 +87,3 @@ export async function removeGarmentFromSlotTauri(ticket: string, slot_number: nu
 }
 
 
-import { listen } from "@tauri-apps/api/event";
-
-listen<boolean>("hanger-sensor", (e) => {
-  console.log("Sensor changed:", e.payload);
-});

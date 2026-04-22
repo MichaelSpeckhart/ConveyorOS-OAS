@@ -3,24 +3,32 @@
    =============================== */
 @import "tailwindcss";
 
+@theme {
+  --color-navy:       #1e3d4f;
+  --color-navy-light: #274e65;
+  --color-navy-muted: #9ec5d8;
+  --color-surface:    #f0ede8;
+  --color-surface-2:  #e8e4de;
+}
+
 html,
 body,
 #root {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* ✅ prevents page scrollbar */
+  overflow: hidden;
 }
 
-/* Base typography */
+/* Base typography — Nunito with warm fallbacks */
 :root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Nunito", "Gill Sans", Calibri, "Trebuchet MS", system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.5;
   font-weight: 400;
 
-  color: #0f172a;
-  background-color: #ffffff;
+  color: #1a2a35;
+  background-color: #f0ede8;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -35,45 +43,49 @@ body,
 
 /* Links */
 a {
-  font-weight: 500;
+  font-weight: 600;
   color: #2563eb;
   text-decoration: none;
 }
-
 a:hover {
   color: #1d4ed8;
 }
 
-/* Inputs + buttons */
+/* Inputs */
 input,
-button {
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  padding: 0.6em 0.9em;
+select,
+textarea {
+  border-radius: 10px;
+  border: 1.5px solid #d8d3cc;
+  padding: 0.55em 0.85em;
   font-size: 1em;
   font-family: inherit;
-  color: #0f172a;
+  color: #1a2a35;
   background-color: #ffffff;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-
-button {
-  cursor: pointer;
-}
-
-button:hover {
-  border-color: #2563eb;
-}
-
-button:active {
-  background-color: #f1f5f9;
-}
-
 input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #1e3d4f;
+  box-shadow: 0 0 0 3px rgba(30, 61, 79, 0.12);
+}
+
+/* Default button — warm navy instead of stark black */
+button {
+  border-radius: 10px;
+  border: 1.5px solid transparent;
+  padding: 0.55em 1em;
+  font-size: 1em;
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
 button:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 0 0 3px rgba(30, 61, 79, 0.18);
 }
 
 /* Disable old Vite logo styling */

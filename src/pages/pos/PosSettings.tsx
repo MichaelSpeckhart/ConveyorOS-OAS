@@ -129,7 +129,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-full w-full bg-slate-50 p-6">
+    <div className="min-h-full w-full bg-surface p-6">
       <div className="w-full max-w-6xl mx-auto">
         <div className="bg-white rounded-[2.5rem] shadow p-8 md:p-10 border border-slate-200">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">

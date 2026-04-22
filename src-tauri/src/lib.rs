@@ -3,7 +3,7 @@ use std::sync::{Arc, atomic::AtomicBool};
 use tauri::Manager;
 use tokio::sync::Mutex;
 
-use crate::{db::{connection::{establish_connection, set_database_url}, data::{data_list_all_tickets, data_list_customers, data_list_garments_for_ticket, data_list_tickets_for_customer}, db_migrations::run_db_migrations}, io::fileutils::read_file, opc::opc_client::{AppState, OpcClient, OpcConfig}, pos::spot::spot_file_utils::parse_spot_csv_core, settings::{load_settings, appsettings::AppSettings}};
+use crate::{db::{connection::{establish_connection, set_database_url}, data::{data_list_all_tickets, data_list_customers, data_list_garments_for_ticket, data_list_tickets_for_customer}, db_migrations::run_db_migrations}, io::fileutils::read_file, opc::opc_client::{AppState, OpcClient, OpcConfig}, pos::{spot::spot_file_utils::parse_spot_csv_core, wincleaners::parse_wincleaners_csv_core}, settings::{load_settings, appsettings::AppSettings}};
 
 pub mod plc;
 pub mod io;
@@ -180,7 +180,12 @@ pub fn async_watch(settings: AppSettings) {
                 println!("[FileWatch] Line {}: {:?}", i, line);
             }
 
-            match parse_spot_csv_core(&contents) {
+            let parse_result = match settings.posSystem.as_str() {
+                "wincleaners" => parse_wincleaners_csv_core(&contents, &settings.fieldMappings),
+                _             => parse_spot_csv_core(&contents, &settings.fieldMappings),
+            };
+
+            match parse_result {
                 Ok(count) => {
                     println!("[FileWatch] Parsing succeeded (result={})", count);
                 }

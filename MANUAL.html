@@ -1,0 +1,1897 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>ConveyorOS OAS Manual</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">ConveyorOS OAS Manual</h1>
+</header>
+<h1 id="conveyoros-oas-user-technical-manual">ConveyorOS OAS — User
+&amp; Technical Manual</h1>
+<p><strong>Product:</strong> ConveyorOS Order Assembly System (OAS)
+<strong>Version:</strong> Current (April 2026)
+<strong>Audience:</strong> Operators, Managers, Administrators, IT
+Personnel</p>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol type="1">
+<li><a href="#1-overview">Overview</a></li>
+<li><a href="#2-system-requirements">System Requirements</a></li>
+<li><a href="#3-first-time-setup">First-Time Setup</a></li>
+<li><a href="#4-user-guide--non-technical">User Guide —
+Non-Technical</a>
+<ul>
+<li>4.1 <a href="#41-logging-in">Logging In</a></li>
+<li>4.2 <a href="#42-dashboard">Dashboard</a></li>
+<li>4.3 <a href="#43-scanning-garments">Scanning Garments</a></li>
+<li>4.4 <a href="#44-completing-an-order">Completing an Order</a></li>
+<li>4.5 <a href="#45-printing-tickets">Printing Tickets</a></li>
+<li>4.6 <a href="#46-viewing-data">Viewing Data (Customers, Orders,
+Garments)</a></li>
+<li>4.7 <a href="#47-clearing-the-conveyor">Clearing the
+Conveyor</a></li>
+<li>4.8 <a href="#48-logging-out">Logging Out</a></li>
+</ul></li>
+<li><a href="#5-manager--admin-guide">Manager / Admin Guide</a>
+<ul>
+<li>5.1 <a href="#51-creating-operators">Creating Operators</a></li>
+<li>5.2 <a href="#52-operator-performance-data">Operator Performance
+Data</a></li>
+<li>5.3 <a href="#53-slot--occupancy-monitoring">Slot &amp; Occupancy
+Monitoring</a></li>
+</ul></li>
+<li><a href="#6-technical-reference--it--administrators">Technical
+Reference — IT &amp; Administrators</a>
+<ul>
+<li>6.1 <a href="#61-architecture-overview">Architecture
+Overview</a></li>
+<li>6.2 <a href="#62-technology-stack">Technology Stack</a></li>
+<li>6.3 <a href="#63-database-schema">Database Schema</a></li>
+<li>6.4 <a href="#64-configuration--settings">Configuration &amp;
+Settings</a></li>
+<li>6.5 <a href="#65-csv-integration-pos--conveyor">CSV Integration (POS
+↔︎ Conveyor)</a></li>
+<li>6.6 <a href="#66-hardware-integration">Hardware Integration</a></li>
+<li>6.7 <a href="#67-slot-state-machine">Slot State Machine</a></li>
+<li>6.8 <a href="#68-session--authentication-model">Session &amp;
+Authentication Model</a></li>
+<li>6.9 <a href="#69-database-migrations">Database Migrations</a></li>
+<li>6.10 <a href="#610-build--deployment">Build &amp;
+Deployment</a></li>
+<li>6.11 <a href="#611-log-files--troubleshooting">Log Files &amp;
+Troubleshooting</a></li>
+</ul></li>
+<li><a href="#7-workflows--end-to-end">Workflows — End-to-End</a>
+<ul>
+<li>7.1 <a href="#71-order-scanning-workflow">Order Scanning
+Workflow</a></li>
+<li>7.2 <a href="#72-csv-order-import-workflow">CSV Order Import
+Workflow</a></li>
+<li>7.3 <a href="#73-conveyor-clearing-workflow">Conveyor Clearing
+Workflow</a></li>
+</ul></li>
+<li><a href="#8-roles--permissions-reference">Roles &amp; Permissions
+Reference</a></li>
+<li><a href="#9-glossary">Glossary</a></li>
+</ol>
+<hr />
+<h2 id="overview">1. Overview</h2>
+<p>ConveyorOS OAS (Order Assembly System) is a desktop/kiosk application
+designed for <strong>dry cleaning and laundry facilities</strong> that
+use a conveyor-based order fulfillment system. It bridges the gap
+between your Point-of-Sale (POS) system, your staff, and the physical
+conveyor hardware.</p>
+<p><strong>What it does:</strong></p>
+<ul>
+<li>Receives customer orders automatically from your POS system via CSV
+file import.</li>
+<li>Allows operators to scan garment barcodes and assign them to
+numbered conveyor slots.</li>
+<li>Tracks every garment’s location in real time across 100 conveyor
+slots.</li>
+<li>Communicates with the conveyor’s Programmable Logic Controller (PLC)
+and OPC server to automate slot movement.</li>
+<li>Marks orders complete when all garments have been loaded, and
+triggers a printed receipt.</li>
+<li>Logs all activity by operator, enabling management to review
+performance.</li>
+</ul>
+<p><strong>Who uses it:</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Role</th>
+<th>Primary Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Operator</td>
+<td>Scan garments, process orders, clear the conveyor</td>
+</tr>
+<tr>
+<td>Admin Operator</td>
+<td>All operator tasks + manage staff accounts and settings</td>
+</tr>
+<tr>
+<td>IT / Administrator</td>
+<td>Install, configure, maintain the system and integrations</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="system-requirements">2. System Requirements</h2>
+<h3 id="workstation">Workstation</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Minimum</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OS</td>
+<td>Windows 10 (64-bit)</td>
+</tr>
+<tr>
+<td>CPU</td>
+<td>Intel/AMD x64 or Apple Silicon</td>
+</tr>
+<tr>
+<td>RAM</td>
+<td>4 GB</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>500 MB free (application only)</td>
+</tr>
+<tr>
+<td>Display</td>
+<td>1280 × 800 or larger (touchscreen supported)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="external-dependencies-must-be-installed-separately">External
+Dependencies (must be installed separately)</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Dependency</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PostgreSQL 12 or later</strong></td>
+<td>The database server. Can be on the same machine or a network
+server.</td>
+</tr>
+<tr>
+<td><strong>OPC UA Server</strong></td>
+<td>Optional. Provides live conveyor status. System runs in degraded
+mode without it.</td>
+</tr>
+<tr>
+<td><strong>PLC / MODBUS device</strong></td>
+<td>Optional. Required for automated slot-jog commands.</td>
+</tr>
+<tr>
+<td><strong>ESC/POS Thermal Printer</strong></td>
+<td>Optional. Required to print order receipts automatically.</td>
+</tr>
+<tr>
+<td><strong>Barcode Scanner</strong></td>
+<td>USB HID or keyboard-wedge scanner recommended.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="network">Network</h3>
+<ul>
+<li>The workstation must reach the PostgreSQL server (default port
+<code>5432</code>).</li>
+<li>The workstation must reach the OPC UA server (default port
+<code>4840</code>) if OPC features are used.</li>
+</ul>
+<hr />
+<h2 id="first-time-setup">3. First-Time Setup</h2>
+<p>The first time ConveyorOS OAS is launched with no prior
+configuration, a <strong>Setup Wizard</strong> will appear
+automatically. You must complete all three steps before the application
+will open normally.</p>
+<blockquote>
+<p><strong>Note:</strong> You will need your PostgreSQL connection
+details ready before starting the wizard.</p>
+</blockquote>
+<h3 id="step-1-database-connection">Step 1 — Database Connection</h3>
+<ol type="1">
+<li>Enter your PostgreSQL <strong>Host</strong> (e.g.,
+<code>localhost</code> or an IP address).</li>
+<li>Enter the <strong>Port</strong> (default: <code>5432</code>).</li>
+<li>Enter the <strong>Database Name</strong> — you must create this
+empty database in PostgreSQL beforehand.</li>
+<li>Enter the <strong>Username</strong> and
+<strong>Password</strong>.</li>
+<li>Click <strong>Test Connection</strong>. A green confirmation will
+appear if successful.</li>
+<li>Click <strong>Next</strong> to continue.</li>
+</ol>
+<blockquote>
+<p>On first successful connection, the application automatically creates
+all required tables and seeds 100 conveyor slots.</p>
+</blockquote>
+<h3 id="step-2-pos-csv-input-directory">Step 2 — POS CSV Input
+Directory</h3>
+<ol type="1">
+<li>Click <strong>Browse</strong> and select the folder where your POS
+system writes order CSV files.</li>
+<li>The application watches this folder every 5 seconds for new
+files.</li>
+<li>Click <strong>Next</strong>.</li>
+</ol>
+<h3 id="step-3-conveyor-output-directory">Step 3 — Conveyor Output
+Directory</h3>
+<ol type="1">
+<li>Click <strong>Browse</strong> and select the folder where conveyor
+activity CSV files should be written.</li>
+<li>These files are consumed by downstream systems (e.g., reporting,
+sorter output).</li>
+<li>Click <strong>Finish</strong>.</li>
+</ol>
+<p>After completing the wizard, the app restarts into the
+<strong>Login</strong> screen and prompts you to create the first
+administrator account.</p>
+<hr />
+<h2 id="user-guide-non-technical">4. User Guide — Non-Technical</h2>
+<p>This section is written for <strong>operators and managers</strong>
+who use the system day-to-day. No programming or IT knowledge is
+required.</p>
+<hr />
+<h3 id="logging-in">4.1 Logging In</h3>
+<ol type="1">
+<li>When the app opens, you will see a keypad on the login screen.</li>
+<li>Enter your <strong>4-digit PIN</strong> using the on-screen keypad
+or a physical keyboard.</li>
+<li>Press the checkmark (confirm) button or press
+<strong>Enter</strong>.</li>
+<li>If the PIN is correct, you are taken to the
+<strong>Dashboard</strong>.</li>
+</ol>
+<blockquote>
+<p>If you have forgotten your PIN, ask an administrator to reset or
+recreate your account.</p>
+</blockquote>
+<hr />
+<h3 id="dashboard">4.2 Dashboard</h3>
+<p>The dashboard shows real-time system status at a glance.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Indicator</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>OPC Connection</strong></td>
+<td>Green = conveyor system connected; Red = offline (limited
+functionality)</td>
+</tr>
+<tr>
+<td><strong>Hanger Sensor</strong></td>
+<td>Whether a garment is currently detected at the load point</td>
+</tr>
+<tr>
+<td><strong>Target Slot</strong></td>
+<td>The slot number the conveyor is currently targeting</td>
+</tr>
+<tr>
+<td><strong>Occupancy %</strong></td>
+<td>How full the conveyor is (0% = empty, 100% = all 100 slots
+occupied)</td>
+</tr>
+<tr>
+<td><strong>Items Today</strong></td>
+<td>Total garments scanned during the current day</td>
+</tr>
+</tbody>
+</table>
+<p>If the OPC status shows <strong>Offline</strong>, you can still scan
+garments and manage orders, but automated slot-jog commands will not be
+sent to the conveyor hardware.</p>
+<hr />
+<h3 id="scanning-garments">4.3 Scanning Garments</h3>
+<p>The <strong>Garment Scanning</strong> screen is where you will spend
+most of your time.</p>
+<p><strong>To scan a garment:</strong></p>
+<ol type="1">
+<li>Navigate to the <strong>Scan</strong> screen from the sidebar.</li>
+<li>Focus on the barcode input field (it is usually focused
+automatically).</li>
+<li>Scan the garment’s barcode with a barcode scanner, or type the
+barcode and press <strong>Enter</strong>.</li>
+<li>The system responds with one of the following outcomes:</li>
+</ol>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Outcome</th>
+<th>What happened</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Slot Assigned</strong></td>
+<td>The garment was placed on the conveyor and assigned a slot
+number.</td>
+<td>Hang garment at the indicated slot.</td>
+</tr>
+<tr>
+<td><strong>Already on Conveyor</strong></td>
+<td>This garment was scanned before and is already assigned to a
+slot.</td>
+<td>The system re-sends the jog command to move the conveyor to that
+slot.</td>
+</tr>
+<tr>
+<td><strong>Ticket Complete</strong></td>
+<td>This was the last garment on the order.</td>
+<td>See <a href="#44-completing-an-order">Section 4.4</a>.</td>
+</tr>
+<tr>
+<td><strong>Garment Not Found</strong></td>
+<td>The barcode does not match any order in the database.</td>
+<td>Verify the barcode is correct; the POS order may not have imported
+yet.</td>
+</tr>
+<tr>
+<td><strong>Error</strong></td>
+<td>A database or hardware error occurred.</td>
+<td>Note the error message and contact your administrator.</td>
+</tr>
+</tbody>
+</table>
+<p>The screen also shows: - <strong>Customer Name</strong> — the
+customer whose garment was just scanned. - <strong>Invoice
+Number</strong> — the order number. - <strong>Item Description</strong>
+— the type of garment (e.g., “Dress Shirt”). - <strong>Progress</strong>
+— how many of this order’s garments have been loaded (e.g., “3 of
+5”).</p>
+<hr />
+<h3 id="completing-an-order">4.4 Completing an Order</h3>
+<p>When you scan the <strong>last garment</strong> on a ticket, the
+system automatically:</p>
+<ol type="1">
+<li>Loads the final garment onto the conveyor.</li>
+<li>Marks all garments on that order for
+<strong>unloading</strong>.</li>
+<li>Changes the ticket status to <strong>Complete</strong>.</li>
+<li>Sends a print command to the receipt printer.</li>
+<li>Displays a <strong>“Ticket Complete”</strong> confirmation
+screen.</li>
+</ol>
+<p>Acknowledge the completion by pressing the confirm button. The system
+returns to the scanning state, ready for the next garment.</p>
+<blockquote>
+<p><strong>Important:</strong> When a ticket completes, all garments
+belonging to that ticket will be signaled for conveyor unloading
+automatically. Ensure operators are ready to retrieve garments from the
+conveyor exit point.</p>
+</blockquote>
+<hr />
+<h3 id="printing-tickets">4.5 Printing Tickets</h3>
+<p>You can manually reprint a ticket at any time from the <strong>Print
+Tickets</strong> screen.</p>
+<ol type="1">
+<li>Navigate to <strong>Print Tickets</strong> from the sidebar.</li>
+<li>Search by customer name, phone number, or invoice number.</li>
+<li>Select the order from the results.</li>
+<li>Click <strong>Print</strong>.</li>
+</ol>
+<hr />
+<h3 id="viewing-data">4.6 Viewing Data</h3>
+<p>The <strong>Data</strong> screen lets you browse all customers,
+orders, and garments.</p>
+<p><strong>Structure:</strong></p>
+<pre><code>Customers
+  └─ Orders (Tickets)
+       └─ Garments</code></pre>
+<ul>
+<li>Click a <strong>Customer</strong> to see all their orders.</li>
+<li>Click an <strong>Order</strong> to see all garments in that order
+and their current status.</li>
+<li>Garment status will show whether the item is still unprocessed, on
+the conveyor, or completed.</li>
+</ul>
+<p>Use the search box at the top to filter by name or invoice
+number.</p>
+<hr />
+<h3 id="clearing-the-conveyor">4.7 Clearing the Conveyor</h3>
+<p>Clearing removes all items from the conveyor and resets slot
+assignments. This is typically done at the end of a shift or when
+restarting operations.</p>
+<blockquote>
+<p><strong>Caution:</strong> Clearing cannot be undone. All garments
+must be physically removed from the conveyor before or during this
+operation.</p>
+</blockquote>
+<p><strong>To clear the conveyor:</strong></p>
+<ol type="1">
+<li>Navigate to the <strong>Clear</strong> option in the menu.</li>
+<li>A confirmation dialog will appear.</li>
+<li>Enter the confirmation code <strong>123</strong> and press
+confirm.</li>
+<li>The system will send jog commands to route each occupied slot to the
+exit point.</li>
+<li>Physically remove each garment as it arrives.</li>
+<li>Once all slots are cleared, the system resets all slot assignments
+and ticket progress.</li>
+</ol>
+<hr />
+<h3 id="logging-out">4.8 Logging Out</h3>
+<ol type="1">
+<li>Click your name or the <strong>Logout</strong> button in the top
+bar.</li>
+<li>Your session is closed and your garment/ticket counts are
+saved.</li>
+<li>The app returns to the <strong>Login</strong> screen.</li>
+</ol>
+<blockquote>
+<p>Always log out at the end of your shift so session data is recorded
+accurately.</p>
+</blockquote>
+<hr />
+<h2 id="manager-admin-guide">5. Manager / Admin Guide</h2>
+<p>Administrators have access to everything operators do, plus
+additional management tools.</p>
+<hr />
+<h3 id="creating-operators">5.1 Creating Operators</h3>
+<ol type="1">
+<li>Navigate to <strong>Settings</strong> →
+<strong>Operators</strong>.</li>
+<li>Click <strong>Add Operator</strong>.</li>
+<li>Enter a <strong>Username</strong> and a <strong>4-digit PIN</strong>
+for the new operator.</li>
+<li>Toggle <strong>Admin</strong> on if the operator should have
+administrator privileges.</li>
+<li>Click <strong>Save</strong>.</li>
+</ol>
+<blockquote>
+<p>The first operator account is created during initial setup and is
+always an administrator.</p>
+</blockquote>
+<hr />
+<h3 id="operator-performance-data">5.2 Operator Performance Data</h3>
+<p>Navigate to <strong>Operator Data</strong> to view performance
+metrics.</p>
+<p>Available timeframes: <strong>Last 7 days</strong>, <strong>Last 30
+days</strong>, <strong>Last 90 days</strong>.</p>
+<p>Metrics shown per operator: - Total garments scanned - Total tickets
+completed - Average session duration</p>
+<hr />
+<h3 id="slot-occupancy-monitoring">5.3 Slot &amp; Occupancy
+Monitoring</h3>
+<p>The <strong>Slot</strong> view (accessible from the sidebar) shows
+the current state of all 100 conveyor slots.</p>
+<p>Each slot is color-coded:</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Color</th>
+<th>State</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gray</td>
+<td>Empty</td>
+<td>Slot is available</td>
+</tr>
+<tr>
+<td>Yellow</td>
+<td>Reserved</td>
+<td>Slot is allocated to an upcoming order but not yet physically
+loaded</td>
+</tr>
+<tr>
+<td>Green</td>
+<td>Occupied</td>
+<td>A garment is physically on this slot</td>
+</tr>
+<tr>
+<td>Red</td>
+<td>Blocked</td>
+<td>Slot is temporarily unavailable</td>
+</tr>
+<tr>
+<td>Orange</td>
+<td>Error</td>
+<td>Hardware or data inconsistency on this slot</td>
+</tr>
+</tbody>
+</table>
+<p>You can click any slot to view which ticket and garment are assigned
+to it.</p>
+<hr />
+<h2 id="technical-reference-it-administrators">6. Technical Reference —
+IT &amp; Administrators</h2>
+<p>This section is intended for <strong>IT personnel, system
+integrators, and software engineers</strong> responsible for
+installation, maintenance, and integration of ConveyorOS OAS.</p>
+<hr />
+<h3 id="architecture-overview">6.1 Architecture Overview</h3>
+<p>ConveyorOS OAS is a <strong>desktop application</strong> built with
+the Tauri framework — a Rust backend bundled with a React/TypeScript
+frontend rendered by the operating system’s native WebView.</p>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│                  ConveyorOS OAS Process                      │
+│                                                             │
+│  ┌────────────────────┐      ┌──────────────────────────┐  │
+│  │   React Frontend   │◄────►│      Rust Backend         │  │
+│  │  (TypeScript + UI) │      │  (Tauri command handlers) │  │
+│  └────────────────────┘      └──────────┬───────────────┘  │
+│                                         │                    │
+│              ┌──────────────────────────┼──────────────┐    │
+│              │                          │               │    │
+│   ┌──────────▼──┐  ┌─────────▼──┐  ┌──▼────────────┐  │    │
+│   │  PostgreSQL │  │  OPC Client │  │  PLC (MODBUS) │  │    │
+│   │  (Database) │  │   (OPC UA)  │  │   / Printer   │  │    │
+│   └─────────────┘  └────────────┘  └───────────────┘  │    │
+│                                                         │    │
+│              ┌──────────────────────────────────────┐  │    │
+│              │          File System Watcher          │  │    │
+│              │   (CSV Import / CSV Export)           │  │    │
+│              └──────────────────────────────────────┘  │    │
+└─────────────────────────────────────────────────────────────┘</code></pre>
+<p><strong>Communication pattern:</strong> - The React frontend calls
+Rust functions via <strong>Tauri IPC commands</strong> (type-safe, async
+JSON messages over a local bridge). - The Rust backend manages all
+database queries, hardware communication, and file I/O. - Hardware
+status (OPC) is polled every 500 ms and pushed to the frontend. - The
+CSV file watcher runs on a background thread, polling every 5
+seconds.</p>
+<hr />
+<h3 id="technology-stack">6.2 Technology Stack</h3>
+<p><strong>Frontend:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Technology</th>
+<th>Version</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>React</td>
+<td>19.1</td>
+<td>UI component framework</td>
+</tr>
+<tr>
+<td>TypeScript</td>
+<td>5.8</td>
+<td>Type safety</td>
+</tr>
+<tr>
+<td>Tailwind CSS</td>
+<td>4.1</td>
+<td>Utility-first styling</td>
+</tr>
+<tr>
+<td>Vite</td>
+<td>7</td>
+<td>Build tool and dev server</td>
+</tr>
+<tr>
+<td>Lucide React</td>
+<td>—</td>
+<td>Icon library</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Backend (Rust):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Crate</th>
+<th>Version</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tauri</td>
+<td>2</td>
+<td>Desktop app framework</td>
+</tr>
+<tr>
+<td>diesel</td>
+<td>2.2</td>
+<td>PostgreSQL ORM</td>
+</tr>
+<tr>
+<td>tokio</td>
+<td>1</td>
+<td>Async runtime</td>
+</tr>
+<tr>
+<td>tokio-modbus</td>
+<td>—</td>
+<td>MODBUS protocol client</td>
+</tr>
+<tr>
+<td>open62541</td>
+<td>0.10</td>
+<td>OPC UA client</td>
+</tr>
+<tr>
+<td>melsec_mc</td>
+<td>0.4.13</td>
+<td>Mitsubishi PLC protocol</td>
+</tr>
+<tr>
+<td>escpos-rs</td>
+<td>0.4.3</td>
+<td>ESC/POS thermal printer</td>
+</tr>
+<tr>
+<td>serde</td>
+<td>—</td>
+<td>JSON serialization</td>
+</tr>
+<tr>
+<td>chrono</td>
+<td>0.4</td>
+<td>Date/time handling</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Storage:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Technology</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PostgreSQL 12+</td>
+<td>Primary operational database</td>
+</tr>
+<tr>
+<td>Tauri Plugin Store</td>
+<td>Settings persistence (JSON file)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="database-schema">6.3 Database Schema</h3>
+<p>The system uses <strong>8 tables</strong>. Migrations are applied
+automatically on startup.</p>
+<h4 id="users"><code>users</code></h4>
+<p>Stores operator accounts.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>SERIAL PK</td>
+<td>Auto-increment</td>
+</tr>
+<tr>
+<td><code>username</code></td>
+<td>TEXT</td>
+<td>Operator display name</td>
+</tr>
+<tr>
+<td><code>pin</code></td>
+<td>TEXT</td>
+<td>4-digit PIN (stored as text)</td>
+</tr>
+<tr>
+<td><code>is_admin</code></td>
+<td>INT</td>
+<td>1 = administrator, 0 = standard</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMP</td>
+<td>Account creation time</td>
+</tr>
+</tbody>
+</table>
+<h4 id="customers"><code>customers</code></h4>
+<p>Stores customer records imported from POS.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>SERIAL PK</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>customer_id</code></td>
+<td>TEXT</td>
+<td>External POS customer identifier</td>
+</tr>
+<tr>
+<td><code>first_name</code></td>
+<td>TEXT</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>last_name</code></td>
+<td>TEXT</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>phone_number</code></td>
+<td>TEXT</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMP</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="tickets"><code>tickets</code></h4>
+<p>Represents a customer order (invoice).</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>SERIAL PK</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>full_invoice_number</code></td>
+<td>TEXT</td>
+<td>Full invoice ID from POS</td>
+</tr>
+<tr>
+<td><code>display_invoice_number</code></td>
+<td>TEXT</td>
+<td>Human-readable version</td>
+</tr>
+<tr>
+<td><code>number_of_items</code></td>
+<td>INT</td>
+<td>Total garments in this order</td>
+</tr>
+<tr>
+<td><code>customer_identifier</code></td>
+<td>TEXT</td>
+<td>FK → <code>customers.customer_id</code></td>
+</tr>
+<tr>
+<td><code>customer_first_name</code></td>
+<td>TEXT</td>
+<td>Denormalized for display</td>
+</tr>
+<tr>
+<td><code>customer_last_name</code></td>
+<td>TEXT</td>
+<td>Denormalized for display</td>
+</tr>
+<tr>
+<td><code>customer_phone_number</code></td>
+<td>TEXT</td>
+<td>Denormalized for display</td>
+</tr>
+<tr>
+<td><code>invoice_dropoff_date</code></td>
+<td>TIMESTAMP</td>
+<td>When customer dropped off</td>
+</tr>
+<tr>
+<td><code>invoice_pickup_date</code></td>
+<td>TIMESTAMP</td>
+<td>When customer expects pickup</td>
+</tr>
+<tr>
+<td><code>garments_processed</code></td>
+<td>INT</td>
+<td>Garments loaded so far</td>
+</tr>
+<tr>
+<td><code>ticket_status</code></td>
+<td>TEXT</td>
+<td><code>Not Processed</code> / <code>Processing</code> /
+<code>Complete</code></td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMP</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="garments"><code>garments</code></h4>
+<p>Individual garment items within a ticket.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>SERIAL PK</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>full_invoice_number</code></td>
+<td>TEXT</td>
+<td>FK → <code>tickets.full_invoice_number</code></td>
+</tr>
+<tr>
+<td><code>display_invoice_number</code></td>
+<td>TEXT</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>item_id</code></td>
+<td>TEXT</td>
+<td>Barcode / unique garment ID</td>
+</tr>
+<tr>
+<td><code>item_description</code></td>
+<td>TEXT</td>
+<td>e.g., “Dress Shirt”, “Pants”</td>
+</tr>
+<tr>
+<td><code>invoice_dropoff_date</code></td>
+<td>TIMESTAMP</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>invoice_pickup_date</code></td>
+<td>TIMESTAMP</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>invoice_comments</code></td>
+<td>TEXT</td>
+<td>Special handling notes</td>
+</tr>
+<tr>
+<td><code>slot_number</code></td>
+<td>INT</td>
+<td>Current slot (-1 = unloaded/complete)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="slots"><code>slots</code></h4>
+<p>The 100 physical conveyor slots.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>slot_number</code></td>
+<td>INT PK</td>
+<td>1 through 100</td>
+</tr>
+<tr>
+<td><code>slot_state</code></td>
+<td>TEXT</td>
+<td><code>empty</code> / <code>reserved</code> / <code>occupied</code> /
+<code>blocked</code> / <code>error</code></td>
+</tr>
+<tr>
+<td><code>assigned_ticket</code></td>
+<td>TEXT</td>
+<td>Which ticket is using this slot</td>
+</tr>
+<tr>
+<td><code>item_id</code></td>
+<td>TEXT</td>
+<td>Which garment is on this slot</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMP</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td>TIMESTAMP</td>
+<td>Last state change</td>
+</tr>
+</tbody>
+</table>
+<h4 id="sessions"><code>sessions</code></h4>
+<p>Tracks each operator login session.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>SERIAL PK</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>user_id</code></td>
+<td>INT</td>
+<td>FK → <code>users.id</code></td>
+</tr>
+<tr>
+<td><code>login_at</code></td>
+<td>TIMESTAMP</td>
+<td>Session start</td>
+</tr>
+<tr>
+<td><code>logout_at</code></td>
+<td>TIMESTAMP</td>
+<td>Session end (NULL = still active)</td>
+</tr>
+<tr>
+<td><code>garments_scanned</code></td>
+<td>INT</td>
+<td>Count during this session</td>
+</tr>
+<tr>
+<td><code>tickets_completed</code></td>
+<td>INT</td>
+<td>Count during this session</td>
+</tr>
+<tr>
+<td><code>is_admin</code></td>
+<td>INT</td>
+<td>Snapshot of role at session time</td>
+</tr>
+</tbody>
+</table>
+<h4 id="conveyoractivity"><code>conveyoractivity</code></h4>
+<p>Immutable audit log of every slot operation.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>SERIAL PK</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>user_id</code></td>
+<td>INT</td>
+<td>FK → <code>users.id</code></td>
+</tr>
+<tr>
+<td><code>item_id</code></td>
+<td>TEXT</td>
+<td>Garment barcode</td>
+</tr>
+<tr>
+<td><code>full_invoice_number</code></td>
+<td>TEXT</td>
+<td>Order reference</td>
+</tr>
+<tr>
+<td><code>slot_number</code></td>
+<td>INT</td>
+<td>Slot affected</td>
+</tr>
+<tr>
+<td><code>time_stamp</code></td>
+<td>TIMESTAMP</td>
+<td>When the event occurred</td>
+</tr>
+</tbody>
+</table>
+<h4 id="app_state"><code>app_state</code></h4>
+<p>Single-row application state table.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>INT PK</td>
+<td>Always 1</td>
+</tr>
+<tr>
+<td><code>last_used_slot</code></td>
+<td>INT</td>
+<td>Last slot allocated</td>
+</tr>
+<tr>
+<td><code>num_items_on_conveyor</code></td>
+<td>INT</td>
+<td>Current occupancy count</td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td>TIMESTAMP</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="configuration-settings">6.4 Configuration &amp; Settings</h3>
+<p>Settings are persisted using <code>tauri-plugin-store</code> in a
+JSON file at:</p>
+<table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>Path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Windows</td>
+<td><code>%APPDATA%\com.whiteconveyors.conveyoros-oas\</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Settings fields:</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dbHost</code></td>
+<td>string</td>
+<td>PostgreSQL host</td>
+</tr>
+<tr>
+<td><code>dbPort</code></td>
+<td>string</td>
+<td>PostgreSQL port (default <code>5432</code>)</td>
+</tr>
+<tr>
+<td><code>dbName</code></td>
+<td>string</td>
+<td>Database name</td>
+</tr>
+<tr>
+<td><code>dbUser</code></td>
+<td>string</td>
+<td>Database username</td>
+</tr>
+<tr>
+<td><code>dbPassword</code></td>
+<td>string</td>
+<td>Database password</td>
+</tr>
+<tr>
+<td><code>posCsvDir</code></td>
+<td>string</td>
+<td>Absolute path to the POS CSV import directory</td>
+</tr>
+<tr>
+<td><code>conveyorOutputDir</code></td>
+<td>string</td>
+<td>Absolute path for conveyor CSV output</td>
+</tr>
+<tr>
+<td><code>opcEndpointUrl</code></td>
+<td>string</td>
+<td>OPC UA server URL (e.g.,
+<code>opc.tcp://192.168.1.10:4840</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Settings can be edited via the <strong>Settings</strong> screen
+within the app (admin only) or by manually editing the JSON store
+file.</p>
+<hr />
+<h3 id="csv-integration-pos-conveyor">6.5 CSV Integration (POS ↔︎
+Conveyor)</h3>
+<p>The application integrates with your POS system entirely through the
+filesystem using CSV files.</p>
+<h4 id="inbound-pos-order-import">Inbound — POS Order Import</h4>
+<p><strong>Trigger:</strong> File watcher polls <code>posCsvDir</code>
+every 5 seconds. <strong>Format:</strong> SPOT POS export format.</p>
+<p>When a new CSV is detected: 1. Each row is parsed as one garment
+line. 2. The system creates or updates the <code>customers</code>,
+<code>tickets</code>, and <code>garments</code> records. 3. On success,
+the source CSV file is <strong>deleted</strong>. 4. On parse failure,
+the file is left untouched (no partial writes).</p>
+<p><strong>Important fields expected in the CSV:</strong> - Invoice
+number (full and display format) - Customer ID, first name, last name,
+phone number - Item barcode (<code>item_id</code>) - Item description -
+Dropoff date, pickup date - Comments / special instructions</p>
+<h4 id="outbound-conveyor-activity-csv">Outbound — Conveyor Activity
+CSV</h4>
+<p><strong>Trigger:</strong> Written synchronously on each conveyor
+operation. <strong>Destination:</strong>
+<code>conveyorOutputDir</code>.</p>
+<p>Four operation types are written as CSV records:</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Trigger</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LoadItem</code></td>
+<td>Garment assigned to a slot</td>
+</tr>
+<tr>
+<td><code>UnloadItem</code></td>
+<td>Garment flagged for removal (ticket complete)</td>
+</tr>
+<tr>
+<td><code>Print</code></td>
+<td>Receipt print triggered</td>
+</tr>
+<tr>
+<td><code>SplitInvoice</code></td>
+<td>Invoice split operation performed</td>
+</tr>
+</tbody>
+</table>
+<p>These files are intended for downstream systems (e.g., sorter
+controllers, reporting tools).</p>
+<hr />
+<h3 id="hardware-integration">6.6 Hardware Integration</h3>
+<h4 id="opc-ua-server">OPC UA Server</h4>
+<ul>
+<li><strong>Library:</strong> <code>open62541</code> 0.10</li>
+<li><strong>Protocol:</strong> OPC UA (TCP)</li>
+<li><strong>Poll frequency:</strong> 500 ms</li>
+<li><strong>Reconnect policy:</strong> 3-second backoff on
+disconnect</li>
+</ul>
+<p><strong>Nodes read from OPC:</strong> - System online/offline flag -
+Hanger sensor state (garment detected at load point) - Target slot
+number (current conveyor position)</p>
+<p><strong>Commands sent to OPC:</strong> - Slot jog request (move
+conveyor to a specific slot) - Slot run request</p>
+<p>If the OPC server is unreachable, the application continues
+functioning in a <strong>degraded mode</strong> — garments can be
+scanned and slots assigned, but physical conveyor movement is not
+automated.</p>
+<h4 id="plc-modbus">PLC / MODBUS</h4>
+<ul>
+<li><strong>Library:</strong> <code>tokio-modbus</code></li>
+<li><strong>Protocol:</strong> MODBUS TCP or RTU</li>
+<li><strong>Alternate protocol:</strong> Mitsubishi MC Protocol via
+<code>melsec_mc</code></li>
+</ul>
+<p><strong>Commands:</strong> - Read current slot ID - Write M5 command
+(trigger slot jog)</p>
+<h4 id="thermal-printer-escpos">Thermal Printer (ESC/POS)</h4>
+<ul>
+<li><strong>Library:</strong> <code>escpos-rs</code> 0.4.3</li>
+<li><strong>Interface:</strong> USB or serial port</li>
+<li><strong>Trigger:</strong> Automatic on ticket completion; manual
+from Print Tickets screen</li>
+</ul>
+<hr />
+<h3 id="slot-state-machine">6.7 Slot State Machine</h3>
+<p>Each of the 100 slots follows this state machine:</p>
+<pre><code>        ┌──────────────────────────────────────────────────────┐
+        │                     EMPTY                            │
+        │              (default, available)                    │
+        └──────────────────────┬───────────────────────────────┘
+                               │ order scanned, slot allocated
+                               ▼
+        ┌──────────────────────────────────────────────────────┐
+        │                    RESERVED                          │
+        │           (allocated, not yet physically loaded)     │
+        └──────────────────────┬───────────────────────────────┘
+                               │ garment hung / barcode confirmed
+                               ▼
+        ┌──────────────────────────────────────────────────────┐
+        │                    OCCUPIED                          │
+        │              (garment physically present)            │
+        └──────────────────────┬───────────────────────────────┘
+                               │ ticket complete / clear
+                               ▼
+        ┌──────────────────────────────────────────────────────┐
+        │                     EMPTY                            │
+        └──────────────────────────────────────────────────────┘
+
+   Any state ──► BLOCKED  (manually blocked by admin)
+   Any state ──► ERROR    (hardware/data inconsistency detected)
+   BLOCKED / ERROR ──► EMPTY  (admin clears)</code></pre>
+<p>Slot allocation uses a <strong>round-robin</strong> strategy starting
+from <code>last_used_slot + 1</code>, wrapping at slot 100 back to slot
+1. Empty slots are preferred; reserved and occupied slots are
+skipped.</p>
+<hr />
+<h3 id="session-authentication-model">6.8 Session &amp; Authentication
+Model</h3>
+<ul>
+<li>Authentication is <strong>PIN-based</strong> (4 numeric
+digits).</li>
+<li>PINs are stored as text in the <code>users</code> table. Consider
+database-level access controls to protect this data.</li>
+<li>On login:
+<ul>
+<li>A <code>sessions</code> row is created with
+<code>login_at = NOW()</code>.</li>
+<li>Any previous unclosed session for the same user is closed
+automatically.</li>
+</ul></li>
+<li>On logout:
+<ul>
+<li>The session <code>logout_at</code> is set to
+<code>NOW()</code>.</li>
+<li><code>garments_scanned</code> and <code>tickets_completed</code> are
+finalized.</li>
+</ul></li>
+<li>Sessions remain readable in the database indefinitely for audit
+purposes.</li>
+</ul>
+<hr />
+<h3 id="database-migrations">6.9 Database Migrations</h3>
+<p>Migrations are managed by <strong>Diesel</strong> and run
+automatically when the application successfully connects to the database
+for the first time (or after a software update that includes new
+migrations).</p>
+<p>Migration files are embedded in the binary. No manual migration steps
+are required in normal operations.</p>
+<p>If a migration fails: 1. The app logs the error and refuses to open.
+2. Connect to PostgreSQL directly and inspect the
+<code>__diesel_schema_migrations</code> table. 3. Ensure the database
+user has <code>CREATE TABLE</code>, <code>ALTER TABLE</code>, and
+<code>INSERT</code> privileges. 4. If a migration is stuck in a
+partially-applied state, it may need to be manually rolled back. Contact
+the developer.</p>
+<p><strong>Migration history summary (14 migrations, Dec 2025 – Feb
+2026):</strong> - Initial schema (users, customers, tickets, garments) -
+Slot management (slots table, app_state table) - Session tracking -
+Conveyor activity log - <code>is_admin</code> field addition - Split
+invoice support</p>
+<hr />
+<h3 id="build-deployment">6.10 Build &amp; Deployment</h3>
+<p>The application is distributed as a self-contained installer.</p>
+<p><strong>Windows:</strong> - MSI installer (via NSIS) - All Rust and
+WebView dependencies are bundled</p>
+<p><strong>CI/CD:</strong> - Builds are produced via <strong>GitHub
+Actions</strong> on push to <code>main</code>. - Separate build jobs for
+Windows (x64).</p>
+<p><strong>To build locally:</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Prerequisites: Node.js 20+, Rust toolchain (stable), PostgreSQL dev libraries</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Install frontend dependencies</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Development (hot reload)</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> run tauri dev</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Production build</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> run tauri build</span></code></pre></div>
+<blockquote>
+<p>Ensure <code>libpq</code> (PostgreSQL client library) is installed on
+the build host, as Diesel requires it to link against.</p>
+</blockquote>
+<hr />
+<h3 id="log-files-troubleshooting">6.11 Log Files &amp;
+Troubleshooting</h3>
+<p><strong>Log locations:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>Path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Windows</td>
+<td><code>%APPDATA%\com.whiteconveyors.conveyoros-oas\logs\</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Log levels:</strong> ERROR, WARN, INFO, DEBUG (controlled via
+Tauri log plugin configuration).</p>
+<p><strong>Common issues:</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely Cause</th>
+<th>Resolution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Setup wizard loops repeatedly</td>
+<td>Settings file corrupted or database unreachable</td>
+<td>Delete the settings store file and re-run setup</td>
+</tr>
+<tr>
+<td>“Garment Not Found” on valid barcode</td>
+<td>POS CSV not yet imported</td>
+<td>Check <code>posCsvDir</code> is correct and the CSV was
+received</td>
+</tr>
+<tr>
+<td>OPC status always shows Offline</td>
+<td>OPC server down, wrong URL, or firewall</td>
+<td>Verify OPC endpoint URL in Settings; check firewall rules on port
+4840</td>
+</tr>
+<tr>
+<td>Slot state stuck in “Reserved”</td>
+<td>Crash during scan before slot confirmed</td>
+<td>Use the Slot view to manually clear affected slots</td>
+</tr>
+<tr>
+<td>Tickets not printing</td>
+<td>Printer offline or wrong port</td>
+<td>Check printer connection; verify ESC/POS printer is configured</td>
+</tr>
+<tr>
+<td>Migration error on startup</td>
+<td>Insufficient database permissions</td>
+<td>Grant <code>CREATE</code>, <code>ALTER</code>, <code>INSERT</code>,
+<code>SELECT</code> to the database user</td>
+</tr>
+<tr>
+<td>CSV not being imported</td>
+<td>Watcher path incorrect or file permissions</td>
+<td>Verify <code>posCsvDir</code> is the exact directory; check read
+permissions</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="workflows-end-to-end">7. Workflows — End-to-End</h2>
+<h3 id="order-scanning-workflow">7.1 Order Scanning Workflow</h3>
+<pre><code>Operator logs in
+       │
+       ▼
+Navigate to Scan screen
+       │
+       ▼
+Scan garment barcode (scanner or keyboard)
+       │
+       ├─► Garment NOT found ──► Show error, wait for next scan
+       │
+       ├─► Garment already on conveyor
+       │       └─► Re-send jog command to existing slot
+       │           Show slot number to operator
+       │
+       └─► Garment found, not yet on conveyor
+               │
+               ├─► Is this the LAST garment on the ticket?
+               │       │
+               │       ├─► NO:
+               │       │       Reserve next empty slot
+               │       │       Write LoadItem to output CSV
+               │       │       Show slot number, customer info
+               │       │       Increment session garment count
+               │       │
+               │       └─► YES:
+               │               Reserve slot for final garment
+               │               Write LoadItem for final garment
+               │               Write UnloadItem for ALL garments on ticket
+               │               Mark ticket status = &quot;Complete&quot;
+               │               Write Print command to output CSV
+               │               Send print command to printer
+               │               Increment tickets_completed in session
+               │               Show &quot;Ticket Complete&quot; screen
+               │
+       ▼
+Wait for next scan</code></pre>
+<h3 id="csv-order-import-workflow">7.2 CSV Order Import Workflow</h3>
+<pre><code>POS system writes order CSV to posCsvDir
+       │
+       ▼ (file watcher polls every 5 seconds)
+New file detected
+       │
+       ▼
+Parse each row:
+  - Extract customer data → Upsert into customers table
+  - Extract ticket data → Create ticket if not exists
+  - Extract garment data → Create garment records
+       │
+       ├─► Parse SUCCESS → Delete source CSV file
+       │
+       └─► Parse FAILURE → Leave CSV untouched, log error
+                           Operator must fix and re-deliver the file</code></pre>
+<h3 id="conveyor-clearing-workflow">7.3 Conveyor Clearing Workflow</h3>
+<pre><code>Admin/Operator initiates Clear
+       │
+       ▼
+Confirmation dialog → Enter code &quot;123&quot;
+       │
+       ▼
+For each slot in state &quot;occupied&quot; or &quot;reserved&quot;:
+  │
+  ├─► Send jog command to PLC (move slot to exit)
+  ├─► Operator physically removes garment
+  ├─► Set garment.slot_number = -1
+  ├─► Set slot.slot_state = &quot;empty&quot;
+  └─► Reset ticket.garments_processed = 0
+       │
+       ▼
+Reset app_state.num_items_on_conveyor = 0
+       │
+       ▼
+Conveyor is now fully cleared and ready</code></pre>
+<hr />
+<h2 id="roles-permissions-reference">8. Roles &amp; Permissions
+Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Operator</th>
+<th>Admin Operator</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Login with PIN</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Scan garments</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>View dashboard</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Browse customer/order data</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Print tickets</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Clear conveyor</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>View slot map</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Create operator accounts</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>View/edit settings (DB, OPC, paths)</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Run database connection test</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Access operator performance analytics</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="glossary">9. Glossary</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Term</th>
+<th>Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Barcode / Item ID</strong></td>
+<td>A unique identifier printed on each garment’s tag, scanned by the
+operator.</td>
+</tr>
+<tr>
+<td><strong>Conveyor</strong></td>
+<td>The physical motorized conveyor system with numbered slots for
+hanging garments.</td>
+</tr>
+<tr>
+<td><strong>Garment</strong></td>
+<td>An individual item of clothing belonging to a customer order.</td>
+</tr>
+<tr>
+<td><strong>Invoice / Ticket</strong></td>
+<td>A customer order containing one or more garments. Used
+interchangeably.</td>
+</tr>
+<tr>
+<td><strong>MODBUS</strong></td>
+<td>An industrial serial communication protocol used to interface with
+PLCs.</td>
+</tr>
+<tr>
+<td><strong>OPC / OPC UA</strong></td>
+<td>OLE for Process Control — a standard for industrial data exchange.
+Provides real-time conveyor status.</td>
+</tr>
+<tr>
+<td><strong>PLC</strong></td>
+<td>Programmable Logic Controller — the embedded computer that controls
+the physical conveyor motor and sensors.</td>
+</tr>
+<tr>
+<td><strong>POS</strong></td>
+<td>Point of Sale — the system your business uses to check in customer
+orders (e.g., SPOT).</td>
+</tr>
+<tr>
+<td><strong>Session</strong></td>
+<td>A login period for one operator, from login to logout, with tracked
+productivity metrics.</td>
+</tr>
+<tr>
+<td><strong>Slot</strong></td>
+<td>One position on the conveyor where a garment can be hung. Numbered
+1–100.</td>
+</tr>
+<tr>
+<td><strong>Slot State</strong></td>
+<td>The current status of a conveyor slot: empty, reserved, occupied,
+blocked, or error.</td>
+</tr>
+<tr>
+<td><strong>SPOT</strong></td>
+<td>A POS software commonly used in dry cleaning; the CSV import format
+is based on SPOT exports.</td>
+</tr>
+<tr>
+<td><strong>Tauri</strong></td>
+<td>The application framework used to build ConveyorOS OAS (Rust backend
++ web frontend).</td>
+</tr>
+<tr>
+<td><strong>Ticket Complete</strong></td>
+<td>The state reached when every garment on an order has been loaded
+onto the conveyor.</td>
+</tr>
+<tr>
+<td><strong>OAS</strong></td>
+<td>Order Assembly System — the full name of this application.</td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

@@ -1,8 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { theme } from "../styles/theme";
-
-import logo from "../assets/Logo1.png"; // or .png
-
+import logo from "../assets/Logo1.png";
 
 type NavItem = {
   key: string;
@@ -32,16 +29,15 @@ export const SideNavLayout: React.FC<SideNavLayoutProps> = ({
 }) => {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
-  // persist collapsed state
   useEffect(() => {
     const saved = localStorage.getItem("sidenav_collapsed");
     if (saved !== null) setCollapsed(saved === "true");
   }, []);
+
   useEffect(() => {
     localStorage.setItem("sidenav_collapsed", String(collapsed));
   }, [collapsed]);
 
-  // Cmd/Ctrl + B toggles
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const isMac = navigator.platform.toLowerCase().includes("mac");
@@ -59,315 +55,92 @@ export const SideNavLayout: React.FC<SideNavLayoutProps> = ({
   const avatarLetter = (user.username?.trim()?.[0] ?? "U").toUpperCase();
 
   return (
-    <div style={styles.shell}>
-      <aside style={{ ...styles.sidebar, width: navWidth }}>
-        {/* Top brand + collapse */}
-        <div style={styles.brandRow}>
-          <div style={styles.brand}>
-            <div style={styles.logoBox}>
-              <img
-                src={logo}
-                alt="Company logo"
-                style={styles.logoImg}
-              />
-            </div>
-            {!collapsed && (
-              <div style={styles.brandTextWrap}>
-                <div style={styles.brandText}>{title}</div>
-                <div style={styles.brandSub}>Operations Console</div>
-              </div>
-            )}
+    <div className="flex h-screen w-screen bg-navy">
+      {/* Sidebar */}
+      <aside
+        className="flex flex-col bg-navy border-r border-white/15 p-2.5 gap-2.5 overflow-hidden flex-none"
+        style={{ width: navWidth, transition: "width 180ms ease" }}
+      >
+        {/* Brand row */}
+        <div className="flex items-center gap-2.5 px-2.5 py-2.5 rounded-2xl bg-navy border border-white/15 shadow-sm">
+          <div className="w-10 h-10 rounded-[14px] grid place-items-center bg-blue-100 flex-none">
+            <img src={logo} alt="Company logo" className="w-full h-full object-contain" />
           </div>
-
-          {/* <button
-            type="button"
-            onClick={() => setCollapsed((c) => !c)}
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            title={collapsed ? "Expand (Ctrl/Cmd+B)" : "Collapse (Ctrl/Cmd+B)"}
-            style={styles.collapseBtn}
-          >
-            <span style={{ display: "block", transform: collapsed ? "rotate(0deg)" : "rotate(180deg)" }}>
-              ❯
-            </span>
-          </button> */}
+          {!collapsed && (
+            <div className="flex flex-col min-w-0">
+              <span className="font-extrabold text-white tracking-wide whitespace-nowrap overflow-hidden text-ellipsis text-sm">
+                {title}
+              </span>
+              <span className="mt-0.5 text-xs text-navy-muted whitespace-nowrap overflow-hidden text-ellipsis">
+                Operations Console
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Nav */}
-        <nav style={styles.nav}>
+        {/* Nav items */}
+        <nav className="flex flex-col gap-1.5 py-1 px-0.5 flex-1">
           {items.map((item) => {
             const active = item.key === activeKey;
-
             return (
               <button
                 key={item.key}
                 type="button"
                 onClick={item.onClick}
                 title={collapsed ? item.label : undefined}
-                style={{
-                  ...styles.navItem,
-                  ...(active ? styles.navItemActive : null),
-                  paddingLeft: collapsed ? 0 : 12,
-                  paddingRight: collapsed ? 0 : 12,
-                  justifyContent: collapsed ? "center" : "flex-start",
-                }}
+                className={`flex items-center h-11 rounded-[14px] border outline-none cursor-pointer text-white transition-all duration-[120ms]
+                  ${collapsed ? "justify-center px-0" : "justify-start gap-3 px-3"}
+                  ${active ? "bg-white/15 border-white/15 font-bold" : "bg-transparent border-transparent hover:bg-white/[0.08]"}`}
               >
-                <span style={{ ...styles.iconSlot, ...(active ? styles.iconSlotActive : null) }}>
+                <span
+                  className={`w-[38px] h-[38px] rounded-xl grid place-items-center flex-none ml-1
+                    ${active ? "bg-white/20" : "bg-white/[0.08]"}`}
+                >
                   {item.icon ?? "•"}
                 </span>
-                {!collapsed && <span style={styles.label}>{item.label}</span>}
+                {!collapsed && (
+                  <span className="min-w-0 whitespace-nowrap overflow-hidden text-ellipsis text-sm">
+                    {item.label}
+                  </span>
+                )}
               </button>
             );
           })}
         </nav>
 
         {/* Footer */}
-        <div style={{ ...styles.footer, justifyContent: collapsed ? "center" : "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={styles.avatar} aria-hidden>
+        <div
+          className={`flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-navy border border-white/15 shadow-sm
+            ${collapsed ? "justify-center" : "justify-between"}`}
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-[38px] h-[38px] rounded-[14px] grid place-items-center bg-white/[0.12] text-white font-extrabold flex-none">
               {avatarLetter}
             </div>
             {!collapsed && (
-              <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.1 }}>
-                <div style={styles.userName}>{user.username}</div>
-                <div style={styles.userSub}>Signed in</div>
+              <div className="flex flex-col leading-tight">
+                <span className="font-extrabold text-white text-sm">{user.username}</span>
+                <span className="mt-1 text-xs text-navy-muted">Signed in</span>
               </div>
             )}
           </div>
-
           {!collapsed && (
             <button
               type="button"
               onClick={onLogout}
-              style={styles.logoutBtn}
               disabled={!onLogout}
+              className="px-3 py-2 rounded-[10px] border border-white/15 bg-white/[0.08] text-navy-muted font-bold text-sm cursor-pointer hover:bg-white/15 transition-colors disabled:opacity-50"
             >
               Log out
             </button>
           )}
-          
         </div>
       </aside>
 
-      {/* Main */}
-      <main style={styles.main}>
-        <div style={styles.contentCard}>{children}</div>
+      {/* Main content */}
+      <main className="flex-1 overflow-hidden bg-surface">
+        {children}
       </main>
     </div>
   );
-};
-
-const styles: Record<string, React.CSSProperties> = {
-  shell: {
-    display: "flex",
-    height: "100vh",
-    width: "100vw",
-    background: theme.colors.nav,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif',
-  },
-
-  sidebar: {
-    display: "flex",
-    flexDirection: "column",
-    background: theme.colors.sidebar,
-    borderRight: `1px solid ${theme.colors.border}`,
-    transition: "width 180ms ease",
-    padding: 10,
-    gap: 10,
-  },
-
-  brandRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "10px 10px",
-    borderRadius: 16,
-    background: theme.colors.nav,
-    border: `1px solid ${theme.colors.navBorder}`,
-    boxShadow: theme.colors.shadow,
-  },
-
-  brand: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    minWidth: 0,
-  },
-
-  logoBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    display: "grid",
-    placeItems: "center",
-    background: theme.colors.primarySoft,
-    color: theme.colors.primary,
-    fontWeight: 800,
-    flex: "0 0 auto",
-  },
-
-  brandTextWrap: {
-    display: "flex",
-    flexDirection: "column",
-    minWidth: 0,
-  },
-
-  brandText: {
-    fontWeight: 800,
-    color: theme.colors.navText,
-    letterSpacing: 0.2,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  },
-
-  brandSub: {
-    marginTop: 2,
-    fontSize: 12,
-    color: theme.colors.navTextMuted,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  },
-
-  collapseBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    border: `1px solid ${theme.colors.navBorder}`,
-    background: "rgba(255,255,255,0.08)",
-    cursor: "pointer",
-    color: theme.colors.navTextMuted,
-    display: "grid",
-    placeItems: "center",
-  },
-
-  nav: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 6,
-    padding: "4px 2px",
-  },
-
-  navItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    height: 44,
-    borderRadius: 14,
-    border: `1px solid transparent`,
-    background: "transparent",
-    cursor: "pointer",
-    color: theme.colors.navText,
-    transition: "background 120ms ease, border 120ms ease, transform 80ms ease",
-    outline: "none",
-  },
-
-  navItemActive: {
-    background: theme.colors.sidebarActive,
-    border: `1px solid ${theme.colors.navBorder}`,
-    color: theme.colors.navText,
-    fontWeight: 700,
-  },
-
-  iconSlot: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    display: "grid",
-    placeItems: "center",
-    color: "inherit",
-    background: "rgba(255,255,255,0.08)",
-    marginLeft: 4,
-    flex: "0 0 auto",
-  },
-
-  iconSlotActive: {
-    background: "rgba(255,255,255,0.2)",
-    color: theme.colors.navText,
-  },
-
-  label: {
-    minWidth: 0,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  },
-
-  footer: {
-    marginTop: "auto",
-    padding: "12px 12px",
-    borderRadius: 16,
-    background: theme.colors.nav,
-    border: `1px solid ${theme.colors.navBorder}`,
-    boxShadow: theme.colors.shadow,
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-  },
-
-  avatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 14,
-    display: "grid",
-    placeItems: "center",
-    background: "rgba(255,255,255,0.12)",
-    color: theme.colors.navText,
-    fontWeight: 800,
-  },
-
-  userName: {
-    fontWeight: 800,
-    color: theme.colors.navText,
-  },
-
-  userSub: {
-    marginTop: 4,
-    fontSize: 12,
-    color: theme.colors.navTextMuted,
-  },
-
-  kbdHint: {
-    marginLeft: "auto",
-    fontSize: 12,
-    color: theme.colors.navTextMuted,
-    border: `1px solid ${theme.colors.navBorder}`,
-    padding: "6px 8px",
-    borderRadius: 10,
-    background: "rgba(255,255,255,0.06)",
-    whiteSpace: "nowrap",
-  },
-  logoutBtn: {
-    padding: "8px 12px",
-    borderRadius: 10,
-    border: `1px solid ${theme.colors.navBorder}`,
-    background: "rgba(255,255,255,0.08)",
-    color: theme.colors.navTextMuted,
-    fontWeight: 700,
-    cursor: "pointer",
-  },
-
-  main: {
-  flex: 1,
-  padding: 16,
-  overflow: "hidden",  // Changed from "auto"
-  background: theme.colors.bg,
-},
-
-contentCard: {
-  height: "100%",  // Changed from minHeight
-  background: theme.colors.panel,
-  borderRadius: 20,
-  padding: 20,
-  border: `1px solid ${theme.colors.border}`,
-  boxShadow: theme.colors.shadow,
-  overflow: "hidden",  // Added this
-},
-
-  logoImg: {
-  width: "100%",
-  height: "100%",
-  objectFit: "contain",
-},
-
 };

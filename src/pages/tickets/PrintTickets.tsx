@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { Store } from "@tauri-apps/plugin-store";
 import { Printer, CheckCircle2, Clock, AlertCircle } from "lucide-react";
-import { TicketRow } from "../../lib/data";
+import { TicketRow, GarmentRow, listGarmentsForTicket } from "../../lib/data";
 
-function fmtDate(s?: string) {
-  if (!s) return "—";
-  const d = new Date(s);
-  return isNaN(d.getTime()) ? s : d.toLocaleDateString();
-}
+import { type TicketTemplateConfig, DEFAULT_TICKET_TEMPLATE as DEFAULT_TEMPLATE } from "../../types/printer";
+import { fmtDate } from "../../lib/format";
 
 function StatusBadge({ status }: { status: string }) {
   const s = status?.toLowerCase() ?? "";
@@ -35,15 +33,132 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+// ── Ticket preview ────────────────────────────────────────────────────────────
+
+const FIELD_LABELS: Record<string, string> = {
+  ticketNumber:       "Ticket",
+  customerIdentifier: "Customer",
+  customerName:       "Name",
+  numItems:           "Items",
+  dropoffDate:        "Drop-off",
+  pickupDate:         "Pickup",
+  comments:           "Notes",
+};
+
+function TicketPreview({
+  ticket,
+  garments,
+  template,
+}: {
+  ticket: TicketRow;
+  garments: GarmentRow[];
+  template: TicketTemplateConfig;
+}) {
+  const enabled = template.fields.filter((f) => f.enabled);
+
+  function valueFor(id: string): string {
+    switch (id) {
+      case "ticketNumber":       return ticket.display_invoice_number;
+      case "customerIdentifier": return ticket.customer_identifier;
+      case "customerName": {
+        const name = `${ticket.customer_first_name} ${ticket.customer_last_name}`.trim();
+        return name || "—";
+      }
+      case "numItems":    return `${ticket.number_of_items} items`;
+      case "dropoffDate": return fmtDate(ticket.invoice_dropoff_date);
+      case "pickupDate":  return fmtDate(ticket.invoice_pickup_date);
+      case "comments":    return "—";
+      case "itemList":
+        return garments.length > 0
+          ? garments.map((g) => `${g.item_id}  ${g.item_description}`).join("\n")
+          : "(no garments loaded)";
+      default: return "—";
+    }
+  }
+
+  return (
+    <div className="bg-white border border-[#ddd8d0] rounded-2xl p-3 font-mono text-[10px] leading-relaxed text-slate-800 shadow-sm">
+      {template.headerText && (
+        <>
+          <div className="text-center font-bold text-[11px] uppercase tracking-wide">
+            {template.headerText}
+          </div>
+          <div className="border-t border-dashed border-slate-300 my-1.5" />
+        </>
+      )}
+
+      {enabled.map((field, i) => {
+        const value = valueFor(field.id);
+        const isLast = i === enabled.length - 1;
+
+        if (field.id === "itemList") {
+          return (
+            <div key={field.id} className={!isLast ? "mb-1" : ""}>
+              <div className="text-slate-400 uppercase text-[9px] tracking-wide mb-0.5">Garments</div>
+              {value.split("\n").map((line, li) => (
+                <div key={li} className="truncate">{line}</div>
+              ))}
+            </div>
+          );
+        }
+
+        return (
+          <div key={field.id} className={!isLast ? "mb-0.5" : ""}>
+            {field.showBarcode ? (
+              <div className="mb-1">
+                <div>
+                  <span className="text-slate-500">{FIELD_LABELS[field.id] ?? field.label}:</span>{" "}
+                  {value}
+                </div>
+                <div className="text-[8px] tracking-[0.25em] text-slate-400 my-0.5">
+                  ▌▌▌▌▌ ▌▌ ▌▌▌ ▌▌▌▌ ▌▌ ▌▌▌▌▌
+                </div>
+              </div>
+            ) : (
+              <div>
+                <span className="text-slate-500">{FIELD_LABELS[field.id] ?? field.label}:</span>{" "}
+                {value}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {template.footerText && (
+        <>
+          <div className="border-t border-dashed border-slate-300 my-1.5" />
+          <div className="text-center text-slate-500">{template.footerText}</div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
+
 export default function PrintTickets() {
   const [search, setSearch] = useState("");
   const [tickets, setTickets] = useState<TicketRow[]>([]);
   const [selected, setSelected] = useState<TicketRow | null>(null);
+  const [garments, setGarments] = useState<GarmentRow[]>([]);
+  const [template, setTemplate] = useState<TicketTemplateConfig>(DEFAULT_TEMPLATE);
   const [loading, setLoading] = useState(false);
   const [printing, setPrinting] = useState(false);
   const [printResult, setPrintResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
+  // Load ticket template from settings on mount
+  useEffect(() => {
+    Store.load("settings.json")
+      .then(async (store) => {
+        const settings = await store.get<any>("app_settings");
+        const tmpl = settings?.printer?.ticketTemplate;
+        if (tmpl) setTemplate(tmpl);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Ticket list with debounced search
   useEffect(() => {
     let alive = true;
     setLoading(true);
@@ -70,6 +185,14 @@ export default function PrintTickets() {
     };
   }, [search]);
 
+  // Load garments when a ticket is selected
+  useEffect(() => {
+    if (!selected) { setGarments([]); return; }
+    listGarmentsForTicket(selected.full_invoice_number)
+      .then(setGarments)
+      .catch(() => setGarments([]));
+  }, [selected]);
+
   async function handlePrint() {
     if (!selected) return;
     setPrinting(true);
@@ -89,9 +212,9 @@ export default function PrintTickets() {
     : 0;
 
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full p-5 overflow-hidden flex flex-col bg-surface">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-6">
+      <div className="flex items-start justify-between gap-4 mb-5 flex-shrink-0">
         <div>
           <h1 className="text-3xl font-black text-slate-900">Print Tickets</h1>
           <div className="text-slate-600">Select a ticket and print a receipt</div>
@@ -104,18 +227,17 @@ export default function PrintTickets() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[calc(100%-5rem)]">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
         {/* Left: Ticket list */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+        <div className="bg-white rounded-3xl border border-[#ddd8d0] shadow-sm overflow-hidden flex flex-col">
           {/* Search bar */}
-          <div className="px-5 py-4 border-b border-slate-200">
-            <div className="text-sm uppercase tracking-widest text-slate-500 font-bold mb-3">
+          <div className="px-5 py-4 border-b border-[#ddd8d0]">
+            <div className="text-sm font-bold text-slate-500 mb-3">
               Tickets {!loading && <span className="text-slate-400">({tickets.length})</span>}
             </div>
             <div className="relative">
-              {/* <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /> */}
               <input
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-9 pr-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-400 focus:bg-white transition"
+                className="w-full rounded-2xl border border-[#ddd8d0] bg-[#fafaf7] pl-9 pr-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-400 focus:bg-white transition"
                 placeholder="Search invoice, name, phone, or status…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -133,7 +255,7 @@ export default function PrintTickets() {
                 <button
                   key={t.id}
                   onClick={() => { setSelected(t); setPrintResult(null); }}
-                  className={`w-full text-left px-5 py-4 border-b border-slate-100 hover:bg-slate-50 transition ${
+                  className={`w-full text-left px-5 py-4 border-b border-[#f0ede8] hover:bg-surface transition ${
                     isActive ? "bg-blue-50 border-l-4 border-l-blue-500" : ""
                   }`}
                 >
@@ -166,13 +288,13 @@ export default function PrintTickets() {
           </div>
         </div>
 
-        {/* Right: Ticket detail + print */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+        {/* Right: Ticket detail + preview + print */}
+        <div className="bg-white rounded-3xl border border-[#ddd8d0] shadow-sm overflow-hidden flex flex-col">
           {selected ? (
             <>
               {/* Detail header */}
-              <div className="px-6 py-5 border-b border-slate-200">
-                <div className="text-sm uppercase tracking-widest text-slate-500 font-bold mb-1">Ticket Detail</div>
+              <div className="px-6 py-5 border-b border-[#ddd8d0]">
+                <div className="text-sm font-bold text-slate-500 mb-1">Ticket Detail</div>
                 <div className="text-2xl font-black text-slate-900">#{selected.display_invoice_number}</div>
                 <div className="text-slate-600 mt-0.5 font-mono text-xs">{selected.full_invoice_number}</div>
               </div>
@@ -181,8 +303,8 @@ export default function PrintTickets() {
               <div className="flex-1 overflow-auto px-6 py-5 space-y-5">
                 {/* Customer */}
                 <div>
-                  <div className="text-xs uppercase tracking-widest text-slate-500 font-bold mb-2">Customer</div>
-                  <div className="bg-slate-50 rounded-2xl px-4 py-3 space-y-1">
+                  <div className="text-sm font-bold text-slate-500 mb-2">Customer</div>
+                  <div className="bg-surface rounded-2xl px-4 py-3 space-y-1">
                     <div className="font-black text-slate-900">
                       {selected.customer_first_name} {selected.customer_last_name}
                     </div>
@@ -193,8 +315,8 @@ export default function PrintTickets() {
 
                 {/* Dates */}
                 <div>
-                  <div className="text-xs uppercase tracking-widest text-slate-500 font-bold mb-2">Dates</div>
-                  <div className="bg-slate-50 rounded-2xl px-4 py-3 grid grid-cols-2 gap-3">
+                  <div className="text-sm font-bold text-slate-500 mb-2">Dates</div>
+                  <div className="bg-surface rounded-2xl px-4 py-3 grid grid-cols-2 gap-3">
                     <div>
                       <div className="text-xs text-slate-500 font-bold">Drop-off</div>
                       <div className="text-sm font-black text-slate-900">{fmtDate(selected.invoice_dropoff_date)}</div>
@@ -208,8 +330,8 @@ export default function PrintTickets() {
 
                 {/* Progress */}
                 <div>
-                  <div className="text-xs uppercase tracking-widest text-slate-500 font-bold mb-2">Processing</div>
-                  <div className="bg-slate-50 rounded-2xl px-4 py-3 space-y-2">
+                  <div className="text-sm font-bold text-slate-500 mb-2">Processing</div>
+                  <div className="bg-surface rounded-2xl px-4 py-3 space-y-2">
                     <div className="flex items-center justify-between">
                       <StatusBadge status={selected.ticket_status} />
                       <span className="text-sm font-black text-slate-900">
@@ -225,10 +347,16 @@ export default function PrintTickets() {
                     <div className="text-xs text-slate-500 text-right">{progress}% complete</div>
                   </div>
                 </div>
+
+                {/* Print preview */}
+                <div>
+                  <div className="text-sm font-bold text-slate-500 mb-2">Print Preview</div>
+                  <TicketPreview ticket={selected} garments={garments} template={template} />
+                </div>
               </div>
 
               {/* Print action */}
-              <div className="px-6 py-5 border-t border-slate-200 space-y-3">
+              <div className="px-6 py-5 border-t border-[#ddd8d0] space-y-3">
                 {printResult && (
                   <div
                     className={`rounded-2xl px-4 py-3 text-sm font-bold ${

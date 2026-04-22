@@ -1,27 +1,27 @@
 // styles/theme.ts
 export const theme = {
   colors: {
-    bg: "#ffffff",           // white main background
-    panel: "#ffffff",        // white content card
-    border: "#e2e8f0",       // light border for white areas
+    bg: "#f0ede8",            // warm linen — main background
+    panel: "#ffffff",         // white content card
+    border: "#ddd8d0",        // warm border for white areas
 
-    nav: "#16355b",          // dark navy sidebar/nav
-    navBorder: "rgba(255,255,255,0.15)", // subtle border within dark nav
-    navText: "#ffffff",      // white text on dark nav
-    navTextMuted: "#8eb4d6", // light-blue muted text on dark nav
+    nav: "#1e3d4f",           // dark slate-teal nav/sidebar
+    navBorder: "rgba(255,255,255,0.14)",
+    navText: "#ffffff",
+    navTextMuted: "#9ec5d8",  // warm sky-blue muted text
 
-    primary: "#2563eb",        // blue-600
-    primarySoft: "#dbeafe",    // blue-100
-    primaryHover: "#1d4ed8",   // blue-700
+    primary: "#2563eb",
+    primarySoft: "#dbeafe",
+    primaryHover: "#1d4ed8",
 
-    text: "#0f172a",           // slate-900 (main content text)
-    textMuted: "#64748b",      // slate-500 (main content muted text)
+    text: "#1a2a35",          // dark warm slate (main content)
+    textMuted: "#6b7a84",     // muted warm slate
 
     icon: "#334155",
-    sidebar: "#16355b",
+    sidebar: "#1e3d4f",
     sidebarHover: "rgba(255,255,255,0.08)",
-    sidebarActive: "rgba(255,255,255,0.15)",
+    sidebarActive: "rgba(255,255,255,0.14)",
 
-    shadow: "0 1px 3px rgba(0,0,0,0.08)",
+    shadow: "0 1px 4px rgba(0,0,0,0.07)",
   },
 };
