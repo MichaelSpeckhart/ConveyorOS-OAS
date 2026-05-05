@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { LayoutDashboard, ScanLine, Settings, Database, BarChart3, Printer } from "lucide-react";
+import { LayoutDashboard, ScanLine, Settings, Database, BarChart3, Printer, FileText } from "lucide-react";
 
 import { SideNavLayout } from "./layout/SideNavLayout";
 import Login from "./pages/login/Login";
@@ -17,6 +17,7 @@ import SetupWizard from "./components/SetupWizard";
 import { checkSetupRequired } from "./lib/settings";
 import RegularKeyboard from "./components/RegularKeyboard";
 import { Keyboard } from "lucide-react";
+import ReportsHome from "./pages/reports/ReportHome";
 
 export default function App() {
   const [user, setUser] = useState<LoginResult | null>(null);
@@ -106,6 +107,12 @@ export default function App() {
       icon: <Settings size={20} />,
       onClick: () => setActive("settings"),
     },
+    {
+      key: "reports",
+      label: "Reports",
+      icon: <FileText size={20} />,
+      onClick: () => setActive("reports")
+    }
   ];
 
   // ---- SETUP WIZARD GATE ----
@@ -156,6 +163,7 @@ export default function App() {
         {active === "operator-data" && <OperatorData />}
         {active === "print" && <PrintTickets />}
         {active === "settings" && <PosSettings />}
+        {active === "reports" && <ReportsHome />}
       </SideNavLayout>
 
       {/* Floating keyboard toggle button */}

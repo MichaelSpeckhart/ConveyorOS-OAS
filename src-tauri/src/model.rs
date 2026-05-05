@@ -20,6 +20,13 @@ pub struct Customer {
     pub created_at: NaiveDateTime,
 }
 
+// #[derive(Debug, Serialize)]
+// pub struct CustomerDto {
+//     pub full_name: String,
+//     pub phone_number: String,
+//     pub
+// }
+
 #[derive(Debug, Insertable, Deserialize)]
 #[diesel(table_name = customers)]
 pub struct NewCustomer {
@@ -217,6 +224,29 @@ pub struct OperatorStats {
     pub total_tickets: i64,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+pub enum ConveyorActionType {
+    Load,
+    Unload,
+}
+
+impl ConveyorActionType {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            ConveyorActionType::Load => "load",
+            ConveyorActionType::Unload => "unload",
+        }
+    }
+
+    pub fn from_db(value: &str) -> Option<Self> {
+        match value {
+            "load" => Some(Self::Load),
+            "unload" => Some(Self::Unload),
+            _ => None,
+        }
+    }
+}
+
 #[derive(AsChangeset)]
 #[diesel(table_name = conveyoractivity)]
 pub struct ConveyorActivity {
@@ -226,4 +256,5 @@ pub struct ConveyorActivity {
     pub full_invoice_number: Option<String>,
     pub slot_number: i32,
     pub time_stamp: NaiveDateTime,
-}   
+    pub action_type: String,
+}

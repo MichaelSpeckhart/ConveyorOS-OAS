@@ -17,6 +17,7 @@ diesel::table! {
         full_invoice_number -> Varchar,
         slot_number -> Int4,
         time_stamp -> Timestamp,
+        action_type -> Varchar,
     }
 }
 

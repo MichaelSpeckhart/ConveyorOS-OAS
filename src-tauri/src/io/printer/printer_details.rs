@@ -1,117 +1,206 @@
-use std::io::Write;
 use escpos_rs::{Printer, PrinterProfile, command::Command};
 
 use crate::{
-    model::Ticket,
+    model::{Garment, Ticket},
     settings::appsettings::{PrinterSettings, TicketTemplateConfig},
 };
 
-// ── Connection ────────────────────────────────────────────────────────────────
+// ── ESC/POS buffer builder ────────────────────────────────────────────────────
 
-fn open_usb_port(port_path: &str) -> Result<std::fs::File, String> {
-    std::fs::OpenOptions::new()
-        .write(true)
-        .open(port_path)
-        .map_err(|e| format!("Cannot open USB port {}: {}", port_path, e))
-}
-
-// ── Ticket printing ───────────────────────────────────────────────────────────
-
-pub fn print_ticket(ticket: &Ticket, printer_settings: &PrinterSettings) {
-    if printer_settings.connection_type == "usb" && !printer_settings.port_path.is_empty() {
-        if let Err(e) = print_ticket_usb(ticket, &printer_settings.port_path, &printer_settings.ticket_template) {
-            eprintln!("USB print error: {}", e);
-        }
-    } else {
-        print_ticket_legacy(ticket);
-    }
-}
-
-fn print_ticket_usb(ticket: &Ticket, port_path: &str, template: &TicketTemplateConfig) -> Result<(), String> {
-    let mut port = open_usb_port(port_path)?;
+pub fn ticket_to_vector(ticket: &Ticket, garments: &[Garment], template: &TicketTemplateConfig) -> Vec<u8> {
     let mut buf: Vec<u8> = Vec::new();
 
-    // Initialize printer
-    buf.extend_from_slice(&[0x1b, 0x40]);
+    // Initialize
+    buf.extend_from_slice(&[0x1B, 0x40]);
+    buf.push(0x0A);
 
-    let sep  = "--------------------------------";
-    let dsep = "================================";
-
-    macro_rules! center   { () => { buf.extend_from_slice(&[0x1b, 0x61, 0x01]); } }
-    macro_rules! left     { () => { buf.extend_from_slice(&[0x1b, 0x61, 0x00]); } }
-    macro_rules! bold_on  { () => { buf.extend_from_slice(&[0x1b, 0x45, 0x01]); } }
-    macro_rules! bold_off { () => { buf.extend_from_slice(&[0x1b, 0x45, 0x00]); } }
-    macro_rules! line     { ($s:expr) => { buf.extend_from_slice(format!("{}\n", $s).as_bytes()); } }
-
-    // Header text
+    // Center, bold, double-height for header
+    buf.extend_from_slice(&[0x1B, 0x61, 0x01, 0x1B, 0x45, 0x01, 0x1D, 0x21, 0x10]);
     if !template.header_text.is_empty() {
-        center!();
-        bold_on!();
-        line!(dsep);
-        line!(template.header_text.to_uppercase());
-        line!(dsep);
-        bold_off!();
+        buf.extend_from_slice(template.header_text.as_bytes());
+        buf.push(0x0A);
     }
+    // Reset size and bold
+    buf.extend_from_slice(&[0x1D, 0x21, 0x00, 0x1B, 0x45, 0x00]);
+    buf.extend_from_slice(b"--------------------------------\n");
 
-    left!();
+    // Left-align for fields
+    buf.extend_from_slice(&[0x1B, 0x61, 0x00]);
 
-    for field in template.fields.iter().filter(|f| f.enabled) {
+    for field in &template.fields {
+        if !field.enabled {
+            continue;
+        }
+        let show_barcode = field.show_barcode.unwrap_or(false);
+
         match field.id.as_str() {
             "ticketNumber" => {
-                bold_on!();
-                line!(format!("Ticket: #{}", ticket.display_invoice_number));
-                bold_off!();
-                if field.show_barcode == Some(true) {
-                    // Code128 barcode: GS k 73 <len> <data>
-                    let data = ticket.display_invoice_number.as_bytes();
-                    buf.extend_from_slice(&[0x1d, 0x6b, 0x49, data.len() as u8]);
-                    buf.extend_from_slice(data);
-                    buf.push(b'\n');
+                let value = &ticket.display_invoice_number;
+                let line = format!("{}: {}\n", field.label, value);
+                buf.extend_from_slice(line.as_bytes());
+                if show_barcode {
+                    // Center, HRI below, height 60, width 2
+                    buf.extend_from_slice(&[0x1B, 0x61, 0x01, 0x1D, 0x48, 0x02, 0x1D, 0x68, 60, 0x1D, 0x77, 2]);
+                    // Code128: GS k 73 <len> {B<data>
+                    let code128_data = format!("{{B{}", value);
+                    let data_bytes = code128_data.as_bytes();
+                    buf.extend_from_slice(&[0x1D, 0x6B, 73, data_bytes.len() as u8]);
+                    buf.extend_from_slice(data_bytes);
+                    buf.push(0x0A);
+                    buf.extend_from_slice(&[0x1B, 0x61, 0x00]);
                 }
             }
             "customerIdentifier" => {
-                line!(format!("Customer ID: {}", ticket.customer_identifier));
+                let line = format!("{}: {}\n", field.label, ticket.customer_identifier);
+                buf.extend_from_slice(line.as_bytes());
             }
             "customerName" => {
-                let name = format!("{} {}", ticket.customer_first_name, ticket.customer_last_name).trim().to_string();
+                let name = format!("{} {}", ticket.customer_first_name, ticket.customer_last_name);
+                let name = name.trim();
                 if !name.is_empty() {
-                    line!(format!("Name: {}", name));
+                    let line = format!("{}: {}\n", field.label, name);
+                    buf.extend_from_slice(line.as_bytes());
                 }
             }
             "numItems" => {
-                line!(format!("Items: {}", ticket.number_of_items));
+                let line = format!("{}: {} items\n", field.label, ticket.number_of_items);
+                buf.extend_from_slice(line.as_bytes());
             }
             "dropoffDate" => {
-                line!(format!("Drop-off: {}", ticket.invoice_dropoff_date.format("%m/%d/%Y")));
+                let line = format!("{}: {}\n", field.label, ticket.invoice_dropoff_date.format("%m/%d/%Y"));
+                buf.extend_from_slice(line.as_bytes());
             }
             "pickupDate" => {
-                line!(format!("Pick-up:  {}", ticket.invoice_pickup_date.format("%m/%d/%Y")));
+                let line = format!("{}: {}\n", field.label, ticket.invoice_pickup_date.format("%m/%d/%Y"));
+                buf.extend_from_slice(line.as_bytes());
             }
             "comments" => {
-                // Comments live on the garment; skip at ticket level if empty placeholder
+                // Take the first non-empty comment from any garment on this ticket
+                let comment = garments.iter()
+                    .find(|g| !g.invoice_comments.is_empty())
+                    .map(|g| g.invoice_comments.as_str())
+                    .unwrap_or("");
+                if !comment.is_empty() {
+                    let line = format!("{}: {}\n", field.label, comment);
+                    buf.extend_from_slice(line.as_bytes());
+                }
+            }
+            "itemList" => {
+                buf.extend_from_slice(b"-- Garments --\n");
+                for g in garments {
+                    let line = format!("{}  {}\n", g.item_id, g.item_description);
+                    buf.extend_from_slice(line.as_bytes());
+                }
             }
             _ => {}
         }
     }
 
-    line!(sep);
+    buf.extend_from_slice(b"--------------------------------\n");
 
-    // Footer text
     if !template.footer_text.is_empty() {
-        center!();
-        line!(template.footer_text);
-        left!();
+        buf.extend_from_slice(&[0x1B, 0x61, 0x01]);
+        buf.extend_from_slice(template.footer_text.as_bytes());
+        buf.push(0x0A);
+        buf.extend_from_slice(&[0x1B, 0x61, 0x00]);
     }
 
-    // Feed and cut
-    buf.extend_from_slice(&[b'\n', b'\n', b'\n']);
-    buf.extend_from_slice(&[0x1d, 0x56, 0x41, 0x03]); // full cut
+    // Feed 4 lines then partial cut
+    buf.extend_from_slice(&[0x0A, 0x0A, 0x0A, 0x0A]);
+    buf.extend_from_slice(&[0x1D, 0x56, 0x42, 0x03]);
 
-    port.write_all(&buf).map_err(|e| format!("Write error: {}", e))?;
-    port.flush().map_err(|e| format!("Flush error: {}", e))
+    buf
 }
 
-// Legacy path: hardcoded USB VID/PID (kept for backwards compatibility)
+// ── Routing ───────────────────────────────────────────────────────────────────
+
+pub fn print_ticket(ticket: &Ticket, garments: &[Garment], printer_settings: &PrinterSettings) -> Result<(), String> {
+    let data = ticket_to_vector(ticket, garments, &printer_settings.ticket_template);
+    if printer_settings.connection_type == "usb" && !printer_settings.port_path.is_empty() {
+        _send_escpos(&printer_settings.port_path, &data)
+    } else {
+        print_ticket_legacy(ticket);
+        Ok(())
+    }
+}
+
+fn parse_vid_pid(s: &str) -> Result<(u16, u16), String> {
+    let parts: Vec<&str> = s.splitn(2, ':').collect();
+    if parts.len() != 2 {
+        return Err(format!("Expected VID:PID format (e.g. 04b8:0202), got: {s}"));
+    }
+    let vid = u16::from_str_radix(parts[0].trim(), 16)
+        .map_err(|_| format!("Invalid vendor ID: {}", parts[0]))?;
+    let pid = u16::from_str_radix(parts[1].trim(), 16)
+        .map_err(|_| format!("Invalid product ID: {}", parts[1]))?;
+    Ok((vid, pid))
+}
+
+fn looks_like_ip(s: &str) -> bool {
+    let host = s.splitn(2, ':').next().unwrap_or(s);
+    let parts: Vec<&str> = host.split('.').collect();
+    parts.len() == 4 && parts.iter().all(|p| p.parse::<u8>().is_ok())
+}
+
+fn _send_escpos(port_path: &str, data: &[u8]) -> Result<(), String> {
+    use std::io::Write;
+
+    // VID:PID hex (e.g. "04b8:0202") → direct USB via escpos_rs
+    if let Ok((vid, pid)) = parse_vid_pid(port_path) {
+        use escpos_rs::{Printer, PrinterProfile};
+        let profile = PrinterProfile::usb_builder(vid, pid).build();
+        let printer = Printer::new(profile)
+            .map_err(|e| format!("Failed to connect to printer: {e}"))?
+            .ok_or_else(|| format!("Printer {port_path} not found on USB. Make sure it is connected and powered on."))?;
+        return printer.raw(data).map_err(|e| format!("Failed to send data to printer: {e}"));
+    }
+
+    // IP address → TCP port 9100 (Epson/Star raw printing standard)
+    if looks_like_ip(port_path) {
+        let addr = if port_path.contains(':') {
+            port_path.to_string()
+        } else {
+            format!("{port_path}:9100")
+        };
+        use std::net::TcpStream;
+        use std::time::Duration;
+        let mut stream = TcpStream::connect(&addr)
+            .map_err(|e| format!("Cannot connect to {addr}: {e}"))?;
+        stream.set_write_timeout(Some(Duration::from_secs(5)))
+            .map_err(|e| format!("Timeout error: {e}"))?;
+        stream.write_all(data).map_err(|e| format!("Network write error: {e}"))?;
+        stream.flush().map_err(|e| format!("Network flush error: {e}"))?;
+        return Ok(());
+    }
+
+    // macOS/Linux CUPS queue name → submit via lp -o raw
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
+    if !port_path.starts_with("/dev/") {
+        use std::process::Command;
+        let tmp = std::env::temp_dir().join("conveyoros_escpos.bin");
+        std::fs::write(&tmp, data).map_err(|e| format!("Temp file error: {e}"))?;
+        let out = Command::new("lp")
+            .args(["-d", port_path, "-o", "raw", tmp.to_str().unwrap()])
+            .output()
+            .map_err(|e| format!("lp command failed: {e}"))?;
+        if !out.status.success() {
+            return Err(format!("lp error: {}", String::from_utf8_lossy(&out.stderr)));
+        }
+        return Ok(());
+    }
+
+    // Serial port or device node (/dev/cu.usb*, \\.\COM1, etc.) → write bytes directly
+    let mut file = std::fs::OpenOptions::new()
+        .write(true)
+        .open(port_path)
+        .map_err(|e| format!("Cannot open {port_path}: {e}"))?;
+    file.write_all(data).map_err(|e| format!("Write error: {e}"))?;
+    file.flush().map_err(|e| format!("Flush error: {e}"))?;
+    Ok(())
+}
+
+// ── Legacy path ───────────────────────────────────────────────────────────────
+
 fn print_ticket_legacy(ticket_info: &Ticket) {
     let printer_details = PrinterProfile::usb_builder(0x04b8, 0x0202).build();
 

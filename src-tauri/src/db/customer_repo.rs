@@ -43,3 +43,11 @@ pub fn get_customer_by_identifier(conn: &mut PgConnection, identifier: &str) -> 
         .first::<Customer>(conn)
         .map_err(|e| e.to_string())
 }
+
+pub fn get_all_customers(conn: &mut PgConnection) -> QueryResult<Vec<Customer>> {
+    customers.load::<Customer>(conn)
+}
+
+pub fn get_all_customers_sorted_by_id(conn: &mut PgConnection) -> QueryResult<Vec<Customer>> {
+    customers.order(id.asc()).load::<Customer>(conn)
+}

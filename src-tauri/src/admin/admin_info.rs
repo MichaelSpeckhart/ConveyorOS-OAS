@@ -45,8 +45,6 @@ pub fn get_operator_averaged_stats_start_end(start_date: DateTime<Utc>, end_date
     }
 
     // 4. return list of operator stats
-
-
     return Ok(operator_stats);
 } 
 

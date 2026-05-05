@@ -4,7 +4,9 @@ use diesel::prelude::*;
 use serde::Serialize;
 use tokio::time::{sleep, timeout};
 
-use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, sessions_repo, slot_repo::{self, SlotRepo}, ticket_repo, users_repo}, domain::auth, io::printer::printer_details, model::{Ticket, UpdateTicket, User}, opc::{opc_client::AppState, opc_commands::get_load_hanger_sensor}, pos::spot::output::{conveyor_file_utils::{self, write_load_item, write_print_invoice, write_split_invoice, write_unload_item}, conveyor_ops_types::{self, ConveyorOpsTypes}}, slot_manager::{self, SlotManager, SlotManagerStats}};
+use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, sessions_repo, slot_repo::{self, SlotRepo}, ticket_repo, users_repo}, domain::auth, io::printer::printer_details, model::{Customer, Ticket, UpdateTicket, User}, opc::{opc_client::AppState, opc_commands::get_load_hanger_sensor}, pos::spot::output::{conveyor_file_utils::{self, write_load_item, write_print_invoice, write_split_invoice, write_unload_item}, conveyor_ops_types::{self, ConveyorOpsTypes}}, slot_manager::{self, SlotManager, SlotManagerStats}};
+
+use crate::admin::report_generator;
 
 #[derive(Serialize)]
 pub struct LoginResult {
@@ -619,6 +621,8 @@ pub fn print_ticket_tauri(app: tauri::AppHandle, full_invoice_number: String) ->
     let mut conn = establish_connection()?;
     let ticket = ticket_repo::get_ticket_by_invoice_number(&mut conn, &full_invoice_number)
         .map_err(|e| format!("Ticket not found: {}", e))?;
+    let garments = garment_repo::list_garments_for_ticket(&mut conn, &ticket.full_invoice_number)
+        .unwrap_or_default();
     let settings = crate::settings::load_settings(&app);
     let printer = &settings.printer;
 
@@ -629,7 +633,7 @@ pub fn print_ticket_tauri(app: tauri::AppHandle, full_invoice_number: String) ->
         conveyor_file_utils::write_print_invoice(ConveyorOpsTypes::PrintInvoice, &ticket.full_invoice_number, 1)?;
     }
 
-    crate::io::printer::printer_details::print_ticket(&ticket, printer);
+    crate::io::printer::printer_details::print_ticket(&ticket, &garments, printer)?;
     Ok(())
 }
 
@@ -788,4 +792,20 @@ pub fn is_ticket_complete_tauri(ticket: String) -> Result<bool, String> {
         .map_err(|e| format!("DB Error (get ticket): {e}"))?;
 
     Ok(ticket_info.ticket_status == "Complete")
+}
+
+#[tauri::command]
+pub fn get_customer_report_tauri() -> Result<Vec<Customer>, String> {
+    let customers = report_generator::generate_customer_report()
+        .map_err(|e| format!("DB Error (free slot): {e}"))?;
+
+    return Ok(customers)
+}
+
+#[tauri::command]
+pub fn get_customer_report_by_id_tauri() -> Result<Vec<Customer>, String> {
+    let customers = report_generator::generate_customer_report_by_id()
+        .map_err(|e| format!("DB Error (free slot): {e}"))?;
+
+    return Ok(customers)
 }

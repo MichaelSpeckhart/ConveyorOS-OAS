@@ -157,6 +157,8 @@ pub fn run() {
             tauri_commands::get_occupied_slots_tauri,
             tauri_commands::is_ticket_complete_tauri,
             configurator_config::get_configurator_dirs_tauri,
+            tauri_commands::get_customer_report_tauri,
+            tauri_commands::get_customer_report_by_id_tauri,
             greet
         ])
         .run(tauri::generate_context!())
