@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  addConveyorActivityTauri,
   clearConveyorTauri,
   completeTicketTauri,
   getCustomerFromTicket,
@@ -343,6 +344,9 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
           if (sensorTriggered) setState("garmentonconveyor");
 
           await LoadItem(code);
+
+          await addConveyorActivityTauri(ticket.full_invoice_number, code, slotNum, ticket.customer_identifier);
+
         } catch (err) {
           console.error("Hardware operation failed:", err);
         }

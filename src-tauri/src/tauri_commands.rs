@@ -1,10 +1,11 @@
-use std::{any::Any, sync::atomic::Ordering, time::Duration};
+use std::{sync::atomic::Ordering, time::Duration};
 
+use chrono::Utc;
 use diesel::prelude::*;
 use serde::Serialize;
 use tokio::time::{sleep, timeout};
 
-use crate::{db::{connection::establish_connection, garment_repo::{self, garment_exists}, sessions_repo, slot_repo::{self, SlotRepo}, ticket_repo, users_repo}, domain::auth, io::printer::printer_details, model::{Customer, Ticket, UpdateTicket, User}, opc::{opc_client::AppState, opc_commands::get_load_hanger_sensor}, pos::spot::output::{conveyor_file_utils::{self, write_load_item, write_print_invoice, write_split_invoice, write_unload_item}, conveyor_ops_types::{self, ConveyorOpsTypes}}, slot_manager::{self, SlotManager, SlotManagerStats}};
+use crate::{db::{connection::establish_connection, conveyor_activity_repo, garment_repo::{self, garment_exists}, sessions_repo, slot_repo::{self, SlotRepo}, ticket_repo, users_repo}, domain::auth, model::{ConveyorActionType, ConveyorActivity, Customer, NewConveyorActivity, Ticket, UpdateTicket, User}, opc::{opc_client::AppState, opc_commands::get_load_hanger_sensor}, pos::spot::output::{conveyor_file_utils::{self, write_load_item, write_print_invoice, write_split_invoice, write_unload_item}, conveyor_ops_types::{ConveyorOpsTypes}}, slot_manager::{self, SlotManager, SlotManagerStats}};
 
 use crate::admin::report_generator;
 
@@ -808,4 +809,21 @@ pub fn get_customer_report_by_id_tauri() -> Result<Vec<Customer>, String> {
         .map_err(|e| format!("DB Error (free slot): {e}"))?;
 
     return Ok(customers)
+}
+
+#[tauri::command]
+pub fn add_conveyor_activity_load_tauri(ticket: String, garment: String, slot_num: i32, customer_identifier: String) -> Result<ConveyorActivity, String> {
+    let new_activity = NewConveyorActivity {
+        customer_identifier,
+        slot_number: slot_num,
+        full_invoice_number: ticket,
+        item_id: garment,
+        action_type: ConveyorActionType::Load.as_str().to_string(),
+        time_stamp: Utc::now().naive_utc()
+    };
+
+    let mut conn = establish_connection()?;
+
+    conveyor_activity_repo::create_activity(&mut conn, new_activity)
+        .map_err(|e| e.to_string())
 }

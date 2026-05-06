@@ -247,13 +247,24 @@ impl ConveyorActionType {
     }
 }
 
-#[derive(AsChangeset)]
+#[derive(Debug, Queryable, Identifiable, Serialize, AsChangeset)]
 #[diesel(table_name = conveyoractivity)]
 pub struct ConveyorActivity {
     pub id: i32,
-    pub user_id: i32,
-    pub item_id: Option<String>,
-    pub full_invoice_number: Option<String>,
+    pub customer_identifier: String,
+    pub item_id: String,
+    pub full_invoice_number: String,
+    pub slot_number: i32,
+    pub time_stamp: NaiveDateTime,
+    pub action_type: String,
+}
+
+#[derive(Debug, Insertable, Deserialize)]
+#[diesel(table_name = conveyoractivity)]
+pub struct NewConveyorActivity {
+    pub customer_identifier: String,
+    pub item_id: String,
+    pub full_invoice_number: String,
     pub slot_number: i32,
     pub time_stamp: NaiveDateTime,
     pub action_type: String,

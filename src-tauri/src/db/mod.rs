@@ -9,3 +9,4 @@ pub mod app_state_repo;
 pub mod sessions_repo;
 pub mod db_migrations;
 pub mod data;
+pub mod conveyor_activity_repo;

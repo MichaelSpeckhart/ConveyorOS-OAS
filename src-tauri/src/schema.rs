@@ -12,7 +12,7 @@ diesel::table! {
 diesel::table! {
     conveyoractivity (id) {
         id -> Int4,
-        user_id -> Int4,
+        customer_identifier -> Varchar,
         item_id -> Varchar,
         full_invoice_number -> Varchar,
         slot_number -> Int4,
@@ -97,7 +97,6 @@ diesel::table! {
     }
 }
 
-diesel::joinable!(conveyoractivity -> users (user_id));
 diesel::joinable!(sessions -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
