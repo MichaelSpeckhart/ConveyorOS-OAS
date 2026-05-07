@@ -10,6 +10,16 @@ interface Customer {
     created_at: string;
 }
 
+interface ConveyorActivity {
+    id: number,
+    customer_identifier: string,
+    full_invoice_number: string,
+    item_id: string,
+    slot_number: number,
+    time_stamp: string,
+    action_type: string,
+}
+
 const report_groups = [
     {
         category: "Customer",
@@ -52,6 +62,7 @@ export default function ReportsHome() {
     const [activeReport, setActiveReport] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [conveyorActivity, setConveyorActivity] = useState<ConveyorActivity[] | null>(null);
 
     async function handleReportClick(report: string) {
         if (report === "Customer Listing by Last Name") {
@@ -82,11 +93,26 @@ export default function ReportsHome() {
                 setLoading(false);
             }
         }
+        else if (report == "Conveyor Activity by Time") {
+            setActiveReport(report);
+            setLoading(true);
+            setError(null);
+            try {
+                const result = await invoke<ConveyorActivity[]>("get_conveyor_activity_report_tauri");
+                // const sorted = [...result].sort((a, b) => a.last_name.localeCompare(b.last_name));
+                setConveyorActivity(result);
+            } catch (e) {
+                setError(String(e));
+            } finally {
+                setLoading(false);
+            }
+        }
     }
 
     function handleBack() {
         setActiveReport(null);
         setCustomers(null);
+        setConveyorActivity(null);
         setError(null);
     }
 
@@ -134,6 +160,44 @@ export default function ReportsHome() {
                             </table>
                             {customers.length === 0 && (
                                 <p className="px-5 py-8 text-center text-slate-400 font-bold">No customers found.</p>
+                            )}
+                        </div>
+                    )}
+                    {conveyorActivity && (
+                        <div className="bg-white rounded-3xl border border-[#ddd8d0] shadow-sm overflow-hidden">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="border-b border-[#ddd8d0]">
+                                        <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-400">Time</th>
+                                        <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-400">Customer ID</th>
+                                        <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-400">Invoice</th>
+                                        <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-400">Item</th>
+                                        <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-400">Slot</th>
+                                        <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-400">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {conveyorActivity.map((a, i) => (
+                                        <tr
+                                            key={a.id}
+                                            className={`${i < conveyorActivity.length - 1 ? "border-b border-[#f0ede8]" : ""} hover:bg-surface transition-colors`}
+                                        >
+                                            <td className="px-5 py-4 text-slate-400">{new Date(a.time_stamp).toLocaleString()}</td>
+                                            <td className="px-5 py-4 text-slate-500">{a.customer_identifier}</td>
+                                            <td className="px-5 py-4 font-bold text-[#1a2a35]">{a.full_invoice_number}</td>
+                                            <td className="px-5 py-4 text-slate-500">{a.item_id}</td>
+                                            <td className="px-5 py-4 text-slate-500">{a.slot_number}</td>
+                                            <td className="px-5 py-4">
+                                                <span className={`inline-block px-2 py-1 rounded-full text-xs font-bold uppercase tracking-widest ${a.action_type === "load" ? "bg-blue-50 text-blue-600" : "bg-amber-50 text-amber-600"}`}>
+                                                    {a.action_type}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            {conveyorActivity.length === 0 && (
+                                <p className="px-5 py-8 text-center text-slate-400 font-bold">No activity found.</p>
                             )}
                         </div>
                     )}

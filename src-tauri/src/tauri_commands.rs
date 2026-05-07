@@ -812,6 +812,15 @@ pub fn get_customer_report_by_id_tauri() -> Result<Vec<Customer>, String> {
 }
 
 #[tauri::command]
+pub fn get_conveyor_activity_report_tauri() -> Result<Vec<ConveyorActivity>, String> {
+    let activity = report_generator::generate_conveyor_activity_report()
+        .map_err(|e| format!("DB Error (free slot): {e}"))?;
+
+    return Ok(activity)
+}
+
+
+#[tauri::command]
 pub fn add_conveyor_activity_load_tauri(ticket: String, garment: String, slot_num: i32, customer_identifier: String) -> Result<ConveyorActivity, String> {
     let new_activity = NewConveyorActivity {
         customer_identifier,
