@@ -86,8 +86,12 @@ export async function removeGarmentFromSlotTauri(ticket: string, slot_number: nu
     await invoke<void>("remove_garment_from_slot_tauri", { ticket, slotNum: slot_number });
 }
 
-export async function addConveyorActivityTauri(ticket: string, garment: string, slot_number: number, customer_id: string) {
-    await invoke<void>("add_conveyor_activity_load_tauri", {ticket, garment, slot_number, customer_id})
+export async function addConveyorActivityTauri(ticket: string, garment: string, slotNum: number, customerIdentifier: string) {
+    await invoke<void>("add_conveyor_activity_load_tauri", {ticket, garment, slotNum: slotNum, customerIdentifier: customerIdentifier})
+}
+
+export async function addConveyorActivityUnloadTauri(ticket: string, garment: string, slotNum: number, customerIdentifier: string) {
+    await invoke<void>("add_conveyor_activity_unload_tauri", {ticket, garment, slotNum: slotNum, customerIdentifier: customerIdentifier})
 }
 
 

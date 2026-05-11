@@ -151,13 +151,21 @@ export default function GarmentScanner({
         )}
 
         <input
-          ref={inputRef}
-          value={barcode}
-          onChange={(e) => setBarcode(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") { handleScan(barcode); setBarcode(""); } }}
-          className="absolute opacity-0 pointer-events-none"
-          autoFocus
-        />
+  ref={inputRef}
+  value={barcode}
+  onChange={(e) => setBarcode(e.target.value)}
+  onKeyDown={(e) => { 
+    if (e.key === "Enter") { 
+      e.preventDefault();
+      handleScan(barcode); 
+      setBarcode(""); 
+    } 
+  }}
+  onBlur={() => setTimeout(() => inputRef.current?.focus(), 0)}
+  className="absolute top-0 left-0 w-px h-px opacity-0"
+  autoFocus
+  autoComplete="off"
+/>
       </div>
 
       {/* Customer info + garment list (left) and current slot (right) */}

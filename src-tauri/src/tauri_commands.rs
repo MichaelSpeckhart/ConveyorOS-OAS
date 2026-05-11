@@ -836,3 +836,20 @@ pub fn add_conveyor_activity_load_tauri(ticket: String, garment: String, slot_nu
     conveyor_activity_repo::create_activity(&mut conn, new_activity)
         .map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+pub fn add_conveyor_activity_unload_tauri(ticket: String, garment: String, slot_num: i32, customer_identifier: String) -> Result<ConveyorActivity, String> {
+    let new_activity = NewConveyorActivity {
+        customer_identifier,
+        slot_number: slot_num,
+        full_invoice_number: ticket,
+        item_id: garment,
+        action_type: ConveyorActionType::Unload.as_str().to_string(),
+        time_stamp: Utc::now().naive_utc()
+    };
+
+    let mut conn = establish_connection()?;
+
+    conveyor_activity_repo::create_activity(&mut conn, new_activity)
+        .map_err(|e| e.to_string())
+}

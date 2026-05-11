@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
+
+
 interface Customer {
     id: number;
     customer_identifier: string;

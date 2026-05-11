@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   addConveyorActivityTauri,
+  addConveyorActivityUnloadTauri,
   clearConveyorTauri,
   completeTicketTauri,
   getCustomerFromTicket,
@@ -261,6 +262,11 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
             if (slotNum !== null) await updateGarmentSlotTauri(code, slotNum);
             setTicketMeta(ticket);
             const rows = await listGarmentsForTicket(ticket.full_invoice_number);
+            
+            rows.forEach(async (garment) => {
+              await addConveyorActivityUnloadTauri(ticket.full_invoice_number, garment.item_id, garment.slot_number, ticket.customer_identifier);
+            });
+
             setGarments(rows);
             garmentCount = rows.length;
           } else {
@@ -339,11 +345,11 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
             setGarments([]);
           }
 
-          await slotRunRequest(slotNum);
-          const sensorTriggered = await loadSensorHanger();
-          if (sensorTriggered) setState("garmentonconveyor");
+          // await slotRunRequest(slotNum);
+          // const sensorTriggered = await loadSensorHanger();
+          // if (sensorTriggered) setState("garmentonconveyor");
 
-          await LoadItem(code);
+          // await LoadItem(code);
 
           await addConveyorActivityTauri(ticket.full_invoice_number, code, slotNum, ticket.customer_identifier);
 

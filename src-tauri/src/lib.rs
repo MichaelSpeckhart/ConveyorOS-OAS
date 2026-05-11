@@ -160,6 +160,8 @@ pub fn run() {
             tauri_commands::get_customer_report_tauri,
             tauri_commands::get_customer_report_by_id_tauri,
             tauri_commands::get_conveyor_activity_report_tauri,
+            tauri_commands::add_conveyor_activity_load_tauri,
+            tauri_commands::add_conveyor_activity_unload_tauri,
             greet
         ])
         .run(tauri::generate_context!())
