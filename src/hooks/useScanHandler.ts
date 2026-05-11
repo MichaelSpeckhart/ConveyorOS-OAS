@@ -345,11 +345,11 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
             setGarments([]);
           }
 
-          // await slotRunRequest(slotNum);
-          // const sensorTriggered = await loadSensorHanger();
-          // if (sensorTriggered) setState("garmentonconveyor");
+          await slotRunRequest(slotNum);
+          const sensorTriggered = await loadSensorHanger();
+          if (sensorTriggered) setState("garmentonconveyor");
 
-          // await LoadItem(code);
+          await LoadItem(code);
 
           await addConveyorActivityTauri(ticket.full_invoice_number, code, slotNum, ticket.customer_identifier);
 
