@@ -1,6 +1,6 @@
-use std::{sync::atomic::Ordering, time::Duration};
+use std::{collections::HashMap, sync::atomic::Ordering, time::Duration};
 
-use chrono::Utc;
+use chrono::{NaiveDate, Utc};
 use diesel::prelude::*;
 use serde::Serialize;
 use tokio::time::{sleep, timeout};
@@ -835,6 +835,94 @@ pub fn add_conveyor_activity_load_tauri(ticket: String, garment: String, slot_nu
 
     conveyor_activity_repo::create_activity(&mut conn, new_activity)
         .map_err(|e| e.to_string())
+}
+
+#[derive(Serialize)]
+pub struct OperatorStat {
+    pub user_id: i32,
+    pub username: String,
+    pub total_garments: i32,
+    pub total_sessions: i32,
+    pub avg_per_hour: f64,
+}
+
+#[tauri::command]
+pub fn get_operator_stats_in_range_tauri(start_date: String, end_date: String) -> Result<Vec<OperatorStat>, String> {
+    let start = NaiveDate::parse_from_str(&start_date, "%Y-%m-%d")
+        .map_err(|e| format!("Invalid start_date: {}", e))?;
+    let end = NaiveDate::parse_from_str(&end_date, "%Y-%m-%d")
+        .map_err(|e| format!("Invalid end_date: {}", e))?;
+    let mut conn = establish_connection()?;
+
+    let sessions = sessions_repo::get_sessions_start_end(&mut conn, start, end)
+        .map_err(|e| format!("DB Error: {}", e))?;
+    let users = users_repo::get_all_users(&mut conn)
+        .map_err(|e| format!("DB Error: {}", e))?;
+
+    let user_map: HashMap<i32, String> = users.into_iter().map(|u| (u.id, u.username)).collect();
+
+    struct Acc {
+        username: String,
+        total_garments: i32,
+        total_sessions: i32,
+        total_hours: f64,
+    }
+
+    let mut map: HashMap<i32, Acc> = HashMap::new();
+
+    for s in sessions {
+        let username = user_map.get(&s.user_id)
+            .cloned()
+            .unwrap_or_else(|| format!("User {}", s.user_id));
+
+        let acc = map.entry(s.user_id).or_insert(Acc {
+            username,
+            total_garments: 0,
+            total_sessions: 0,
+            total_hours: 0.0,
+        });
+
+        acc.total_garments += s.garments_scanned;
+        acc.total_sessions += 1;
+
+        let effective_end = s.logout_at.unwrap_or_else(|| Utc::now().naive_utc());
+        let hours = (effective_end - s.login_at).num_milliseconds() as f64 / 3_600_000.0;
+        if hours > 0.0 {
+            acc.total_hours += hours;
+        }
+    }
+
+    let mut stats: Vec<OperatorStat> = map
+        .into_iter()
+        .map(|(user_id, acc)| {
+            let avg_per_hour = if acc.total_hours > 0.0 {
+                acc.total_garments as f64 / acc.total_hours
+            } else {
+                0.0
+            };
+            OperatorStat {
+                user_id,
+                username: acc.username,
+                total_garments: acc.total_garments,
+                total_sessions: acc.total_sessions,
+                avg_per_hour,
+            }
+        })
+        .collect();
+
+    stats.sort_by(|a, b| b.total_garments.cmp(&a.total_garments));
+    Ok(stats)
+}
+
+#[tauri::command]
+pub fn get_sessions_in_range_tauri(start_date: String, end_date: String) -> Result<Vec<crate::model::Session>, String> {
+    let start = NaiveDate::parse_from_str(&start_date, "%Y-%m-%d")
+        .map_err(|e| format!("Invalid start_date: {}", e))?;
+    let end = NaiveDate::parse_from_str(&end_date, "%Y-%m-%d")
+        .map_err(|e| format!("Invalid end_date: {}", e))?;
+    let mut conn = establish_connection()?;
+    sessions_repo::get_sessions_start_end(&mut conn, start, end)
+        .map_err(|e| format!("DB Error: {}", e))
 }
 
 #[tauri::command]

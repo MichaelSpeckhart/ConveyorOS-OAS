@@ -37,3 +37,19 @@ export async function sessionExistsTodayTauri(userId: number): Promise<boolean> 
 export async function getExistingSession(userId: number): Promise<SessionRow> {
   return invoke<SessionRow>("get_existing_session", { userIdInput: userId });
 }
+
+export async function getSessionsInRangeTauri(startDate: string, endDate: string): Promise<SessionRow[]> {
+  return invoke<SessionRow[]>("get_sessions_in_range_tauri", { startDate, endDate });
+}
+
+export type OperatorStat = {
+  user_id: number;
+  username: string;
+  total_garments: number;
+  total_sessions: number;
+  avg_per_hour: number;
+};
+
+export async function getOperatorStatsInRangeTauri(startDate: string, endDate: string): Promise<OperatorStat[]> {
+  return invoke<OperatorStat[]>("get_operator_stats_in_range_tauri", { startDate, endDate });
+}

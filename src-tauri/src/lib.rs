@@ -162,6 +162,8 @@ pub fn run() {
             tauri_commands::get_conveyor_activity_report_tauri,
             tauri_commands::add_conveyor_activity_load_tauri,
             tauri_commands::add_conveyor_activity_unload_tauri,
+            tauri_commands::get_sessions_in_range_tauri,
+            tauri_commands::get_operator_stats_in_range_tauri,
             greet
         ])
         .run(tauri::generate_context!())

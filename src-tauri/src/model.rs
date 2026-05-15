@@ -269,3 +269,9 @@ pub struct NewConveyorActivity {
     pub time_stamp: NaiveDateTime,
     pub action_type: String,
 }
+
+// #[derive(Debug, Queryable, Identifiable, Serialize, AsChangeset)]
+// #[diesel(table_name = conveyorinventory)]
+// pub struct ConveyorInventory {
+//     pub 
+// }
