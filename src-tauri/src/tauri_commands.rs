@@ -213,21 +213,20 @@ pub async fn wait_for_hanger_sensor(
     println!("Waiting for hanger sensor...");
     let result = timeout(Duration::from_secs(10), async {
         loop {
-            if get_load_hanger_sensor(&state.opc).await? {
-                println!("Hanger sensor detected!");
-                return Ok(true);
+            match get_load_hanger_sensor(&state.opc).await {
+                Ok(true) => {
+                    println!("Hanger sensor detected!");
+                    return true;
+                }
+                Ok(false) => {}
+                Err(e) => eprintln!("Sensor poll error (retrying): {e}"),
             }
             sleep(Duration::from_millis(10)).await;
         }
     })
     .await;
 
-    match result {
-        Ok(Ok(true)) => Ok(true),    // sensor detected
-        Ok(Ok(false)) => Ok(false),  // sensor not detected before timeout completion
-        Ok(Err(e)) => Err(e),        // read error
-        Err(_) => Ok(false),         // ⏱️ timeout
-    }
+    Ok(result.is_ok())
 }
 
 #[tauri::command]
@@ -642,29 +641,15 @@ pub fn print_ticket_tauri(app: tauri::AppHandle, full_invoice_number: String) ->
 pub fn check_setup_required_tauri(app: tauri::AppHandle) -> bool {
     use tauri_plugin_store::StoreExt;
 
-    // Check if settings exist
     let store = match app.store("settings.json") {
         Ok(s) => s,
-        Err(_) => return true, // Setup required if store fails
+        Err(_) => return true,
     };
 
-    // Check if app_settings key exists
-    if store.get("app_settings").is_none() {
-        return true; // Setup required if no settings
-    }
-
-    // Try to establish connection with existing settings
-    let settings = crate::settings::load_settings(&app);
-    let database_url = crate::settings::database_url(&settings);
-
-    match diesel::pg::PgConnection::establish(&database_url) {
-        Ok(_) => {
-            // Connection works — also make sure the global URL is set
-            crate::db::connection::set_database_url(&database_url);
-            false
-        }
-        Err(_) => true, // Connection fails, setup required
-    }
+    // Only show the setup wizard when settings have never been saved.
+    // A failed DB connection means settings exist but the DB is temporarily
+    // unreachable — that should not re-trigger the wizard.
+    store.get("app_settings").is_none()
 }
 
 

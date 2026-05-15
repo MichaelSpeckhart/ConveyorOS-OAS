@@ -151,6 +151,7 @@ pub fn run() {
             tauri_commands::test_database_connection_tauri,
             tauri_commands::get_current_settings_tauri,
             tauri_commands::check_setup_required_tauri,
+            tauri_commands::load_item_tauri,
             tauri_commands::unload_item_tauri,
             tauri_commands::update_garment_slot_tauri,
             tauri_commands::remove_garment_from_slot_tauri,

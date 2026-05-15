@@ -349,7 +349,7 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
           const sensorTriggered = await loadSensorHanger();
           if (sensorTriggered) setState("garmentonconveyor");
 
-          await LoadItem(code);
+          try { await LoadItem(code); } catch (err) { console.error("LoadItem failed:", err); }
 
           await addConveyorActivityTauri(ticket.full_invoice_number, code, slotNum, ticket.customer_identifier);
 

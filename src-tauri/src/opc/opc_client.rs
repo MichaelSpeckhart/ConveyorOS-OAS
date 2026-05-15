@@ -71,7 +71,7 @@ impl OpcClient {
             .await
             .map_err(|e| OpcError::Ua(format!("{e:?}")))?;
 
-        Ok(dv.value().unwrap().clone())
+        Ok(dv.value().ok_or(OpcError::Ua("DataValue has no value".into()))?.clone())
     }
 
     pub async fn write_value(
