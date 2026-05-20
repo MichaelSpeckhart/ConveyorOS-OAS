@@ -25,6 +25,8 @@ export type TicketRow = {
   ticket_status: string;
 };
 
+export type GarmentState = "Not Processed" | "Processing" | "Processed";
+
 export type GarmentRow = {
   id: number;
   full_invoice_number: string;
@@ -35,6 +37,7 @@ export type GarmentRow = {
   invoice_pickup_date: string;
   invoice_comments: string;
   slot_number: number;
+  garment_state: GarmentState;
 };
 
 export async function listCustomers(query?: string): Promise<CustomerRow[]> {

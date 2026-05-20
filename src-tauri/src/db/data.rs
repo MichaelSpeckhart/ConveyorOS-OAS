@@ -41,6 +41,7 @@ pub struct GarmentRow {
     pub invoice_pickup_date: chrono::NaiveDateTime,
     pub invoice_comments: String,
     pub slot_number: i32,
+    pub garment_state: String,
 }
 
 #[tauri::command]

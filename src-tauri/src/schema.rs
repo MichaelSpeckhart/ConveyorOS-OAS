@@ -43,6 +43,7 @@ diesel::table! {
         invoice_pickup_date -> Timestamp,
         invoice_comments -> Text,
         slot_number -> Int4,
+        garment_state -> Varchar,
     }
 }
 

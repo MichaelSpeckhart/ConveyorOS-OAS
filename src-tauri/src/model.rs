@@ -124,6 +124,32 @@ pub struct NewSession {
 // GARMENTS
 //
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+pub enum GarmentState {
+    NotProcessed,
+    Processing,
+    Processed,
+}
+
+impl GarmentState {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            GarmentState::NotProcessed => "Not Processed",
+            GarmentState::Processing => "Processing",
+            GarmentState::Processed => "Processed",
+        }
+    }
+
+    pub fn from_db(value: &str) -> Option<Self> {
+        match value {
+            "Not Processed" => Some(Self::NotProcessed),
+            "Processing" => Some(Self::Processing),
+            "Processed" => Some(Self::Processed),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, Queryable, Identifiable, Serialize)]
 #[diesel(table_name = garments)]
 pub struct Garment {
@@ -136,6 +162,7 @@ pub struct Garment {
     pub invoice_pickup_date: NaiveDateTime,
     pub invoice_comments: String,
     pub slot_number: i32,
+    pub garment_state: String,
 }
 
 #[derive(Debug, Insertable, Deserialize)]
@@ -149,6 +176,7 @@ pub struct NewGarment {
     pub invoice_pickup_date: NaiveDateTime,
     pub invoice_comments: String,
     pub slot_number: i32,
+    pub garment_state: String,
 }
 
 #[derive(Debug, Queryable, Identifiable, Serialize)]

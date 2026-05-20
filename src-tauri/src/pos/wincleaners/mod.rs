@@ -84,6 +84,7 @@ fn handle_garment_create(
             invoice_dropoff_date: dropoff_date,
             invoice_pickup_date: pickup_date,
             slot_number: slot_occupancy as i32,
+            garment_state: "Not Processed".to_string(),
         }).map_err(|e| format!("CREATE_GARMENT_FAILED: {e}"))?;
     }
 

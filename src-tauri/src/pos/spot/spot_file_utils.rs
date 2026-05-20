@@ -197,6 +197,7 @@ pub fn create_garment_from_add_op(conn: &mut PgConnection, add_op: &spotops_type
         invoice_dropoff_date: add_op.invoice_dropoff_date.naive_local(),
         invoice_pickup_date: add_op.invoice_promised_date.naive_local(),
         slot_number: add_op.slot_occupancy as i32,
+        garment_state: "Not Processed".to_string(),
     }).map(|_| ()).map_err(|e| format!("CREATE_GARMENT_FAILED: {}", e))
 }
 
