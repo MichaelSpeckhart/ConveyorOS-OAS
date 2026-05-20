@@ -131,6 +131,13 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
           await slotRunRequest(slot.slot_number);
         }
         setState("removegarment");
+        if (slot.assigned_ticket != null && slot.item_id != null) {
+          var customer = await getCustomerFromTicket(slot.assigned_ticket);
+
+          if (customer != undefined)
+            await addConveyorActivityUnloadTauri(slot.assigned_ticket, slot.item_id, slot.slot_number, customer?.customer_identifier);
+        }
+          
         await waitForNext();
         await removeGarmentFromSlotTauri(slot.assigned_ticket ?? "", slot.slot_number);
         await refreshSlotStats();
