@@ -97,8 +97,9 @@ function calcAvgPerHour(sessions: SessionRow[]): number {
   let totalGarments = 0;
   let totalHours = 0;
   for (const s of sessions) {
-    if (s.logout_at && s.garments_scanned > 0) {
-      const hours = (new Date(s.logout_at).getTime() - new Date(s.login_at).getTime()) / 3_600_000;
+    if (s.garments_scanned > 0) {
+      const end = s.logout_at ? new Date(s.logout_at) : new Date();
+      const hours = (end.getTime() - new Date(s.login_at).getTime()) / 3_600_000;
       if (hours > 0) {
         totalGarments += s.garments_scanned;
         totalHours += hours;

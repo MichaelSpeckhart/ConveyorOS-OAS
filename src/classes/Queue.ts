@@ -6,6 +6,9 @@ export interface Queue<T> {
     size(): number;
 }
 
+// Scan 
+
+
 export class ScanQueue<T> implements Queue<T> {
 
     private items: T[] = [];
