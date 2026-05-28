@@ -557,7 +557,10 @@ pub fn save_settings_tauri(
         dbPort: db_port,
         dbName: db_name,
         dbUser: db_user,
-        dbPassword: db_password,
+        // Preserve the stored password if the caller sent an empty string.
+        // This prevents the password from being silently wiped when settings
+        // are saved on a machine where the field loaded as blank.
+        dbPassword: if db_password.is_empty() { existing.dbPassword } else { db_password },
         opcServerUrl: opc_server_url,
         posSystem: existing.posSystem,
         fieldMappings: existing.fieldMappings,

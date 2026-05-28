@@ -139,7 +139,7 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
                   <input
                     className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
                     value={settings.dbHost}
-                    onChange={(e) => setSettings({ ...settings, dbHost: e.target.value })}
+                    onChange={(e) => { setSettings({ ...settings, dbHost: e.target.value }); setConnectionResult(null); }}
                     placeholder="localhost"
                   />
                 </label>
@@ -150,7 +150,7 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
                     className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
                     type="number"
                     value={settings.dbPort}
-                    onChange={(e) => setSettings({ ...settings, dbPort: Number(e.target.value) })}
+                    onChange={(e) => { setSettings({ ...settings, dbPort: Number(e.target.value) }); setConnectionResult(null); }}
                   />
                 </label>
 
@@ -159,7 +159,7 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
                   <input
                     className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
                     value={settings.dbName}
-                    onChange={(e) => setSettings({ ...settings, dbName: e.target.value })}
+                    onChange={(e) => { setSettings({ ...settings, dbName: e.target.value }); setConnectionResult(null); }}
                     placeholder="conveyor-app"
                   />
                 </label>
@@ -169,7 +169,7 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
                   <input
                     className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
                     value={settings.dbUser}
-                    onChange={(e) => setSettings({ ...settings, dbUser: e.target.value })}
+                    onChange={(e) => { setSettings({ ...settings, dbUser: e.target.value }); setConnectionResult(null); }}
                     placeholder="postgres"
                   />
                 </label>
@@ -180,7 +180,7 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
                     className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
                     type="password"
                     value={settings.dbPassword}
-                    onChange={(e) => setSettings({ ...settings, dbPassword: e.target.value })}
+                    onChange={(e) => { setSettings({ ...settings, dbPassword: e.target.value }); setConnectionResult(null); }}
                     placeholder="Enter database password"
                   />
                 </label>
