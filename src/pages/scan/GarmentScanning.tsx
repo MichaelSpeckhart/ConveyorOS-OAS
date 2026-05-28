@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import GarmentKeyboard from "../../components/GarmentKeyboard";
 import TicketAckModal from "../../components/scan/TicketAckModal";
 import ClearConveyorModal from "../../components/scan/ClearConveyorModal";
@@ -27,6 +29,16 @@ export default function GarmentScanner({
   const inputRef = useRef<HTMLInputElement>(null);
   const [barcode, setBarcode] = useState("");
   const [keypadOpen, setKeypadOpen] = useState(false);
+  const [hangerCount, setHangerCount] = useState(0);
+
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    invoke("subscribe_hanger_sensor").catch(console.error);
+    listen<boolean>("hanger_sensor", (e) => {
+      if (e.payload === true) setHangerCount((c) => c + 1);
+    }).then((fn) => { unlisten = fn; });
+    return () => { unlisten?.(); };
+  }, []);
   const [manualCode, setManualCode] = useState("");
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
@@ -201,10 +213,11 @@ export default function GarmentScanner({
 
       {/* Stats + manual entry */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr,240px] gap-3 h-full min-h-0">
-        <div className="grid grid-cols-3 gap-3 h-full">
+        <div className="grid grid-cols-4 gap-3 h-full">
           <StatBox label="Tickets Completed" value={ticketsCompleted} color="text-green-600" border="border-b-[6px] border-green-500" />
           <StatBox label="Garments Scanned"  value={scanCount}        color="text-blue-600"  border="border-b-[6px] border-blue-500"  />
           <StatBox label="Conveyor Capacity"  value={conveyorCapacity} color="text-slate-900" suffix="%" />
+          <StatBox label="Hangers Detected"  value={hangerCount}      color="text-purple-600" border="border-b-[6px] border-purple-500" />
         </div>
         <button
           onClick={openKeypad}
