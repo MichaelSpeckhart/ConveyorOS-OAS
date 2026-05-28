@@ -86,7 +86,7 @@ pub async fn get_target_slot(opc_client: &OpcClient) -> Result<ua::Variant, Stri
 
 pub async fn get_load_hanger_sensor(opc_client: &OpcClient) -> Result<bool, String> {
     let v: ua::Variant = opc_client
-        .read_value(ua::NodeId::numeric(1, 26))
+        .read_value(ua::NodeId::numeric(1, 102))
         .await
         .map_err(|e| e.to_string())?;
 

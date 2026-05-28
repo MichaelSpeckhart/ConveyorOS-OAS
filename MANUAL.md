@@ -75,7 +75,7 @@ ConveyorOS OAS (Order Assembly System) is a desktop/kiosk application designed f
 | Component | Minimum |
 |---|---|
 | OS | Windows 10 (64-bit) |
-| CPU | Intel/AMD x64 or Apple Silicon |
+| CPU | Intel/AMD x64 |
 | RAM | 4 GB |
 | Storage | 500 MB free (application only) |
 | Display | 1280 × 800 or larger (touchscreen supported) |

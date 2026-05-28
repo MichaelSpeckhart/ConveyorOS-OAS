@@ -120,6 +120,7 @@ pub fn run() {
             opc::opc_tauri_commands::station1_jog_fwd,
             opc::opc_tauri_commands::get_target_slot_tauri,
             opc::opc_tauri_commands::slot_run_request_tauri,
+            opc::opc_tauri_commands::subscribe_hanger_sensor,
             tauri_commands::handle_scan_tauri,
             tauri_commands::ticket_exists_tauri,
             tauri_commands::count_occupied_slots_tauri,
