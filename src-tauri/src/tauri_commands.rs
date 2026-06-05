@@ -2,6 +2,7 @@ use std::{collections::HashMap, sync::atomic::Ordering, time::Duration};
 
 use chrono::{NaiveDate, Utc};
 use diesel::prelude::*;
+use notify::null;
 use serde::Serialize;
 use tokio::time::{sleep, timeout};
 
@@ -546,6 +547,7 @@ pub fn save_settings_tauri(
     opc_server_url: String,
     pos_csv_dir: String,
     conveyor_csv_output_dir: String,
+    frames: Vec<crate::settings::appsettings::FrameConfig>,
 ) -> Result<(), String> {
     use tauri_plugin_store::StoreExt;
 
@@ -565,6 +567,7 @@ pub fn save_settings_tauri(
         posSystem: existing.posSystem,
         fieldMappings: existing.fieldMappings,
         printer: existing.printer,
+        frames,
     };
 
     let store = app.store("settings.json").map_err(|e| format!("Store error: {}", e))?;

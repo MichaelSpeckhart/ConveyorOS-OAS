@@ -2,6 +2,11 @@ import { Store } from "@tauri-apps/plugin-store";
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 
+export type FrameConfig = {
+  latches: number;
+  slots: boolean[];
+};
+
 export type AppSettings = {
   posCsvDir: string;
   conveyorCsvOutputDir: string;
@@ -11,6 +16,7 @@ export type AppSettings = {
   dbUser: string;
   dbPassword: string;
   opcServerUrl?: string;
+  frames: FrameConfig[];
 };
 
 const DEFAULTS: AppSettings = {
@@ -22,6 +28,7 @@ const DEFAULTS: AppSettings = {
   dbUser: "postgres",
   dbPassword: "",
   opcServerUrl: "opc.tcp://localhost:4840",
+  frames: [{ latches: 5, slots: Array(5).fill(true) }],
 };
 
 let storePromise: Promise<Store> | null = null;
@@ -49,6 +56,7 @@ export async function saveSettings(s: AppSettings): Promise<void> {
     opcServerUrl: s.opcServerUrl ?? "",
     posCsvDir: s.posCsvDir,
     conveyorCsvOutputDir: s.conveyorCsvOutputDir,
+    frames: s.frames,
   });
 }
 
