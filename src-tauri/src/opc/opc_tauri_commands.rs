@@ -49,3 +49,19 @@ pub async fn slot_run_request_tauri(
 ) -> Result<(), String> {
     opc_commands::slot_run_request(&state.opc, target_slot).await
 }
+
+#[tauri::command]
+pub async fn set_number_of_frames(
+    state: tauri::State<'_, AppState>,
+    num_frames: i16,
+) -> Result<(), String> {
+    opc_commands::set_number_of_frames(&state.opc, num_frames).await
+}
+
+#[tauri::command]
+pub async fn set_slots_per_frame(
+    state: tauri::State<'_, AppState>,
+    slots_per_fame: i16,
+) -> Result<(), String> {
+    opc_commands::set_slots_per_frame(&state.opc, slots_per_fame).await
+}

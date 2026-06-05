@@ -1,6 +1,22 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FrameConfig {
+    pub latches: u8,
+    pub slots: Vec<bool>,
+}
+
+impl FrameConfig {
+    fn default_frame() -> Self {
+        Self { latches: 5, slots: vec![true; 5] }
+    }
+}
+
+fn default_frames() -> Vec<FrameConfig> {
+    vec![FrameConfig::default_frame()]
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FieldMappings {
     pub customer_identifier: u32,
@@ -137,6 +153,8 @@ pub struct AppSettings {
     pub fieldMappings: FieldMappings,
     #[serde(default)]
     pub printer: PrinterSettings,
+    #[serde(default = "default_frames")]
+    pub frames: Vec<FrameConfig>,
 }
 
 fn default_pos_system() -> String {
@@ -157,6 +175,7 @@ impl Default for AppSettings {
             posSystem: "spot".to_string(),
             fieldMappings: FieldMappings::default(),
             printer: PrinterSettings::default(),
+            frames: default_frames(),
         }
     }
 }

@@ -1,0 +1,552 @@
+"" 0 "ns=1;i=292
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=292" ConveyorGo false Boolean "05/28/26 21:56:12.0850000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 1 "ns=1;i=291
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=291" TargetSlot 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 2 "ns=1;i=290
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=290" InverterStatus 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 3 "ns=1;i=289
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=289" ConveyorStatus 0 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 4 "ns=1;i=288
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=288" CSOFFSETINCHES 0 Int16 "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 5 "ns=1;i=287
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=287" MyAIAAcc 0 Int16 "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 6 "ns=1;i=286
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=286" MyIAISpeed 0 Int32 "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 7 "ns=1;i=285
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=285" MyIAIPosBand 0 Int32 "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 8 "ns=1;i=284
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=284" MyAIASlotPosition "ExtensionObject [typeId=nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=10007, encodeType=Binary, object=[44] 0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]" DWORD "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 9 "ns=1;i=283
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=283" Slot0PulseAdder -1.25 Float "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 10 "ns=1;i=282
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=282" Slot9PulseAdder 0.0 Float "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 11 "ns=1;i=281
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=281" Slot8PulseAdder 0.0 Float "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 12 "ns=1;i=280
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=280" Slot7PulseAdder 0.0 Float "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 13 "ns=1;i=279
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=279" Slot6PulseAdder 0.0 Float "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 14 "ns=1;i=278
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=278" Slot5PulseAdder 8.5 Float "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 15 "ns=1;i=277
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=277" Slot4PulseAdder 8.0 Float "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 16 "ns=1;i=276
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=276" Slot3PulseAdder 6.0 Float "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 17 "ns=1;i=275
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=275" Slot2PulseAdder 4.0 Float "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 18 "ns=1;i=274
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=274" Slot1PulseAdder 1.75 Float "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 19 "ns=1;i=273
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=273" NumberOfStations 1 Int16 "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 20 "ns=1;i=272
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=272" ConveyorHomingTimeout 0 Int16 "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 21 "ns=1;i=271
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=271" HorizontalActuatorCycleTimeout 0 Int16 "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 22 "ns=1;i=270
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=270" ConveyorLastHomeCycle 0 Int16 "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 23 "ns=1;i=269
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=269" EncoderFailureTime 30 Int16 "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 24 "ns=1;i=268
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=268" SlotID2 0 Int16 "05/28/26 21:56:12.1070000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 25 "ns=1;i=267
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=267" SlotID1 56 Int16 "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 26 "ns=1;i=266
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=266" ConveyorID 0 Int16 "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 27 "ns=1;i=265
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=265" NextMaintananceAt 0 Int16 "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 28 "ns=1;i=264
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=264" TargetNum 0.0 Float "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 29 "ns=1;i=263
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=263" EncoderPulsesPerRev 2520.0 Float "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 30 "ns=1;i=262
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=262" FrameLength 12.0 Float "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 31 "ns=1;i=261
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=261" SlotsPerFrame 5 Int16 "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 32 "ns=1;i=260
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=260" NumberToothSprocket 7 Int16 "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 33 "ns=1;i=259
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=259" NumberFrames 20 Int16 "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 34 "ns=1;i=258
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=258" NumberSlotsPerFrame 0 Int16 "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 35 "ns=1;i=257
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=257" Station2Offset 0 Int16 "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 36 "ns=1;i=256
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=256" Station1Offset 0 Int16 "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 37 "ns=1;i=255
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=255" StopOffset 0 Int32 "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 38 "ns=1;i=254
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=254" CreepOffsetInches 12.0 Float "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 39 "ns=1;i=253
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=253" CreepSpeed 15 Int16 "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 40 "ns=1;i=252
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=252" RunSpeed 55 Int16 "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 41 "ns=1;i=251
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=251" JogSpeed 55 Int16 "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 42 "ns=1;i=250
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=250" VFDScalingFactor 0.98 Float "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 43 "ns=1;i=249
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=249" MaxSpeed 80 Int16 "05/28/26 21:56:12.1060000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 44 "ns=1;i=248
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=248" CalculatedStation2Shift 0 Int32 "05/28/26 21:56:12.1040000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 45 "ns=1;i=247
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=247" CalculatedStation1Shift 0 Int32 "05/28/26 21:56:12.1040000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 46 "ns=1;i=246
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=246" Station2OffsetCaptured 0 Int32 "05/28/26 21:56:12.1040000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 47 "ns=1;i=245
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=245" Station1OffsetCaptuted 0 Int32 "05/28/26 21:56:12.1040000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 48 "ns=1;i=244
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=244" CSFRAME_LOCREAL 10.943055 Float "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 49 "ns=1;i=243
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=243" CSSLAVE_POSREAL 15758.0 Float "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 50 "ns=1;i=242
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=242" CSFRAME_LOC 10 Int32 "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 51 "ns=1;i=241
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=241" CSSLAVE_POS 15758 Int32 "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 52 "ns=1;i=240
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=240" CSOFFSET1 15758 Int32 "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 53 "ns=1;i=239
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=239" CSLOC1 0 Int32 "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 54 "ns=1;i=238
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=238" MyCounter2 0 Int32 "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 55 "ns=1;i=237
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=237" MyCounter1 0 Int32 "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 56 "ns=1;i=236
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=236" MyIAIPosition 0 Int32 "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 57 "ns=1;i=235
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=235" MyAIACurrentPos 0 Int32 "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 58 "ns=1;i=234
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=234" ConveyorMode 0 Int16 "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 59 "ns=1;i=233
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=233" SlotPulsesAdder0Real 0.0 Float "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 60 "ns=1;i=232
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=232" SlotPulsesAdder9Real 0.0 Float "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 61 "ns=1;i=231
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=231" SlotPulsesAdder8Real 0.0 Float "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 62 "ns=1;i=230
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=230" SlotPulsesAdder7Real 0.0 Float "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 63 "ns=1;i=229
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=229" SlotPulsesAdder6Real 0.0 Float "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 64 "ns=1;i=228
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=228" SlotPulsesAdder5Real 0.0 Float "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 65 "ns=1;i=227
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=227" SlotPulsesAdder4Real 0.0 Float "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 66 "ns=1;i=226
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=226" SlotPulsesAdder3Real 0.0 Float "05/28/26 21:56:12.0790000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 67 "ns=1;i=225
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=225" SlotPulsesAdder2Real 0.0 Float "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 68 "ns=1;i=224
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=224" SlotPulsesAdder1Real 0.0 Float "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 69 "ns=1;i=223
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=223" SlotPulsesAdder0 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 70 "ns=1;i=222
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=222" SlotPulsesAdder9 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 71 "ns=1;i=221
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=221" SlotPulsesAdder8 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 72 "ns=1;i=220
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=220" SlotPulsesAdder7 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 73 "ns=1;i=219
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=219" SlotPulsesAdder6 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 74 "ns=1;i=218
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=218" SlotPulsesAdder5 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 75 "ns=1;i=217
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=217" SlotPulsesAdder4 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 76 "ns=1;i=216
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=216" SlotPulsesAdder3 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 77 "ns=1;i=215
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=215" SlotPulsesAdder2 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 78 "ns=1;i=214
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=214" SlotPulsesAdder1 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 79 "ns=1;i=213
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=213" SlotFramePosition 0 Int32 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 80 "ns=1;i=212
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=212" ADCAutoPosition 0 Int32 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 81 "ns=1;i=211
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=211" FramePositionPulses 0 Int32 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 82 "ns=1;i=210
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=210" SlotRemainderPulses 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 83 "ns=1;i=209
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=209" FramePosition 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 84 "ns=1;i=208
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=208" HorizontalActuatorSeq 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 85 "ns=1;i=207
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=207" Drive4DCVoltage 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 86 "ns=1;i=206
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=206" Drive4OutputCurrent 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 87 "ns=1;i=205
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=205" Drive4CommandedSpeed 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 88 "ns=1;i=204
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=204" Drive4DCVoltageMax 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 89 "ns=1;i=203
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=203" Drive4ActualSpeed 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 90 "ns=1;i=202
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=202" Drive4LifetimeTimer 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 91 "ns=1;i=201
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=201" Drive4FaultCode 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 92 "ns=1;i=200
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=200" Drive3DCVoltage 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 93 "ns=1;i=199
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=199" Drive3OutputCurrent 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 94 "ns=1;i=198
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=198" Drive3CommandedSpeed 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 95 "ns=1;i=197
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=197" Drive3DCVoltageMax 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 96 "ns=1;i=196
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=196" Drive3ActualSpeed 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 97 "ns=1;i=195
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=195" Drive3LifetimeTimer 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 98 "ns=1;i=194
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=194" Drive3FaultCode 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 99 "ns=1;i=193
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=193" Drive2DCVoltage 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 100 "ns=1;i=192
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=192" Drive2OutputCurrent 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 101 "ns=1;i=191
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=191" Drive2CommandedSpeed 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 102 "ns=1;i=190
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=190" Drive2DCVoltageMax 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 103 "ns=1;i=189
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=189" Drive2ActualSpeed 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 104 "ns=1;i=188
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=188" Drive2LifetimeTimer 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 105 "ns=1;i=187
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=187" Drive2FaultCode 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 106 "ns=1;i=186
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=186" Drive1DCVoltage 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 107 "ns=1;i=185
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=185" Drive1OutputCurrent 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 108 "ns=1;i=184
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=184" Drive1CommandedSpeed 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 109 "ns=1;i=183
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=183" Drive1DCVoltageMax 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 110 "ns=1;i=182
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=182" Drive1ActualSpeed 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 111 "ns=1;i=181
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=181" Drive1LifetimeTimer 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 112 "ns=1;i=180
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=180" Drive1FaultCode 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 113 "ns=1;i=179
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=179" Drive4LifetimeTimerHistorical 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 114 "ns=1;i=178
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=178" Drive3LifetimeTimerHistorical 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 115 "ns=1;i=177
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=177" Drive2LifetimeTimerHistorical 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 116 "ns=1;i=176
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=176" Drive1LifetimeTimerHistorical 0 Int16 "05/28/26 21:56:12.0780000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 117 "ns=1;i=175
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=175" PLCClockSecond 0 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 118 "ns=1;i=174
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=174" PLCClockMinute 0 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 119 "ns=1;i=173
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=173" PLCClockHour 0 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 120 "ns=1;i=172
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=172" PLCClockDay 0 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 121 "ns=1;i=171
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=171" PLCClockMount 0 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 122 "ns=1;i=170
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=170" PLCClockYear 0 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 123 "ns=1;i=169
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=169" SystemMode 0 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 124 "ns=1;i=168
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=168" PLCVersion 100 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 125 "ns=1;i=167
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=167" ActualSlotID2 54 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 126 "ns=1;i=166
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=166" ActualSlotID1 54 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 127 "ns=1;i=165
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=165" SlotPointer 0 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 128 "ns=1;i=164
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=164" SlotRemainder 0 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 129 "ns=1;i=163
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=163" SlotHeader 0 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 130 "ns=1;i=162
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=162" ActualSlotID2Position 15758 Int32 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 131 "ns=1;i=161
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=161" ActualSlotID1Position 15758 Int32 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 132 "ns=1;i=160
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=160" CalculatedFrameID2 0 Int32 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 133 "ns=1;i=159
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=159" CalculatedFrameID1 11 Int32 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 134 "ns=1;i=158
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=158" MaxSpeedInHz 7840 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 135 "ns=1;i=157
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=157" MaxSpeedInHzReal 7840.0 Float "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 136 "ns=1;i=156
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=156" CalculatedFramePosStation2 0 Int32 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 137 "ns=1;i=155
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=155" CalculatedFramePosStation1 0 Int32 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 138 "ns=1;i=154
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=154" CalculatedFrameIDStation2 0 Int32 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 139 "ns=1;i=153
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=153" CalculatedFrameIDStation1 0 Int32 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 140 "ns=1;i=152
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=152" PulsesPerFrameW 1440 Int32 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 141 "ns=1;i=151
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=151" TotalSlots 100 Int32 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 142 "ns=1;i=150
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=150" FirstSlot 1 Int32 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 143 "ns=1;i=149
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=149" CalculatedTargetPosStation2 0 Int32 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 144 "ns=1;i=148
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=148" CalculatedTargetPosStation1 15840 Int32 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 145 "ns=1;i=147
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=147" EncoderInTemp 15758 Int32 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 146 "ns=1;i=146
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=146" CreepOffsetReal 1440.0 Float "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 147 "ns=1;i=145
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=145" CreepOffset 1440 Int32 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 148 "ns=1;i=144
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=144" PulsesPerInches 120.0 Float "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 149 "ns=1;i=143
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=143" PulsesPerFrameReal 1440.0 Float "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 150 "ns=1;i=142
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=142" CreepSpeedInHz 1470 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 151 "ns=1;i=141
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=141" RunSpeedInHz 5390 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 152 "ns=1;i=140
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=140" JogSpeedInHz 5390 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 153 "ns=1;i=139
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=139" CreepSpeedInHzReal 1470.0001 Float "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 154 "ns=1;i=138
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=138" RunSpeedInHzReal 5390.0 Float "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 155 "ns=1;i=137
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=137" JogSpeedInHzReal 5390.0 Float "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 156 "ns=1;i=136
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=136" FrameID 0 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 157 "ns=1;i=135
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=135" TargetPulse 15840 Int32 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 158 "ns=1;i=134
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=134" ActualSlotID2DINT 54 Int32 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 159 "ns=1;i=133
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=133" ActualSlotID1DINT 54 Int32 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 160 "ns=1;i=132
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=132" NewHSCValue 0 Int32 "05/28/26 21:56:12.0720000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 161 "ns=1;i=131
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=131" TotalPulsesReal 28800.0 Float "05/28/26 21:56:12.0760000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 162 "ns=1;i=130
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=130" TotalPulses 28800 Int32 "05/28/26 21:56:12.0760000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 163 "ns=1;i=129
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=129" CalculatedFrameID 0 Int32 "05/28/26 21:56:12.0760000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 164 "ns=1;i=128
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=128" CalculatedFramePosition 0.0 Float "05/28/26 21:56:12.0760000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 165 "ns=1;i=127
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=127" RunDistance 28718 Int32 "05/28/26 21:56:12.0760000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 166 "ns=1;i=126
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=126" REVDistance 28718 Int32 "05/28/26 21:56:12.0760000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 167 "ns=1;i=125
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=125" FWDDistance 82 Int32 "05/28/26 21:56:12.0760000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 168 "ns=1;i=124
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=124" DistancetoStop 0 Int32 "05/28/26 21:56:12.0760000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 169 "ns=1;i=123
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=123" SetSpeed 0 Int16 "05/28/26 21:56:12.0760000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 170 "ns=1;i=122
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=122" CurrentSpeed 0 Int16 "05/28/26 21:56:12.0760000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 171 "ns=1;i=121
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=121" CreepChange 0 Int32 "05/28/26 21:56:12.0990000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 172 "ns=1;i=120
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=120" EncoderEnable false Boolean "05/28/26 21:56:12.0930000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 173 "ns=1;i=119
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=119" EncoderIn 15758 Int32 "05/28/26 21:56:12.0970000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 174 "ns=1;i=118
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=118" PCONTESTENABLE false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 175 "ns=1;i=117
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=117" HorizontalStepHeader "[true, false, false, false, false, false, false, false]" Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 176 "ns=1;i=116
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=116" ConveyorAggregatedAlarm false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 177 "ns=1;i=115
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=115" MyPCONDriveEnable false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 178 "ns=1;i=114
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=114" ConveyorHomeComplete false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 179 "ns=1;i=113
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=113" ConveyorHomeRunning false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 180 "ns=1;i=112
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=112" ConveyorHomeCommand false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 181 "ns=1;i=111
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=111" HorizontalActuatorStartCommand false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 182 "ns=1;i=110
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=110" HorizontalActuatorStartRequest false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 183 "ns=1;i=109
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=109" HorizontalActuatorReady false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 184 "ns=1;i=108
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=108" HorizontalActuatorHomeComplete false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 185 "ns=1;i=107
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=107" HorizontalActuatorHomeRunning false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 186 "ns=1;i=106
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=106" HorizontalActuatorHomeTrigger false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 187 "ns=1;i=105
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=105" MyIAICommand "ExtensionObject [typeId=nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=10006, encodeType=Binary, object=[7] 0x00000000000000]" IAI_Command "05/28/26 21:56:12.0820000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 188 "ns=1;i=104
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=104" MyIAIStatus "ExtensionObject [typeId=nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=10005, encodeType=Binary, object=[32] 0x0000000000000000000000000000000000000000000000000000000000000000]" WORD "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 189 "ns=1;i=103
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=103" ClockUpdate false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 190 "ns=1;i=102
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=102" LoadStationHangerSensorDebounce false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 191 "ns=1;i=101
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=101" ManualModeBrakeControl false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 192 "ns=1;i=100
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=100" ManualModeStation2Online false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 193 "ns=1;i=99
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=99" ManualModeStation1Online false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 194 "ns=1;i=98
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=98" ManualModeConveyorReady false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 195 "ns=1;i=97
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=97" DriveJogREV false Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 196 "ns=1;i=96
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=96" DriveJogFWD false Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 197 "ns=1;i=95
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=95" Station2OffsetConfirm false Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 198 "ns=1;i=94
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=94" Station2Active false Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 199 "ns=1;i=93
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=93" Station1OffsetConfirm false Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 200 "ns=1;i=92
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=92" Station1Active true Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 201 "ns=1;i=91
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=91" ResetButton false Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 202 "ns=1;i=90
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=90" HSCUpdate false Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 203 "ns=1;i=89
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=89" ResetEnc false Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 204 "ns=1;i=88
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=88" Station2JogRev false Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 205 "ns=1;i=87
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=87" Station2JogFwd false Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 206 "ns=1;i=86
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=86" Station1JogRev false Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 207 "ns=1;i=85
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=85" Station1JogFwd false Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 208 "ns=1;i=84
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=84" StopPB false Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 209 "ns=1;i=83
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=83" SlotRunRequest false Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 210 "ns=1;i=82
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=82" RunRev true Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 211 "ns=1;i=81
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=81" SlotRunning false Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 212 "ns=1;i=80
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=80" Pulse200ms false Boolean "05/28/26 21:56:12.0930000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 213 "ns=1;i=79
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=79" StartPulse false Boolean "05/28/26 21:56:12.0930000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 214 "ns=1;i=78
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=78" AlwaysOn true Boolean "05/28/26 21:56:12.0930000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 215 "ns=1;i=77
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=77" E700Out "ExtensionObject [typeId=nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=10004, encodeType=Binary, object=[18] 0x000000000000000000000000000000000000]" A7NETH-V2Out "05/28/26 21:56:12.0910000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 216 "ns=1;i=76
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=76" E700In "ExtensionObject [typeId=nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=10003, encodeType=Binary, object=[18] 0x000000000000000000000000000000000000]" A7NETH-V2In "05/28/26 21:56:12.0910000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 217 "ns=1;i=75
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=75" Drive2E800Out "ExtensionObject [typeId=nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=10002, encodeType=Binary, object=[48] 0x000000000000000000010000010100000000000000000000000000000000000001020000000000000800050006001700]" VFDOut "05/28/26 21:56:12.0850000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 218 "ns=1;i=74
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=74" Drive2E800In "ExtensionObject [typeId=nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=10001, encodeType=Binary, object=[48] 0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]" VFDIn "05/28/26 21:56:12.0840000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 219 "ns=1;i=73
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=73" Drive1E800Out "ExtensionObject [typeId=nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=10002, encodeType=Binary, object=[48] 0x000000000000000000010000010100000000000000000000000000000000000001020000000000000800050006001700]" VFDOut "05/28/26 21:56:12.0850000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 220 "ns=1;i=72
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=72" Drive1E800In "ExtensionObject [typeId=nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=10001, encodeType=Binary, object=[48] 0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]" VFDIn "05/28/26 21:56:12.0840000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 221 "ns=1;i=71
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=71" AlarmHorizontalDriveCommFault false Boolean "05/28/26 21:56:12.0820000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 222 "ns=1;i=70
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=70" AlarmInHorizontalDriveFault false Boolean "05/28/26 21:56:12.0820000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 223 "ns=1;i=69
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=69" AlarmConveyorHomeTimeout false Boolean "05/28/26 21:56:12.0820000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 224 "ns=1;i=68
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=68" AlarmEncoderFailure false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 225 "ns=1;i=67
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=67" AlarmConveyorHomeSensorError false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 226 "ns=1;i=66
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=66" AlarmConveyorCycleTimeout false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 227 "ns=1;i=65
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=65" AlarmHorizontalActuatorCycleTimeout false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 228 "ns=1;i=64
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=64" AlarmHorizontalActuatorDriveFault false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 229 "ns=1;i=63
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=63" AlarmResetting false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 230 "ns=1;i=62
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=62" AggregatedAlarm false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 231 "ns=1;i=61
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=61" MaintenanceRequired false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 232 "ns=1;i=60
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=60" ConveyorStationNotAquired false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 233 "ns=1;i=59
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=59" MCRDisengaged false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 234 "ns=1;i=58
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=58" InvalidConveyorID false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 235 "ns=1;i=57
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=57" EncoderFault false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 236 "ns=1;i=56
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=56" Drive4CommFault false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 237 "ns=1;i=55
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=55" Drive3CommFault false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 238 "ns=1;i=54
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=54" Drive2CommFault false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 239 "ns=1;i=53
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=53" Drive1CommFault false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 240 "ns=1;i=52
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=52" ESTOPStation2Pressed false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 241 "ns=1;i=51
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=51" ESTOPStation1Pressed false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 242 "ns=1;i=50
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=50" Drive4Fault false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 243 "ns=1;i=49
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=49" Drive3Fault false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 244 "ns=1;i=48
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=48" Drive2Fault false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 245 "ns=1;i=47
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=47" Drive1Fault false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 246 "ns=1;i=46
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=46" ESTOPStation4Pressed false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 247 "ns=1;i=45
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=45" ESTOPStation3Pressed false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 248 "ns=1;i=44
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=44" PLCLowBattery false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 249 "ns=1;i=43
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=43" Drive4NotInNetMode false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 250 "ns=1;i=42
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=42" Drive3NotInNetMode false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 251 "ns=1;i=41
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=41" Drive2NotInNetMode false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 252 "ns=1;i=40
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=40" Drive1NotInNetMode false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 253 "ns=1;i=39
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=39" Station2RunSwitchNotOFF false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 254 "ns=1;i=38
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=38" Station1RunSwitchNotOFF false Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 255 "ns=1;i=37
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=37" Station2SlotNotConfirmed false Boolean "05/28/26 21:56:12.0810000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 256 "ns=1;i=36
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=36" Station1SlotNotConfirmed true Boolean "05/28/26 21:56:12.0800000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 257 "ns=1;i=35
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=35" StatusBar 0 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 258 "ns=1;i=34
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=34" StatusBarTemp 0 Int16 "05/28/26 21:56:12.0770000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 259 "ns=1;i=33
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=33" BrakeControl false Boolean "05/28/26 21:56:12.0740000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 260 "ns=1;i=32
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=32" DrivesMRS true Boolean "05/28/26 21:56:12.0740000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 261 "ns=1;i=31
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=31" Station2Online false Boolean "05/28/26 21:56:12.0740000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 262 "ns=1;i=30
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=30" Station1Online true Boolean "05/28/26 21:56:12.0740000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 263 "ns=1;i=29
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=29" DrivesCommStatus true Boolean "05/28/26 21:56:12.0720000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 264 "ns=1;i=28
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=28" MCREnagaged true Boolean "05/28/26 21:56:12.0720000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 265 "ns=1;i=27
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=27" ConveyorReady true Boolean "05/28/26 21:56:12.0740000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 266 "ns=1;i=26
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=26" LoadStationHangerSensor false Boolean "05/28/26 21:56:12.0720000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 267 "ns=1;i=25
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=25" ConveyorHomeSensor false Boolean "05/28/26 21:56:12.0720000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 268 "ns=1;i=24
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=24" Station2EStop1Status true Boolean "05/28/26 21:56:12.0720000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 269 "ns=1;i=23
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=23" Station2LockoutButton false Boolean "05/28/26 21:56:12.0720000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 270 "ns=1;i=22
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=22" Station2ReverseJogButton false Boolean "05/28/26 21:56:12.0720000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 271 "ns=1;i=21
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=21" Station2ForwardJogButton false Boolean "05/28/26 21:56:12.0720000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 272 "ns=1;i=20
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=20" Station1EStop1Status true Boolean "05/28/26 21:56:12.0720000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 273 "ns=1;i=19
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=19" Station1LockoutButton false Boolean "05/28/26 21:56:12.0720000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 274 "ns=1;i=18
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=18" Station1ReverseJogButton false Boolean "05/28/26 21:56:12.0720000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  
+"" 275 "ns=1;i=17
+nsu=urn:Mitsubishi:FX5-OPC:215ab6b0-c7d9-42f9-bb51-7ee5a38ac64a;i=17" Station1ForwardJogButton false Boolean "05/28/26 21:56:12.0720000 EDT" "05/28/26 21:56:12.0720000 EDT" "GOOD (0x00000000) ""The operation succeeded."""  

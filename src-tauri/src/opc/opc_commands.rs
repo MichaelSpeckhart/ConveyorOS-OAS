@@ -100,4 +100,22 @@ pub fn check_opc_connection(opc_client: &OpcClient) -> bool {
     opc_client.is_connected()
 }
 
+pub async fn set_number_of_frames(opc_client: &OpcClient, num_frames: i16) -> Result<(), String> {
+    opc_client
+        .write_value(
+            ua::NodeId::numeric(1, 259),
+            DataValue::new(ua::Variant::scalar(ua::Int16::new(num_frames))),
+        )
+        .await
+        .map_err(|e| e.to_string())
+}
 
+pub async fn set_slots_per_frame(opc_client: &OpcClient, slots_per_frame: i16) -> Result<(), String> {
+    opc_client
+        .write_value(
+            ua::NodeId::numeric(1, 258),
+            DataValue::new(ua::Variant::scalar(ua::Int16::new(slots_per_frame))),
+        )
+        .await
+        .map_err(|e| e.to_string())
+}

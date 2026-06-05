@@ -100,13 +100,18 @@ pub fn run() {
 
             app.manage(AppState { opc: opc.clone(), hanger_detected: Arc::new(AtomicBool::new(false)), hanger_task: Arc::new(Mutex::new(None)) });
 
+            let opc_for_task = opc.clone();
             tauri::async_runtime::spawn(async move {
-                if let Err(e) = opc.connect().await {
+                if let Err(e) = opc_for_task.connect().await {
                     eprintln!("OPC connect failed: {e}");
                 }
-                opc.start_reconnect_loop();
+                opc_for_task.start_reconnect_loop();
             });
+            
+            let num_frames = i16::try_from(settings.frames.len()).unwrap();
 
+            opc::opc_commands::set_number_of_frames(&opc, num_frames);
+ 
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -121,6 +126,8 @@ pub fn run() {
             opc::opc_tauri_commands::get_target_slot_tauri,
             opc::opc_tauri_commands::slot_run_request_tauri,
             opc::opc_tauri_commands::subscribe_hanger_sensor,
+            opc::opc_tauri_commands::set_number_of_frames,
+            opc::opc_tauri_commands::set_slots_per_frame,
             tauri_commands::handle_scan_tauri,
             tauri_commands::ticket_exists_tauri,
             tauri_commands::count_occupied_slots_tauri,
