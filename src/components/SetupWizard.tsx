@@ -17,6 +17,7 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
     dbUser: "postgres",
     dbPassword: "",
     opcServerUrl: "opc.tcp://localhost:4840",
+    frames: [{ latches: 5, slots: Array(5).fill(true) }],
   });
   const [testingConnection, setTestingConnection] = useState(false);
   const [connectionResult, setConnectionResult] = useState<{ success: boolean; message: string } | null>(null);
