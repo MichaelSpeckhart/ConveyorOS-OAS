@@ -110,7 +110,10 @@ pub fn run() {
             
             let num_frames = i16::try_from(settings.frames.len()).unwrap();
 
-            opc::opc_commands::set_number_of_frames(&opc, num_frames);
+            let opc_for_frames = opc.clone();
+            tauri::async_runtime::spawn(async move {
+                let _ = opc::opc_commands::set_number_of_frames(&opc_for_frames, num_frames).await;
+            });
  
             Ok(())
         })
