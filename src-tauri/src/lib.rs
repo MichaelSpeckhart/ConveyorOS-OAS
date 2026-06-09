@@ -111,6 +111,7 @@ pub fn run() {
             let num_frames = i16::try_from(settings.frames.len()).unwrap();
 
             println!("Num frames: {num_frames}");
+            println!("Hello");
 
             let opc_for_frames = opc.clone();
             tauri::async_runtime::spawn(async move {
