@@ -1,4 +1,7 @@
-use conveyoros_oas_lib::{db::{connection::establish_connection, ticket_repo}, io::printer::{self, printer_details}};
+use conveyoros_oas_lib::{
+    db::{connection::establish_connection, ticket_repo},
+    io::printer::{self, printer_details},
+};
 
 #[test]
 pub fn test_simple_print() {
@@ -6,7 +9,7 @@ pub fn test_simple_print() {
 
     assert!(printer_details.is_err() == false);
 
-     use conveyoros_oas_lib::db::connection::set_database_url;
+    use conveyoros_oas_lib::db::connection::set_database_url;
 
     set_database_url("postgres://postgres:postgres123@localhost:5432/conveyor-app");
 

@@ -1,6 +1,3 @@
-
-
-
 #[tauri::command]
 pub fn read_file_cmd(path: String) -> Result<Vec<String>, String> {
     match crate::io::fileutils::read_file(path) {
@@ -8,5 +5,3 @@ pub fn read_file_cmd(path: String) -> Result<Vec<String>, String> {
         Err(err) => Err(err.to_string()),
     }
 }
-
-

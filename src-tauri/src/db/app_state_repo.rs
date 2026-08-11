@@ -15,10 +15,7 @@ impl AppStateRepo {
 
     pub fn set_last_used_slot(conn: &mut PgConnection, slot: i32) -> QueryResult<()> {
         diesel::update(app_state.filter(id.eq(1)))
-            .set((
-                last_used_slot.eq(slot),
-                updated_at.eq(diesel::dsl::now),
-            ))
+            .set((last_used_slot.eq(slot), updated_at.eq(diesel::dsl::now)))
             .execute(conn)?;
         Ok(())
     }

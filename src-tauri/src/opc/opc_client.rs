@@ -1,9 +1,18 @@
-use std::{collections::HashMap, sync::{Arc, atomic::{AtomicBool, Ordering}}, time::Duration};
-use tokio::{sync::{Mutex, broadcast}, task::JoinHandle};
+use std::{
+    collections::HashMap,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+    time::Duration,
+};
 use thiserror::Error;
+use tokio::{
+    sync::{broadcast, Mutex},
+    task::JoinHandle,
+};
 
 use open62541::{ua, AsyncClient};
-
 
 #[derive(Debug, Error)]
 pub enum OpcError {
@@ -50,10 +59,9 @@ impl OpcClient {
         }
     }
 
-    
     pub async fn connect(&self) -> Result<(), OpcError> {
-        let client = AsyncClient::new(&self.cfg.endpoint_url)
-            .map_err(|e| OpcError::Ua(format!("{e:?}")))?;
+        let client =
+            AsyncClient::new(&self.cfg.endpoint_url).map_err(|e| OpcError::Ua(format!("{e:?}")))?;
         let mut inner = self.inner.lock().await;
         inner.client = Some(Arc::new(client));
         self.connected_flag.store(true, Ordering::Relaxed);
@@ -71,7 +79,10 @@ impl OpcClient {
             .await
             .map_err(|e| OpcError::Ua(format!("{e:?}")))?;
 
-        Ok(dv.value().ok_or(OpcError::Ua("DataValue has no value".into()))?.clone())
+        Ok(dv
+            .value()
+            .ok_or(OpcError::Ua("DataValue has no value".into()))?
+            .clone())
     }
 
     pub async fn write_value(
@@ -85,12 +96,12 @@ impl OpcClient {
         };
 
         client
-            .write_value(&node_id, &value).await
+            .write_value(&node_id, &value)
+            .await
             .map_err(|e| OpcError::Ua(format!("{e:?}")))?;
 
         Ok(())
     }
-
 
     pub async fn subscribe_value(
         &self,

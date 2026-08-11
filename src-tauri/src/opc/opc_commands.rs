@@ -1,5 +1,8 @@
-use crate::opc::{ opc_client::OpcClient};
-use open62541::{ScalarValue, VariantValue, ua::{self, DataValue}};
+use crate::opc::opc_client::OpcClient;
+use open62541::{
+    ua::{self, DataValue},
+    ScalarValue, VariantValue,
+};
 use tauri::State;
 
 pub fn get_opc_client(opc_client: State<OpcClient>) -> OpcClient {
@@ -51,7 +54,7 @@ pub async fn slot_run_request(opc_client: &OpcClient, target_slot: i16) -> Resul
     {
         Ok(_) => Ok(()),
         Err(e) => Err(e.to_string()),
-    };   
+    };
 
     opc_client
         .write_value(
@@ -73,7 +76,7 @@ pub async fn set_target_slot(opc_client: &OpcClient, target_slot: i16) -> Result
     {
         Ok(_) => Ok(()),
         Err(e) => Err(e.to_string()),
-    }   
+    }
 }
 
 pub async fn get_target_slot(opc_client: &OpcClient) -> Result<ua::Variant, String> {
@@ -110,7 +113,10 @@ pub async fn set_number_of_frames(opc_client: &OpcClient, num_frames: i16) -> Re
         .map_err(|e| e.to_string())
 }
 
-pub async fn set_slots_per_frame(opc_client: &OpcClient, slots_per_frame: i16) -> Result<(), String> {
+pub async fn set_slots_per_frame(
+    opc_client: &OpcClient,
+    slots_per_frame: i16,
+) -> Result<(), String> {
     opc_client
         .write_value(
             ua::NodeId::numeric(1, 258),

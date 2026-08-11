@@ -1,4 +1,4 @@
-use escpos_rs::{Printer, PrinterProfile, command::Command};
+use escpos_rs::{command::Command, Printer, PrinterProfile};
 
 use crate::{
     model::{Garment, Ticket},
@@ -7,7 +7,11 @@ use crate::{
 
 // ── ESC/POS buffer builder ────────────────────────────────────────────────────
 
-pub fn ticket_to_vector(ticket: &Ticket, garments: &[Garment], template: &TicketTemplateConfig) -> Vec<u8> {
+pub fn ticket_to_vector(
+    ticket: &Ticket,
+    garments: &[Garment],
+    template: &TicketTemplateConfig,
+) -> Vec<u8> {
     let mut buf: Vec<u8> = Vec::new();
 
     // Initialize
@@ -40,7 +44,9 @@ pub fn ticket_to_vector(ticket: &Ticket, garments: &[Garment], template: &Ticket
                 buf.extend_from_slice(line.as_bytes());
                 if show_barcode {
                     // Center, HRI below, height 60, width 2
-                    buf.extend_from_slice(&[0x1B, 0x61, 0x01, 0x1D, 0x48, 0x02, 0x1D, 0x68, 60, 0x1D, 0x77, 2]);
+                    buf.extend_from_slice(&[
+                        0x1B, 0x61, 0x01, 0x1D, 0x48, 0x02, 0x1D, 0x68, 60, 0x1D, 0x77, 2,
+                    ]);
                     // Code128: GS k 73 <len> {B<data>
                     let code128_data = format!("{{B{}", value);
                     let data_bytes = code128_data.as_bytes();
@@ -55,7 +61,10 @@ pub fn ticket_to_vector(ticket: &Ticket, garments: &[Garment], template: &Ticket
                 buf.extend_from_slice(line.as_bytes());
             }
             "customerName" => {
-                let name = format!("{} {}", ticket.customer_first_name, ticket.customer_last_name);
+                let name = format!(
+                    "{} {}",
+                    ticket.customer_first_name, ticket.customer_last_name
+                );
                 let name = name.trim();
                 if !name.is_empty() {
                     let line = format!("{}: {}\n", field.label, name);
@@ -67,16 +76,25 @@ pub fn ticket_to_vector(ticket: &Ticket, garments: &[Garment], template: &Ticket
                 buf.extend_from_slice(line.as_bytes());
             }
             "dropoffDate" => {
-                let line = format!("{}: {}\n", field.label, ticket.invoice_dropoff_date.format("%m/%d/%Y"));
+                let line = format!(
+                    "{}: {}\n",
+                    field.label,
+                    ticket.invoice_dropoff_date.format("%m/%d/%Y")
+                );
                 buf.extend_from_slice(line.as_bytes());
             }
             "pickupDate" => {
-                let line = format!("{}: {}\n", field.label, ticket.invoice_pickup_date.format("%m/%d/%Y"));
+                let line = format!(
+                    "{}: {}\n",
+                    field.label,
+                    ticket.invoice_pickup_date.format("%m/%d/%Y")
+                );
                 buf.extend_from_slice(line.as_bytes());
             }
             "comments" => {
                 // Take the first non-empty comment from any garment on this ticket
-                let comment = garments.iter()
+                let comment = garments
+                    .iter()
                     .find(|g| !g.invoice_comments.is_empty())
                     .map(|g| g.invoice_comments.as_str())
                     .unwrap_or("");
@@ -114,7 +132,11 @@ pub fn ticket_to_vector(ticket: &Ticket, garments: &[Garment], template: &Ticket
 
 // ── Routing ───────────────────────────────────────────────────────────────────
 
-pub fn print_ticket(ticket: &Ticket, garments: &[Garment], printer_settings: &PrinterSettings) -> Result<(), String> {
+pub fn print_ticket(
+    ticket: &Ticket,
+    garments: &[Garment],
+    printer_settings: &PrinterSettings,
+) -> Result<(), String> {
     let data = ticket_to_vector(ticket, garments, &printer_settings.ticket_template);
     if printer_settings.connection_type == "usb" && !printer_settings.port_path.is_empty() {
         _send_escpos(&printer_settings.port_path, &data)
@@ -127,7 +149,9 @@ pub fn print_ticket(ticket: &Ticket, garments: &[Garment], printer_settings: &Pr
 fn parse_vid_pid(s: &str) -> Result<(u16, u16), String> {
     let parts: Vec<&str> = s.splitn(2, ':').collect();
     if parts.len() != 2 {
-        return Err(format!("Expected VID:PID format (e.g. 04b8:0202), got: {s}"));
+        return Err(format!(
+            "Expected VID:PID format (e.g. 04b8:0202), got: {s}"
+        ));
     }
     let vid = u16::from_str_radix(parts[0].trim(), 16)
         .map_err(|_| format!("Invalid vendor ID: {}", parts[0]))?;
@@ -152,7 +176,9 @@ fn _send_escpos(port_path: &str, data: &[u8]) -> Result<(), String> {
         let printer = Printer::new(profile)
             .map_err(|e| format!("Failed to connect to printer: {e}"))?
             .ok_or_else(|| format!("Printer {port_path} not found on USB. Make sure it is connected and powered on."))?;
-        return printer.raw(data).map_err(|e| format!("Failed to send data to printer: {e}"));
+        return printer
+            .raw(data)
+            .map_err(|e| format!("Failed to send data to printer: {e}"));
     }
 
     // IP address → TCP port 9100 (Epson/Star raw printing standard)
@@ -164,12 +190,17 @@ fn _send_escpos(port_path: &str, data: &[u8]) -> Result<(), String> {
         };
         use std::net::TcpStream;
         use std::time::Duration;
-        let mut stream = TcpStream::connect(&addr)
-            .map_err(|e| format!("Cannot connect to {addr}: {e}"))?;
-        stream.set_write_timeout(Some(Duration::from_secs(5)))
+        let mut stream =
+            TcpStream::connect(&addr).map_err(|e| format!("Cannot connect to {addr}: {e}"))?;
+        stream
+            .set_write_timeout(Some(Duration::from_secs(5)))
             .map_err(|e| format!("Timeout error: {e}"))?;
-        stream.write_all(data).map_err(|e| format!("Network write error: {e}"))?;
-        stream.flush().map_err(|e| format!("Network flush error: {e}"))?;
+        stream
+            .write_all(data)
+            .map_err(|e| format!("Network write error: {e}"))?;
+        stream
+            .flush()
+            .map_err(|e| format!("Network flush error: {e}"))?;
         return Ok(());
     }
 
@@ -184,7 +215,10 @@ fn _send_escpos(port_path: &str, data: &[u8]) -> Result<(), String> {
             .output()
             .map_err(|e| format!("lp command failed: {e}"))?;
         if !out.status.success() {
-            return Err(format!("lp error: {}", String::from_utf8_lossy(&out.stderr)));
+            return Err(format!(
+                "lp error: {}",
+                String::from_utf8_lossy(&out.stderr)
+            ));
         }
         return Ok(());
     }
@@ -194,7 +228,8 @@ fn _send_escpos(port_path: &str, data: &[u8]) -> Result<(), String> {
         .write(true)
         .open(port_path)
         .map_err(|e| format!("Cannot open {port_path}: {e}"))?;
-    file.write_all(data).map_err(|e| format!("Write error: {e}"))?;
+    file.write_all(data)
+        .map_err(|e| format!("Write error: {e}"))?;
     file.flush().map_err(|e| format!("Flush error: {e}"))?;
     Ok(())
 }
@@ -206,15 +241,26 @@ fn print_ticket_legacy(ticket_info: &Ticket) {
 
     let printer = match Printer::new(printer_details) {
         Ok(Some(p)) => p,
-        Ok(None) => { eprintln!("No printer was found"); return; }
-        Err(e)    => { eprintln!("Error connecting to printer: {}", e); return; }
+        Ok(None) => {
+            eprintln!("No printer was found");
+            return;
+        }
+        Err(e) => {
+            eprintln!("Error connecting to printer: {}", e);
+            return;
+        }
     };
 
-    let sep  = "--------------------------------";
+    let sep = "--------------------------------";
     let dsep = "================================";
 
     macro_rules! send {
-        ($e:expr) => { if let Err(e) = $e { eprintln!("Printer error: {}", e); return; } };
+        ($e:expr) => {
+            if let Err(e) = $e {
+                eprintln!("Printer error: {}", e);
+                return;
+            }
+        };
     }
 
     send!(printer.raw(&[0x1b, 0x61, 0x01]));
@@ -227,21 +273,36 @@ fn print_ticket_legacy(ticket_info: &Ticket) {
     send!(printer.raw(&Command::BoldOn.as_bytes()));
     send!(printer.println(format!("Invoice: #{}", ticket_info.display_invoice_number)));
     send!(printer.raw(&Command::BoldOff.as_bytes()));
-    send!(printer.println(format!("Drop-off: {}", ticket_info.invoice_dropoff_date.format("%m/%d/%Y"))));
-    send!(printer.println(format!("Pick-up:  {}", ticket_info.invoice_pickup_date.format("%m/%d/%Y"))));
+    send!(printer.println(format!(
+        "Drop-off: {}",
+        ticket_info.invoice_dropoff_date.format("%m/%d/%Y")
+    )));
+    send!(printer.println(format!(
+        "Pick-up:  {}",
+        ticket_info.invoice_pickup_date.format("%m/%d/%Y")
+    )));
     send!(printer.println(sep));
 
     send!(printer.raw(&Command::BoldOn.as_bytes()));
     send!(printer.println("CUSTOMER"));
     send!(printer.raw(&Command::BoldOff.as_bytes()));
-    send!(printer.println(format!("{} {}", ticket_info.customer_first_name, ticket_info.customer_last_name)));
+    send!(printer.println(format!(
+        "{} {}",
+        ticket_info.customer_first_name, ticket_info.customer_last_name
+    )));
     send!(printer.println(ticket_info.customer_phone_number.clone()));
     send!(printer.println(sep));
 
     send!(printer.println(format!("Items:     {}", ticket_info.number_of_items)));
-    send!(printer.println(format!("Processed: {}/{}", ticket_info.garments_processed, ticket_info.number_of_items)));
+    send!(printer.println(format!(
+        "Processed: {}/{}",
+        ticket_info.garments_processed, ticket_info.number_of_items
+    )));
     send!(printer.raw(&Command::BoldOn.as_bytes()));
-    send!(printer.println(format!("Status:    {}", ticket_info.ticket_status.to_uppercase())));
+    send!(printer.println(format!(
+        "Status:    {}",
+        ticket_info.ticket_status.to_uppercase()
+    )));
     send!(printer.raw(&Command::BoldOff.as_bytes()));
 
     send!(printer.raw(&Command::BoldOn.as_bytes()));

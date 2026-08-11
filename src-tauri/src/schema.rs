@@ -22,12 +22,40 @@ diesel::table! {
 }
 
 diesel::table! {
+    customer_details (id) {
+        id -> Int4,
+        customer_identifier -> Varchar,
+        pos_source -> Varchar,
+        address_one -> Nullable<Varchar>,
+        address_two -> Nullable<Varchar>,
+        city -> Nullable<Varchar>,
+        state -> Nullable<Varchar>,
+        zip_code -> Nullable<Varchar>,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     customers (id) {
         id -> Int4,
         customer_identifier -> Varchar,
         first_name -> Varchar,
         last_name -> Varchar,
         phone_number -> Varchar,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
+    garment_details (id) {
+        id -> Int4,
+        item_id -> Varchar,
+        pos_source -> Varchar,
+        service_price -> Nullable<Varchar>,
+        service_type -> Nullable<Varchar>,
+        garment_color -> Nullable<Varchar>,
+        transaction_date -> Nullable<Varchar>,
+        transaction_time -> Nullable<Varchar>,
         created_at -> Timestamp,
     }
 }
@@ -71,6 +99,20 @@ diesel::table! {
 }
 
 diesel::table! {
+    ticket_details (id) {
+        id -> Int4,
+        full_invoice_number -> Varchar,
+        pos_source -> Varchar,
+        plant -> Nullable<Varchar>,
+        route -> Nullable<Varchar>,
+        store -> Nullable<Varchar>,
+        transaction_date -> Nullable<Varchar>,
+        transaction_time -> Nullable<Varchar>,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     tickets (id) {
         id -> Int4,
         full_invoice_number -> Varchar,
@@ -103,10 +145,13 @@ diesel::joinable!(sessions -> users (user_id));
 diesel::allow_tables_to_appear_in_same_query!(
     app_state,
     conveyoractivity,
+    customer_details,
     customers,
+    garment_details,
     garments,
     sessions,
     slots,
+    ticket_details,
     tickets,
     users,
 );

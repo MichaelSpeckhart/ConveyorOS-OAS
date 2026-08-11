@@ -1,9 +1,12 @@
 // src/models.rs
-use diesel::{prelude::*};
 use chrono::NaiveDateTime;
+use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::schema::{app_state, conveyoractivity, customers, garments, sessions, slots, tickets, users};
+use crate::schema::{
+    app_state, conveyoractivity, customer_details, customers, garment_details, garments,
+    sessions, slots, ticket_details, tickets, users,
+};
 
 //
 // CUSTOMERS
@@ -35,6 +38,36 @@ pub struct NewCustomer {
     pub last_name: String,
     pub phone_number: String,
     // created_at will be set by DB default
+}
+
+//
+// CUSTOMER DETAILS (optional, POS-source-specific customer attributes)
+//
+
+#[derive(Debug, Queryable, Identifiable, Serialize)]
+#[diesel(table_name = customer_details)]
+pub struct CustomerDetails {
+    pub id: i32,
+    pub customer_identifier: String,
+    pub pos_source: String,
+    pub address_one: Option<String>,
+    pub address_two: Option<String>,
+    pub city: Option<String>,
+    pub state: Option<String>,
+    pub zip_code: Option<String>,
+    pub created_at: NaiveDateTime,
+}
+
+#[derive(Debug, Insertable, AsChangeset, Deserialize)]
+#[diesel(table_name = customer_details)]
+pub struct NewCustomerDetails {
+    pub customer_identifier: String,
+    pub pos_source: String,
+    pub address_one: Option<String>,
+    pub address_two: Option<String>,
+    pub city: Option<String>,
+    pub state: Option<String>,
+    pub zip_code: Option<String>,
 }
 
 //
@@ -73,6 +106,36 @@ pub struct NewTicket {
     pub invoice_pickup_date: NaiveDateTime,
     pub ticket_status: String,
     // created_at from DB default
+}
+
+//
+// TICKET DETAILS (optional, POS-source-specific ticket attributes)
+//
+
+#[derive(Debug, Queryable, Identifiable, Serialize)]
+#[diesel(table_name = ticket_details)]
+pub struct TicketDetails {
+    pub id: i32,
+    pub full_invoice_number: String,
+    pub pos_source: String,
+    pub plant: Option<String>,
+    pub route: Option<String>,
+    pub store: Option<String>,
+    pub transaction_date: Option<String>,
+    pub transaction_time: Option<String>,
+    pub created_at: NaiveDateTime,
+}
+
+#[derive(Debug, Insertable, AsChangeset, Deserialize, Clone)]
+#[diesel(table_name = ticket_details)]
+pub struct NewTicketDetails {
+    pub full_invoice_number: String,
+    pub pos_source: String,
+    pub plant: Option<String>,
+    pub route: Option<String>,
+    pub store: Option<String>,
+    pub transaction_date: Option<String>,
+    pub transaction_time: Option<String>,
 }
 
 //
@@ -179,6 +242,36 @@ pub struct NewGarment {
     pub garment_state: String,
 }
 
+//
+// GARMENT DETAILS (optional, POS-source-specific garment attributes)
+//
+
+#[derive(Debug, Queryable, Identifiable, Serialize)]
+#[diesel(table_name = garment_details)]
+pub struct GarmentDetails {
+    pub id: i32,
+    pub item_id: String,
+    pub pos_source: String,
+    pub service_price: Option<String>,
+    pub service_type: Option<String>,
+    pub garment_color: Option<String>,
+    pub transaction_date: Option<String>,
+    pub transaction_time: Option<String>,
+    pub created_at: NaiveDateTime,
+}
+
+#[derive(Debug, Insertable, AsChangeset, Deserialize)]
+#[diesel(table_name = garment_details)]
+pub struct NewGarmentDetails {
+    pub item_id: String,
+    pub pos_source: String,
+    pub service_price: Option<String>,
+    pub service_type: Option<String>,
+    pub garment_color: Option<String>,
+    pub transaction_date: Option<String>,
+    pub transaction_time: Option<String>,
+}
+
 #[derive(Debug, Queryable, Identifiable, Serialize)]
 #[diesel(table_name = slots)]
 #[diesel(primary_key(slot_number))]
@@ -242,7 +335,7 @@ pub struct UpdateTicket {
     pub garments_processed: Option<i32>,
     pub number_of_items: Option<i32>,
     pub invoice_pickup_date: chrono::NaiveDateTime,
-    pub ticket_status: Option<String>
+    pub ticket_status: Option<String>,
 }
 
 pub struct OperatorStats {
@@ -301,5 +394,5 @@ pub struct NewConveyorActivity {
 // #[derive(Debug, Queryable, Identifiable, Serialize, AsChangeset)]
 // #[diesel(table_name = conveyorinventory)]
 // pub struct ConveyorInventory {
-//     pub 
+//     pub
 // }

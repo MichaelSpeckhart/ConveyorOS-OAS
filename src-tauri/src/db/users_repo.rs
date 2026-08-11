@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 
-use crate::model::{User, NewUser};
+use crate::model::{NewUser, User};
 use crate::schema::users::dsl::*;
 
 pub fn count_users(conn: &mut PgConnection) -> QueryResult<i64> {
@@ -11,11 +11,15 @@ pub fn find_by_pin(conn: &mut PgConnection, pint_input: &str) -> QueryResult<Use
     users.filter(pin.eq(pint_input)).first::<User>(conn)
 }
 
-pub fn create_user(conn: &mut PgConnection, username_input: &str, pin_input: &str) -> QueryResult<User> {
+pub fn create_user(
+    conn: &mut PgConnection,
+    username_input: &str,
+    pin_input: &str,
+) -> QueryResult<User> {
     let new_user = NewUser {
         username: username_input.to_string(),
         pin: pin_input.to_string(),
-        is_admin: 0
+        is_admin: 0,
     };
 
     diesel::insert_into(users)
@@ -24,7 +28,9 @@ pub fn create_user(conn: &mut PgConnection, username_input: &str, pin_input: &st
 }
 
 pub fn find_by_username(conn: &mut PgConnection, username_input: &str) -> QueryResult<User> {
-    users.filter(username.eq(username_input)).first::<User>(conn)
+    users
+        .filter(username.eq(username_input))
+        .first::<User>(conn)
 }
 
 pub fn get_all_users(conn: &mut PgConnection) -> QueryResult<Vec<User>> {

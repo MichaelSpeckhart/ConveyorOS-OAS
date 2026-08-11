@@ -8,7 +8,10 @@ pub struct FrameConfig {
 
 impl FrameConfig {
     fn default_frame() -> Self {
-        Self { latches: 5, slots: vec![true; 5] }
+        Self {
+            latches: 5,
+            slots: vec![true; 5],
+        }
     }
 }
 
@@ -26,6 +29,26 @@ pub struct FieldMappings {
     pub customer_last_name: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub customer_phone: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub address_one: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub address_two: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub city: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub state: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub zip_code: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub service_price: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub service_type: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub garment_color: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub transaction_date: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub transaction_time: Option<u32>,
     pub full_invoice_number: u32,
     pub display_invoice_number: u32,
     pub num_items: u32,
@@ -45,6 +68,16 @@ impl Default for FieldMappings {
             customer_first_name: Some(8),
             customer_last_name: Some(7),
             customer_phone: Some(9),
+            address_one: None,
+            address_two: None,
+            city: None,
+            state: None,
+            zip_code: None,
+            service_price: None,
+            service_type: None,
+            garment_color: None,
+            transaction_date: None,
+            transaction_time: None,
             full_invoice_number: 1,
             display_invoice_number: 2,
             num_items: 3,
@@ -54,6 +87,47 @@ impl Default for FieldMappings {
             dropoff_date: 12,
             pickup_date: 13,
             comments: 14,
+        }
+    }
+}
+
+impl FieldMappings {
+    /// Column layout for Wincleaners' GARMENT_CREATE rows:
+    /// TransactionCode, CustomerID, TicketNumber, GarmentID, GarmentDescription,
+    /// ServicePrice, ServiceType, GarmentColor, TransactionDate, TransactionTime.
+    pub fn wincleaners_default() -> Self {
+        Self {
+            customer_identifier: 1,
+            customer_first_name: None,
+            customer_last_name: None,
+            customer_phone: None,
+            address_one: None,
+            address_two: None,
+            city: None,
+            state: None,
+            zip_code: None,
+            service_price: Some(5),
+            service_type: Some(6),
+            garment_color: Some(7),
+            transaction_date: Some(8),
+            transaction_time: Some(9),
+            full_invoice_number: 2,
+            display_invoice_number: 2,
+            // num_items and slot_occupancy aren't read from the row for Wincleaners
+            // (see pos::wincleaners::handle_garment_create); values here are unused.
+            num_items: 0,
+            slot_occupancy: 0,
+            item_id: 3,
+            item_description: 4,
+            // dropoff_date is derived from transaction_date/transaction_time instead
+            // of a dedicated column; this value is unused.
+            dropoff_date: 0,
+            // pickup_date is read positionally out of TICKET_CREATE rows, not via this
+            // mapping; this value is unused.
+            pickup_date: 0,
+            // No comments column in this layout; point past the row so it safely
+            // falls back to an empty string.
+            comments: u32::MAX,
         }
     }
 }
@@ -82,14 +156,54 @@ impl Default for TicketTemplateConfig {
             header_text: String::new(),
             footer_text: String::new(),
             fields: vec![
-                TicketField { id: "ticketNumber".into(),       label: "Ticket Number".into(),    enabled: true,  show_barcode: Some(true)  },
-                TicketField { id: "customerIdentifier".into(), label: "Customer ID".into(),      enabled: true,  show_barcode: None         },
-                TicketField { id: "customerName".into(),       label: "Customer Name".into(),    enabled: true,  show_barcode: None         },
-                TicketField { id: "numItems".into(),           label: "Number of Items".into(),  enabled: true,  show_barcode: None         },
-                TicketField { id: "dropoffDate".into(),        label: "Drop-off Date".into(),    enabled: true,  show_barcode: None         },
-                TicketField { id: "pickupDate".into(),         label: "Pickup Date".into(),      enabled: true,  show_barcode: None         },
-                TicketField { id: "comments".into(),           label: "Notes / Comments".into(), enabled: false, show_barcode: None         },
-                TicketField { id: "itemList".into(),           label: "Garment List".into(),     enabled: true,  show_barcode: Some(false)  },
+                TicketField {
+                    id: "ticketNumber".into(),
+                    label: "Ticket Number".into(),
+                    enabled: true,
+                    show_barcode: Some(true),
+                },
+                TicketField {
+                    id: "customerIdentifier".into(),
+                    label: "Customer ID".into(),
+                    enabled: true,
+                    show_barcode: None,
+                },
+                TicketField {
+                    id: "customerName".into(),
+                    label: "Customer Name".into(),
+                    enabled: true,
+                    show_barcode: None,
+                },
+                TicketField {
+                    id: "numItems".into(),
+                    label: "Number of Items".into(),
+                    enabled: true,
+                    show_barcode: None,
+                },
+                TicketField {
+                    id: "dropoffDate".into(),
+                    label: "Drop-off Date".into(),
+                    enabled: true,
+                    show_barcode: None,
+                },
+                TicketField {
+                    id: "pickupDate".into(),
+                    label: "Pickup Date".into(),
+                    enabled: true,
+                    show_barcode: None,
+                },
+                TicketField {
+                    id: "comments".into(),
+                    label: "Notes / Comments".into(),
+                    enabled: false,
+                    show_barcode: None,
+                },
+                TicketField {
+                    id: "itemList".into(),
+                    label: "Garment List".into(),
+                    enabled: true,
+                    show_barcode: Some(false),
+                },
             ],
         }
     }
@@ -114,11 +228,21 @@ pub struct PrinterSettings {
     pub ticket_template: TicketTemplateConfig,
 }
 
-fn default_paper_size() -> String { "Letter".to_string() }
-fn default_orientation() -> String { "portrait".to_string() }
-fn default_quality() -> String { "normal".to_string() }
-fn default_copies() -> u32 { 1 }
-fn default_color_mode() -> String { "grayscale".to_string() }
+fn default_paper_size() -> String {
+    "Letter".to_string()
+}
+fn default_orientation() -> String {
+    "portrait".to_string()
+}
+fn default_quality() -> String {
+    "normal".to_string()
+}
+fn default_copies() -> u32 {
+    1
+}
+fn default_color_mode() -> String {
+    "grayscale".to_string()
+}
 
 impl Default for PrinterSettings {
     fn default() -> Self {

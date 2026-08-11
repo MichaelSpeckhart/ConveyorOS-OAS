@@ -6,9 +6,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 pub fn run_db_migrations(conn: &mut PgConnection) -> Result<(), String> {
     // Need to run this in a separate thread to avoid blocking the main thread, which can cause UI freezes
 
-    
     conn.run_pending_migrations(MIGRATIONS)
         .map(|_| ())
         .map_err(|e| e.to_string())
 }
-

@@ -157,7 +157,7 @@ export default function App() {
         onLogout={() => setShowLogoutConfirm(true)}
       >
         {active === "dashboard" && <Home onNavigate={setActive} />}
-        {active === "scan" && <GarmentScanningPage onOpenRecall={() => setActive("recall")} sessionId={sessionId} />}
+        {active === "scan" && <GarmentScanningPage onOpenRecall={() => setActive("recall")} sessionId={sessionId} username={user.username} />}
         {active === "recall" && <RecallData />}
         {active === "data" && <DataPage />}
         {active === "operator-data" && <OperatorData />}

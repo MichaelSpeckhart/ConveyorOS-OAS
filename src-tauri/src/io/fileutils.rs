@@ -1,7 +1,9 @@
-use std::{fs::{self, File}, io::{self, BufRead, BufReader}};
 use std::path::Path;
 use std::string::String;
-
+use std::{
+    fs::{self, File},
+    io::{self, BufRead, BufReader},
+};
 
 // Read file utility method
 // NB: Could impl struct "Reader" with different reading
@@ -20,7 +22,7 @@ pub fn read_file(file_name: impl AsRef<Path>) -> io::Result<Vec<String>> {
     let mut lines = Vec::new();
 
     for line in reader.lines() {
-        let line = line?;      // line: String
+        let line = line?; // line: String
         lines.push(line);
     }
 
@@ -63,4 +65,3 @@ pub fn delete_file(file_path: impl AsRef<Path>) -> io::Result<()> {
     fs::remove_file(file_path)?;
     Ok(())
 }
-

@@ -1,7 +1,7 @@
 use diesel::prelude::*;
 
 use crate::db::connection::establish_connection;
-use crate::schema::{customers, tickets, garments};
+use crate::schema::{customers, garments, tickets};
 
 #[derive(serde::Serialize, Queryable)]
 pub struct CustomerRow {
@@ -53,7 +53,8 @@ pub fn data_list_customers(query: Option<String>) -> Result<Vec<CustomerRow>, St
         let pat = format!("%{}%", search.trim());
 
         q = q.filter(
-            customers::first_name.ilike(pat.clone())
+            customers::first_name
+                .ilike(pat.clone())
                 .or(customers::last_name.ilike(pat.clone()))
                 .or(customers::phone_number.ilike(pat.clone()))
                 .or(customers::customer_identifier.ilike(pat)),
@@ -66,7 +67,6 @@ pub fn data_list_customers(query: Option<String>) -> Result<Vec<CustomerRow>, St
         .map_err(|e| e.to_string())
 }
 
-
 #[tauri::command]
 pub fn data_list_all_tickets(query: Option<String>) -> Result<Vec<TicketRow>, String> {
     let mut conn = establish_connection()?;
@@ -76,7 +76,8 @@ pub fn data_list_all_tickets(query: Option<String>) -> Result<Vec<TicketRow>, St
         let pat = format!("%{}%", search.trim());
 
         q = q.filter(
-            tickets::display_invoice_number.ilike(pat.clone())
+            tickets::display_invoice_number
+                .ilike(pat.clone())
                 .or(tickets::customer_first_name.ilike(pat.clone()))
                 .or(tickets::customer_last_name.ilike(pat.clone()))
                 .or(tickets::customer_phone_number.ilike(pat.clone()))
@@ -91,7 +92,9 @@ pub fn data_list_all_tickets(query: Option<String>) -> Result<Vec<TicketRow>, St
 }
 
 #[tauri::command]
-pub fn data_list_tickets_for_customer(customer_identifier: String) -> Result<Vec<TicketRow>, String> {
+pub fn data_list_tickets_for_customer(
+    customer_identifier: String,
+) -> Result<Vec<TicketRow>, String> {
     let mut conn = establish_connection()?;
 
     tickets::table
@@ -103,7 +106,9 @@ pub fn data_list_tickets_for_customer(customer_identifier: String) -> Result<Vec
 }
 
 #[tauri::command]
-pub fn data_list_garments_for_ticket(full_invoice_number: String) -> Result<Vec<GarmentRow>, String> {
+pub fn data_list_garments_for_ticket(
+    full_invoice_number: String,
+) -> Result<Vec<GarmentRow>, String> {
     let mut conn = establish_connection()?;
 
     garments::table

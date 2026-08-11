@@ -42,6 +42,11 @@ export type TicketAckData = {
   garmentCount: number;
 };
 
+/** Operators scan ahead of the conveyor, so pending scans buffer here. */
+const MAX_QUEUE = 8;
+/** Barcode guns commonly double-fire; ignore a repeat of the same code inside this window. */
+const DUPLICATE_WINDOW_MS = 2000;
+
 export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
   const [state, setState] = useState<ScanState>("waiting");
   const [lastScan, setLastScan] = useState<string | null>(null);
@@ -55,11 +60,20 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
   const [slotMapData, setSlotMapData] = useState<Slot[]>([]);
   const [ticketAckOpen, setTicketAckOpen] = useState(false);
   const [ticketAckData, setTicketAckData] = useState<TicketAckData | null>(null);
+  const [scanQueue, setScanQueue] = useState<string[]>([]);
+  const [activeScan, setActiveScan] = useState<string | null>(null);
+  const [queueRejected, setQueueRejected] = useState(false);
 
   const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isScanningRef = useRef(false);
   const nextResolveRef = useRef<(() => void) | null>(null);
   const ticketAckResolveRef = useRef<(() => void) | null>(null);
+
+  // The queue is mirrored in a ref so enqueue/pump read the live value without
+  // depending on a state flush, and in state so the UI can render it.
+  const queueRef = useRef<string[]>([]);
+  const pumpingRef = useRef(false);
+  const lastEnqueuedRef = useRef<{ code: string; at: number } | null>(null);
+  const rejectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const conveyorCapacity = slotStats ? Math.round(slotStats.capacity_percentage) : "—";
 
@@ -108,6 +122,11 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
     setSlotMapData(occupied);
   };
 
+  useEffect(() => () => {
+    if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+    if (rejectTimeoutRef.current) clearTimeout(rejectTimeoutRef.current);
+  }, []);
+
   useEffect(() => {
     refreshSlotStats();
     if (sessionId) {
@@ -151,6 +170,12 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
   };
 
   const handleClearAndReset = async () => {
+    // Pending scans refer to garments that are about to be taken off the
+    // conveyor, so they must not survive the clear.
+    queueRef.current = [];
+    setScanQueue([]);
+    lastEnqueuedRef.current = null;
+
     await handleClearConveyor();
     await refreshSlotStats();
     setCustomerInfo(null);
@@ -159,17 +184,78 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
     setState("waiting");
   };
 
-  const handleScan = async (value: string) => {
-    if (isScanningRef.current) return;
-    isScanningRef.current = true;
+  const flashError = () => {
+    if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+    setState("error");
+    errorTimeoutRef.current = setTimeout(() => setState("waiting"), 1500);
+  };
 
+  /**
+   * Accepts a scan immediately and buffers it. Operators scan the next garment
+   * while the conveyor is still travelling for the previous one, so this must
+   * never block and never silently drop a code.
+   */
+  const enqueueScan = (value: string) => {
+    const code = value.trim();
+    if (!code) return;
+
+    if (code.length < 4) {
+      flashError();
+      return;
+    }
+
+    const now = Date.now();
+    const last = lastEnqueuedRef.current;
+    if (last && last.code === code && now - last.at < DUPLICATE_WINDOW_MS) return;
+
+    // Already waiting its turn — a second trigger of the same code is a misfire.
+    if (queueRef.current.includes(code)) return;
+
+    if (queueRef.current.length >= MAX_QUEUE) {
+      if (rejectTimeoutRef.current) clearTimeout(rejectTimeoutRef.current);
+      setQueueRejected(true);
+      rejectTimeoutRef.current = setTimeout(() => setQueueRejected(false), 2500);
+      return;
+    }
+
+    lastEnqueuedRef.current = { code, at: now };
+    queueRef.current = [...queueRef.current, code];
+    setScanQueue(queueRef.current);
+    void pumpQueue();
+  };
+
+  /**
+   * Drains the queue one garment at a time. Serial by design: the conveyor can
+   * only travel to one slot at a time, and processScan already waits on the
+   * hanger sensor, so the next garment never starts moving while the operator
+   * still has hands on the current one.
+   */
+  const pumpQueue = async () => {
+    if (pumpingRef.current) return;
+    pumpingRef.current = true;
+
+    try {
+      while (queueRef.current.length > 0) {
+        const [next, ...rest] = queueRef.current;
+        queueRef.current = rest;
+        setScanQueue(rest);
+        setActiveScan(next);
+
+        // processScan handles its own failures, so one bad code can't abort the drain.
+        await processScan(next);
+      }
+    } finally {
+      setActiveScan(null);
+      pumpingRef.current = false;
+    }
+  };
+
+  const processScan = async (value: string) => {
     try {
       const code = value.trim();
 
       if (!code || code.length < 4) {
-        if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
-        setState("error");
-        errorTimeoutRef.current = setTimeout(() => setState("waiting"), 1500);
+        flashError();
         return;
       }
 
@@ -366,8 +452,10 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
       } else {
         setState("error");
       }
-    } finally {
-      isScanningRef.current = false;
+    } catch (err) {
+      // Never let one bad garment stall the queue behind it.
+      console.error("Scan processing failed:", err);
+      flashError();
     }
   };
 
@@ -385,7 +473,10 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
     conveyorCapacity,
     ticketAckOpen,
     ticketAckData,
-    handleScan,
+    scanQueue,
+    activeScan,
+    queueRejected,
+    handleScan: enqueueScan,
     handleClearAndReset,
     handleNextClear,
     handleTicketAck,

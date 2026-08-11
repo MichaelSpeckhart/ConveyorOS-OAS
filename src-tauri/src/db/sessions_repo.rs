@@ -1,18 +1,27 @@
+use chrono::NaiveDate;
 use diesel::prelude::*;
-use chrono::{NaiveDate};
 
 use crate::model::{NewSession, Session};
 use crate::schema::sessions;
 use crate::schema::sessions::dsl::*;
 
-pub fn close_active_sessions_for_user(conn: &mut PgConnection, user_id_val: i32) -> QueryResult<usize> {
-    diesel::update(sessions.filter(user_id.eq(user_id_val)).filter(logout_at.is_null()))
-        .set(logout_at.eq(diesel::dsl::now))
-        .execute(conn)
+pub fn close_active_sessions_for_user(
+    conn: &mut PgConnection,
+    user_id_val: i32,
+) -> QueryResult<usize> {
+    diesel::update(
+        sessions
+            .filter(user_id.eq(user_id_val))
+            .filter(logout_at.is_null()),
+    )
+    .set(logout_at.eq(diesel::dsl::now))
+    .execute(conn)
 }
 
 pub fn create_session(conn: &mut PgConnection, user_id_val: i32) -> QueryResult<Session> {
-    let new_session = NewSession { user_id: user_id_val };
+    let new_session = NewSession {
+        user_id: user_id_val,
+    };
     diesel::insert_into(sessions::table)
         .values(new_session)
         .get_result(conn)
@@ -38,7 +47,7 @@ pub fn increment_tickets(conn: &mut PgConnection, session_id: i32) -> QueryResul
 
 pub fn get_weekly_stats(conn: &mut PgConnection) -> QueryResult<Vec<(i32, i64)>> {
     use diesel::dsl::sql;
-    use diesel::sql_types::{Integer, BigInt};
+    use diesel::sql_types::{BigInt, Integer};
 
     sessions
         .select((
@@ -49,9 +58,13 @@ pub fn get_weekly_stats(conn: &mut PgConnection) -> QueryResult<Vec<(i32, i64)>>
         .load::<(i32, i64)>(conn)
 }
 
-pub fn get_sessions_start_end(conn: &mut PgConnection, start_date: NaiveDate, end_date: NaiveDate) -> QueryResult<Vec<Session>> {
+pub fn get_sessions_start_end(
+    conn: &mut PgConnection,
+    start_date: NaiveDate,
+    end_date: NaiveDate,
+) -> QueryResult<Vec<Session>> {
     use diesel::dsl::sql;
-    use diesel::sql_types::{Date};
+    use diesel::sql_types::Date;
 
     sessions
         .filter(sql::<Date>("DATE(login_at)").ge(start_date))
@@ -80,7 +93,10 @@ pub fn get_session_by_id(conn: &mut PgConnection, session_id: i32) -> QueryResul
         .optional()
 }
 
-pub fn get_existing_session_today(conn: &mut PgConnection, user_id_val: i32) -> QueryResult<Option<Session>> {
+pub fn get_existing_session_today(
+    conn: &mut PgConnection,
+    user_id_val: i32,
+) -> QueryResult<Option<Session>> {
     use diesel::dsl::sql;
     use diesel::sql_types::Date;
     let today = chrono::Local::now().date_naive();

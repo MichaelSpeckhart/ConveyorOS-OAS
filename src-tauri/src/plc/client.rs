@@ -1,13 +1,13 @@
-use tokio_modbus::prelude::*;
 use tokio_modbus::client::tcp;
+use tokio_modbus::prelude::*;
 
-const IP_ADDRESS: &str = "192.168.1.210"; 
+const IP_ADDRESS: &str = "192.168.1.210";
 const MODBUS_PORT: u16 = 502;
 const UNIT_ID: u8 = 1; // Modbus slave ID configured on PLC
 
 // Adjust these to match your Modbus mapping in GX Works3
 const REG_D116: u16 = 116; // holding register for D116
-const COIL_M5: u16 = 5;    // coil for M5
+const COIL_M5: u16 = 5; // coil for M5
 
 async fn make_modbus_ctx() -> Result<tokio_modbus::client::Context, String> {
     let socket_addr = format!("{IP_ADDRESS}:{MODBUS_PORT}")
@@ -23,8 +23,6 @@ async fn make_modbus_ctx() -> Result<tokio_modbus::client::Context, String> {
 
 pub async fn read_d116_modbus_internal() -> Result<i16, String> {
     let mut ctx = make_modbus_ctx().await?;
-
-
 
     // Read 1 holding register
     let _regs = ctx
@@ -68,14 +66,14 @@ pub async fn write_m5_modbus(state: bool) -> Result<(), String> {
 
     let mut ctx = make_modbus_ctx().await?;
 
-    let _ = ctx.write_single_coil(COIL_M5, true)
+    let _ = ctx
+        .write_single_coil(COIL_M5, true)
         .await
         .map_err(|e| format!("Modbus write M5 failed: {e}"))
         .map_err(|e| e)?;
 
     Ok(())
 }
-
 
 // This is the function Tauri will expose to the frontend:
 #[tauri::command]

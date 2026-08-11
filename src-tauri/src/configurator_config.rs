@@ -37,7 +37,10 @@ pub struct ConfiguratorDirs {
 pub fn read_dirs() -> Result<ConfiguratorDirs, String> {
     let path = config_path()?;
     if !path.exists() {
-        return Err(format!("Configurator config not found at {}", path.display()));
+        return Err(format!(
+            "Configurator config not found at {}",
+            path.display()
+        ));
     }
     let data = std::fs::read_to_string(&path)
         .map_err(|e| format!("Failed to read Configurator config: {e}"))?;
@@ -62,7 +65,10 @@ pub fn read_dirs() -> Result<ConfiguratorDirs, String> {
             .into_owned()
     };
 
-    Ok(ConfiguratorDirs { pos_csv_path, output_directory: output_dir })
+    Ok(ConfiguratorDirs {
+        pos_csv_path,
+        output_directory: output_dir,
+    })
 }
 
 #[tauri::command]

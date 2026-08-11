@@ -2,7 +2,6 @@ use diesel::prelude::*;
 use std::sync::RwLock;
 //add logging
 
-
 static DATABASE_URL: RwLock<String> = RwLock::new(String::new());
 
 /// Set the database URL (called from setup and save_settings)
@@ -14,10 +13,7 @@ pub fn set_database_url(url: &str) {
 /// Establish connection to Postgres DB
 pub fn establish_connection() -> Result<PgConnection, String> {
     //let app_handler = app.
-    let database_url = DATABASE_URL
-        .read()
-        .unwrap()
-        .clone();
+    let database_url = DATABASE_URL.read().unwrap().clone();
 
     if database_url.is_empty() {
         return Err("Database URL not configured".to_string());

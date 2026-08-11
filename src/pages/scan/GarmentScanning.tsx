@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import garmentRecallIcon from "../../assets/GarmentRecall.png";
+import { GarmentRail, Hanger, LaundryTag, RailUnload } from "../../components/icons/DryCleaningIcons";
 import GarmentKeyboard from "../../components/GarmentKeyboard";
 import TicketAckModal from "../../components/scan/TicketAckModal";
 import ClearConveyorModal from "../../components/scan/ClearConveyorModal";
@@ -19,26 +19,26 @@ const STATE_STYLE: Record<ScanState, { bg: string; text: string; title: string; 
   removegarment:   { bg: "bg-red-600",     text: "text-white",      title: "REMOVE GARMENT",             subtitle: "Please remove garments from conveyor" },
 };
 
+// Capacity is "—" until slot stats load, which gets the neutral treatment.
+function capacityStyle(pct: number | string): { color: string; border: string } {
+  if (typeof pct !== "number") return { color: "text-slate-900", border: "" };
+  if (pct >= 80) return { color: "text-red-600",   border: "border-b-[6px] border-red-500"   };
+  if (pct >= 50) return { color: "text-amber-600", border: "border-b-[6px] border-amber-500" };
+  return { color: "text-green-600", border: "border-b-[6px] border-green-500" };
+}
+
 export default function GarmentScanner({
   onOpenRecall,
   sessionId,
+  username,
 }: {
   onOpenRecall?: () => void;
   sessionId?: number | null;
+  username?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [barcode, setBarcode] = useState("");
   const [keypadOpen, setKeypadOpen] = useState(false);
-  const [hangerCount, setHangerCount] = useState(0);
-
-  useEffect(() => {
-    let unlisten: (() => void) | null = null;
-    invoke("subscribe_hanger_sensor").catch(console.error);
-    listen<boolean>("hanger_sensor", (e) => {
-      if (e.payload === true) setHangerCount((c) => c + 1);
-    }).then((fn) => { unlisten = fn; });
-    return () => { unlisten?.(); };
-  }, []);
   const [manualCode, setManualCode] = useState("");
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
@@ -58,6 +58,8 @@ export default function GarmentScanner({
     conveyorCapacity,
     ticketAckOpen,
     ticketAckData,
+    scanQueue,
+    queueRejected,
     handleScan,
     handleClearAndReset,
     handleNextClear,
@@ -80,13 +82,32 @@ export default function GarmentScanner({
   const handleOpenSlotMap = async () => { await openSlotMap(); setSlotMapOpen(true); };
   const closeSlotMap = () => { setSlotMapOpen(false); setTimeout(() => inputRef.current?.focus(), 0); };
 
-  const submitManual = async () => { await handleScan(manualCode); closeKeypad(); };
+  // Enqueueing is synchronous now, so the keypad closes immediately instead of
+  // hanging until the conveyor finishes travelling.
+  const submitManual = () => { handleScan(manualCode); closeKeypad(); };
 
   return (
-    <div className="flex-1 bg-surface grid grid-rows-[32vh,1fr,104px] p-5 gap-5 overflow-hidden h-full min-h-0">
+    <div className="flex-1 bg-surface grid grid-rows-[32vh,1fr,132px] p-5 gap-5 overflow-hidden h-full min-h-0">
 
       {/* Status hero */}
       <div className={`relative flex flex-col items-center justify-center rounded-3xl shadow-xl transition-all duration-300 ${STATE_STYLE[state].bg} ${STATE_STYLE[state].text}`}>
+
+        {/* Queue indicator — confirms a scan landed even though the conveyor is busy */}
+        {scanQueue.length > 0 && (
+          <div className="absolute top-5 left-5 bg-black/15 border border-black/5 backdrop-blur-md rounded-xl px-4 py-2 flex items-center gap-3">
+            <Hanger size={24} />
+            <span className="text-3xl font-black tabular-nums leading-none">{scanQueue.length}</span>
+            <span className="text-sm font-black uppercase tracking-widest opacity-80 leading-none">
+              Queued
+            </span>
+          </div>
+        )}
+
+        {queueRejected && (
+          <div className="absolute bottom-5 left-5 bg-black/25 border border-white/20 rounded-xl px-4 py-2">
+            <span className="text-sm font-black uppercase tracking-widest">Queue full — hang a garment first</span>
+          </div>
+        )}
 
         {/* Options dropdown */}
         <div className="absolute top-5 right-5">
@@ -104,34 +125,11 @@ export default function GarmentScanner({
               <div className="fixed inset-0 z-40" onClick={() => setOptionsOpen(false)} />
               <div className="absolute right-0 top-full mt-2 z-50 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden min-w-[200px]">
                 <button
-                  onClick={() => { setOptionsOpen(false); onOpenRecall?.(); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-50 font-bold text-sm text-left"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-                  </svg>
-                  Recall
-                </button>
-                <div className="border-t border-slate-100" />
-                <button
                   onClick={() => { setOptionsOpen(false); handleOpenSlotMap(); }}
                   className="w-full flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-50 font-bold text-sm text-left"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-                  </svg>
+                  <GarmentRail size={19} />
                   Slot Map
-                </button>
-                <div className="border-t border-slate-100" />
-                <button
-                  onClick={() => { setOptionsOpen(false); openClear(); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 font-bold text-sm text-left"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/>
-                  </svg>
-                  Clear Conveyor
                 </button>
               </div>
             </>
@@ -202,33 +200,52 @@ export default function GarmentScanner({
               <GarmentList garments={garments} lastScan={lastScan} />
             </div>
           ) : (
-            <div className="bg-white border-2 border-dashed border-[#ddd8d0] rounded-3xl h-full flex items-center justify-center">
+            <div className="bg-white border-2 border-dashed border-[#ddd8d0] rounded-3xl h-full flex flex-col items-center justify-center gap-4">
+              <Hanger size={72} strokeWidth={1.5} className="text-slate-200" />
               <span className="text-4xl text-slate-300 font-black uppercase tracking-tighter">Ready for next garment</span>
             </div>
           )}
         </div>
 
-        <SlotDisplay garments={garments} lastScan={lastScan} />
+        <div className="flex flex-col gap-3 min-h-0">
+          <div className="flex-1 min-h-0">
+            <SlotDisplay garments={garments} lastScan={lastScan} />
+          </div>
+          <ScanQueue queue={scanQueue} />
+        </div>
       </div>
 
       {/* Stats + manual entry */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr,240px] gap-3 h-full min-h-0">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr,364px] gap-3 h-full min-h-0">
         <div className="grid grid-cols-4 gap-3 h-full">
           <StatBox label="Tickets Completed" value={ticketsCompleted} color="text-green-600" border="border-b-[6px] border-green-500" />
           <StatBox label="Garments Scanned"  value={scanCount}        color="text-blue-600"  border="border-b-[6px] border-blue-500"  />
-          <StatBox label="Conveyor Capacity"  value={conveyorCapacity} color="text-slate-900" suffix="%" />
-          <StatBox label="Hangers Detected"  value={hangerCount}      color="text-purple-600" border="border-b-[6px] border-purple-500" />
+          <StatBox label="Conveyor Capacity"  value={conveyorCapacity} suffix="%" {...capacityStyle(conveyorCapacity)} />
+          <StatBox label="Operator"          value={username ?? "—"}  color="text-purple-600" border="border-b-[6px] border-purple-500" valueSize="text-3xl" />
         </div>
-        <button
-          onClick={openKeypad}
-          className="flex flex-col items-center justify-center gap-1 bg-white hover:bg-[#f0ede8] text-slate-700 rounded-xl transition-all active:scale-95 shadow-sm border border-[#ddd8d0] h-full"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect width="18" height="18" x="3" y="3" rx="2" />
-            <path d="M7 7h.01M12 7h.01M17 7h.01M7 12h.01M12 12h.01M17 12h.01M7 17h.01M12 17h.01M17 17h.01" />
-          </svg>
-          <span className="font-black uppercase tracking-tighter text-sm">Manual Entry</span>
-        </button>
+        <div className="flex items-stretch gap-3 h-full">
+          <button
+            onClick={openKeypad}
+            className="flex-1 flex flex-col items-center justify-center gap-1.5 bg-white hover:bg-[#f0ede8] text-slate-700 rounded-2xl transition-all active:scale-95 shadow-sm border border-[#ddd8d0] h-full"
+          >
+            <LaundryTag size={30} />
+            <span className="font-black uppercase tracking-tighter text-sm">Manual Entry</span>
+          </button>
+          <button
+            onClick={() => onOpenRecall?.()}
+            className="flex-1 flex flex-col items-center justify-center gap-1.5 bg-white hover:bg-[#f0ede8] text-slate-700 rounded-2xl transition-all active:scale-95 shadow-sm border border-[#ddd8d0] h-full"
+          >
+            <img src={garmentRecallIcon} alt="" draggable={false} className="h-[30px] w-[30px] object-contain pointer-events-none" />
+            <span className="font-black uppercase tracking-tighter text-sm">Recall</span>
+          </button>
+          <button
+            onClick={openClear}
+            className="flex-1 flex flex-col items-center justify-center gap-1.5 bg-white hover:bg-red-50 text-red-600 rounded-2xl transition-all active:scale-95 shadow-sm border border-[#ddd8d0] h-full"
+          >
+            <RailUnload size={30} />
+            <span className="font-black uppercase tracking-tighter text-sm leading-tight text-center">Clear<br />Conveyor</span>
+          </button>
+        </div>
       </div>
 
       {/* Modals */}
@@ -274,6 +291,37 @@ function GarmentList({ garments, lastScan }: { garments: GarmentRow[]; lastScan:
   );
 }
 
+/** Garments scanned ahead of the conveyor, in the order they'll be racked. */
+function ScanQueue({ queue }: { queue: string[] }) {
+  if (queue.length === 0) return null;
+
+  const shown = queue.slice(0, 3);
+
+  return (
+    <div className="bg-white border border-[#ddd8d0] rounded-3xl shadow-sm p-4 flex-shrink-0">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs uppercase tracking-widest text-slate-400 font-bold">Up Next</span>
+        <span className="text-2xl font-black text-slate-900 leading-none tabular-nums">{queue.length}</span>
+      </div>
+      <div className="flex flex-col gap-2">
+        {shown.map((code, i) => (
+          <div key={code} className="flex items-center gap-2.5">
+            <span className="w-7 h-7 rounded-lg bg-slate-100 text-slate-500 text-sm font-black grid place-items-center shrink-0 tabular-nums">
+              {i + 1}
+            </span>
+            <span className="font-mono text-sm text-slate-700 truncate">{code}</span>
+          </div>
+        ))}
+        {queue.length > shown.length && (
+          <span className="text-xs text-slate-400 font-bold pl-[38px]">
+            +{queue.length - shown.length} more
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SlotDisplay({ garments, lastScan }: { garments: GarmentRow[]; lastScan: string | null }) {
   const current = garments.find((g) => g.item_id === lastScan);
   if (current) {
@@ -300,17 +348,19 @@ function StatBox({
   color,
   border = "",
   suffix = "",
+  valueSize = "text-5xl",
 }: {
   label: string;
   value: number | string;
   color: string;
   border?: string;
   suffix?: string;
+  valueSize?: string;
 }) {
   return (
     <div className={`bg-white rounded-xl p-3 shadow-sm border border-[#ddd8d0] flex flex-col justify-center items-center ${border}`}>
       <span className="text-slate-900 text-base font-black uppercase tracking-widest mb-1">{label}</span>
-      <span className={`text-5xl font-black tracking-tighter ${color}`}>{value}{suffix}</span>
+      <span className={`${valueSize} font-black tracking-tighter ${color} max-w-full truncate`}>{value}{suffix}</span>
     </div>
   );
 }

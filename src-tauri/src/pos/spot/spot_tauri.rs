@@ -1,6 +1,5 @@
 use crate::{
-    io::fileutils::read_file,
-    pos::spot::spot_file_utils::parse_spot_csv_core,
+    io::fileutils::read_file, pos::spot::spot_file_utils::parse_spot_csv_core,
     settings::appsettings::FieldMappings,
 };
 

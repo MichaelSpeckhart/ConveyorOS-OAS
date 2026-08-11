@@ -1,8 +1,7 @@
+use crate::db::{app_state_repo::AppStateRepo, slot_repo::SlotRepo};
+use crate::model::Slot;
 use diesel::prelude::*;
 use serde::Serialize;
-use crate::db::{slot_repo::SlotRepo, app_state_repo::AppStateRepo};
-use crate::model::Slot;
-
 
 #[derive(Serialize)]
 pub struct SlotManagerStats {
@@ -30,17 +29,11 @@ impl SlotManagerStats {
     }
 }
 
-
 pub struct SlotManager;
 
 impl SlotManager {
-
-    pub fn reserve_next_slot(
-        conn: &mut PgConnection,
-        ticket: Option<&str>,
-    ) -> Result<i32, String> {
+    pub fn reserve_next_slot(conn: &mut PgConnection, ticket: Option<&str>) -> Result<i32, String> {
         conn.transaction::<i32, diesel::result::Error, _>(|conn| {
-
             if let Some(t) = ticket {
                 if let Some(existing) = SlotRepo::find_ticket_slot(conn, t)? {
                     if existing.slot_state != "blocked" && existing.slot_state != "error" {
@@ -52,8 +45,8 @@ impl SlotManager {
             let empties = Self::list_empty_slots(conn)?;
             let occupied = Self::list_occupied_slot_numbers(conn)?;
 
-            let chosen = Self::pick_spread(&empties, &occupied)
-                .ok_or(diesel::result::Error::NotFound)?;
+            let chosen =
+                Self::pick_spread(&empties, &occupied).ok_or(diesel::result::Error::NotFound)?;
 
             for _ in 0..10 {
                 if SlotRepo::try_reserve(conn, chosen, ticket)? {
@@ -77,12 +70,7 @@ impl SlotManager {
         .map_err(|e| format!("No available slots: {e}"))
     }
 
-
-    pub fn free_slot(
-        conn: &mut PgConnection,
-        slot_number: i32,
-    ) -> diesel::QueryResult<()> {
-
+    pub fn free_slot(conn: &mut PgConnection, slot_number: i32) -> diesel::QueryResult<()> {
         SlotRepo::free_slot(conn, slot_number)
     }
 
@@ -126,19 +114,15 @@ impl SlotManager {
             return empties.first().map(|s| s.slot_number);
         }
 
-        let candidate = empties.iter().find(|s| {
-            occupied.iter().all(|&o| (s.slot_number - o).abs() >= 5)
-        });
+        let candidate = empties
+            .iter()
+            .find(|s| occupied.iter().all(|&o| (s.slot_number - o).abs() >= 5));
 
         // Fall back to first available if no 5-apart slot exists.
-        candidate
-            .or_else(|| empties.first())
-            .map(|s| s.slot_number)
+        candidate.or_else(|| empties.first()).map(|s| s.slot_number)
     }
 
-    pub fn get_number_occupied_slots(
-        conn: &mut PgConnection,
-    ) -> diesel::QueryResult<i64> {
+    pub fn get_number_occupied_slots(conn: &mut PgConnection) -> diesel::QueryResult<i64> {
         use crate::schema::slots::dsl::*;
         slots
             .filter(slot_state.ne("empty"))
@@ -146,9 +130,7 @@ impl SlotManager {
             .get_result::<i64>(conn)
     }
 
-    pub fn get_occupied_slots(
-        conn: &mut PgConnection,
-    ) -> diesel::QueryResult<Vec<Slot>> {
+    pub fn get_occupied_slots(conn: &mut PgConnection) -> diesel::QueryResult<Vec<Slot>> {
         use crate::schema::slots::dsl::*;
         slots
             .filter(slot_state.ne("empty"))
@@ -156,12 +138,8 @@ impl SlotManager {
             .load::<Slot>(conn)
     }
 
-    pub fn get_total_slots(
-        conn: &mut PgConnection,
-    ) -> diesel::QueryResult<i64> {
+    pub fn get_total_slots(conn: &mut PgConnection) -> diesel::QueryResult<i64> {
         use crate::schema::slots::dsl::*;
-        slots
-            .count()
-            .get_result::<i64>(conn)
+        slots.count().get_result::<i64>(conn)
     }
 }

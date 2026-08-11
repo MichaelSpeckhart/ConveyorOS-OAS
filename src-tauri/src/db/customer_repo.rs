@@ -1,9 +1,8 @@
 use diesel::prelude::*;
 
 use crate::model::{Customer, NewCustomer};
-use crate::schema::{customers};
+use crate::schema::customers;
 use crate::schema::customers::dsl::*;
-
 
 pub fn count_customers(conn: &mut PgConnection) -> QueryResult<i64> {
     customers::table.count().get_result(conn)
@@ -11,7 +10,7 @@ pub fn count_customers(conn: &mut PgConnection) -> QueryResult<i64> {
 
 pub fn create_customer(
     conn: &mut PgConnection,
-    new_customer: NewCustomer
+    new_customer: NewCustomer,
 ) -> QueryResult<Customer> {
     diesel::insert_into(customers::table)
         .values(new_customer)
@@ -20,7 +19,8 @@ pub fn create_customer(
 
 pub fn delete_customer(conn: &mut PgConnection, identifier_to_delete: &str) -> Result<(), String> {
     let deleted = diesel::delete(customers.filter(customer_identifier.eq(identifier_to_delete)))
-        .execute(conn).map_err(|e| e.to_string())?;
+        .execute(conn)
+        .map_err(|e| e.to_string())?;
 
     if deleted == 0 {
         Err("Customer not found".to_string())
@@ -34,10 +34,13 @@ pub fn contains_customer_identifier(conn: &mut PgConnection, identifier: &str) -
         .filter(customer_identifier.eq(identifier))
         .select(customer_identifier)
         .first::<String>(conn)
-        .is_ok()            
+        .is_ok()
 }
 
-pub fn get_customer_by_identifier(conn: &mut PgConnection, identifier: &str) -> Result<Customer, String> {
+pub fn get_customer_by_identifier(
+    conn: &mut PgConnection,
+    identifier: &str,
+) -> Result<Customer, String> {
     customers
         .filter(customer_identifier.eq(identifier))
         .first::<Customer>(conn)

@@ -22,7 +22,10 @@ pub fn create_garment(conn: &mut PgConnection, new_garment: NewGarment) -> Resul
         return Err("Garment with this item_id already exists".to_string());
     }
 
-    diesel::insert_into(garments::table).values(new_garment).get_result(conn).map_err(|_| "Error creating garment".to_string())
+    diesel::insert_into(garments::table)
+        .values(new_garment)
+        .get_result(conn)
+        .map_err(|_| "Error creating garment".to_string())
 }
 
 pub fn get_garment(conn: &mut PgConnection, item_identifier: &str) -> Result<Garment, String> {
@@ -32,7 +35,10 @@ pub fn get_garment(conn: &mut PgConnection, item_identifier: &str) -> Result<Gar
         .map_err(|e| e.to_string())
 }
 
-pub fn list_garments_for_ticket(conn: &mut PgConnection, invoice_number: &str) -> Result<Vec<Garment>, String> {
+pub fn list_garments_for_ticket(
+    conn: &mut PgConnection,
+    invoice_number: &str,
+) -> Result<Vec<Garment>, String> {
     garments
         .filter(full_invoice_number.eq(invoice_number))
         .order(id.asc())
@@ -50,11 +56,14 @@ pub fn delete_garment(conn: &mut PgConnection, item_identifier: &str) -> Result<
         .map_err(|e| e.to_string())
 }
 
-pub fn update_garment_slot(conn: &mut PgConnection, barcode: &str, slot_num: i32) -> Result<(), String> {
+pub fn update_garment_slot(
+    conn: &mut PgConnection,
+    barcode: &str,
+    slot_num: i32,
+) -> Result<(), String> {
     diesel::update(garments.filter(item_id.eq(barcode)))
         .set(slot_number.eq(slot_num))
         .execute(conn)
         .map(|_| ())
         .map_err(|e| e.to_string())
 }
-

@@ -1,26 +1,38 @@
-use std::sync::{Arc, atomic::AtomicBool};
-
+use std::sync::{atomic::AtomicBool, Arc};
+use tauri_plugin_log::{Target, TargetKind};
 use tauri::Manager;
 use tokio::sync::Mutex;
 
-use crate::{db::{connection::{establish_connection, set_database_url}, data::{data_list_all_tickets, data_list_customers, data_list_garments_for_ticket, data_list_tickets_for_customer}, db_migrations::run_db_migrations}, io::fileutils::read_file, opc::opc_client::{AppState, OpcClient, OpcConfig}, pos::{spot::spot_file_utils::parse_spot_csv_core, wincleaners::parse_wincleaners_csv_core}, settings::{load_settings, appsettings::AppSettings}};
+use crate::{
+    db::{
+        connection::{establish_connection, set_database_url},
+        data::{
+            data_list_all_tickets, data_list_customers, data_list_garments_for_ticket,
+            data_list_tickets_for_customer,
+        },
+        db_migrations::run_db_migrations,
+    },
+    io::fileutils::read_file,
+    opc::opc_client::{AppState, OpcClient, OpcConfig},
+    pos::{spot::spot_file_utils::parse_spot_csv_core, wincleaners::parse_wincleaners_csv_core},
+    settings::{appsettings::AppSettings, load_settings},
+};
 
-pub mod plc;
-pub mod io;
-pub mod entity;
-pub mod pos;
-pub mod db;
-pub mod schema;
-pub mod model;
-pub mod domain;
-pub mod tauri_commands;
-pub mod settings;
-pub mod opc;
-pub mod slot_manager;
-pub mod result;
 pub mod admin;
 pub mod configurator_config;
-
+pub mod db;
+pub mod domain;
+pub mod entity;
+pub mod io;
+pub mod model;
+pub mod opc;
+pub mod plc;
+pub mod pos;
+pub mod result;
+pub mod schema;
+pub mod settings;
+pub mod slot_manager;
+pub mod tauri_commands;
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -29,10 +41,15 @@ fn greet(name: &str) -> String {
 
 pub fn run() {
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .level(tauri_plugin_log::log::LevelFilter::Info)
+                .build(),
+        )
         .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
-
             let app_handle = app.handle();
 
             let settings = load_settings(&app_handle);
@@ -52,12 +69,21 @@ pub fn run() {
             // Resolve POS dirs: prefer Configurator config, fall back to OAS settings
             let (pos_csv_path, output_dir) = match crate::configurator_config::read_dirs() {
                 Ok(dirs) => {
-                    println!("POS dirs from Configurator: csv={:?}, output={:?}", dirs.pos_csv_path, dirs.output_directory);
+                    println!(
+                        "POS dirs from Configurator: csv={:?}, output={:?}",
+                        dirs.pos_csv_path, dirs.output_directory
+                    );
                     (dirs.pos_csv_path, dirs.output_directory)
                 }
                 Err(e) => {
-                    println!("Configurator config unavailable ({}); using OAS settings", e);
-                    (settings.posCsvDir.clone(), settings.conveyorCsvOutputDir.clone())
+                    println!(
+                        "Configurator config unavailable ({}); using OAS settings",
+                        e
+                    );
+                    (
+                        settings.posCsvDir.clone(),
+                        settings.conveyorCsvOutputDir.clone(),
+                    )
                 }
             };
 
@@ -70,7 +96,6 @@ pub fn run() {
 
             match establish_connection() {
                 Ok(mut conn) => {
-
                     std::thread::spawn(move || {
                         if let Err(e) = run_db_migrations(&mut conn) {
                             eprintln!("Failed to run database migrations: {}", e);
@@ -87,7 +112,6 @@ pub fn run() {
                 }
             }
 
-
             // start file watch
             async_watch(watch_settings);
 
@@ -98,7 +122,11 @@ pub fn run() {
 
             println!("OPC Client initialized");
 
-            app.manage(AppState { opc: opc.clone(), hanger_detected: Arc::new(AtomicBool::new(false)), hanger_task: Arc::new(Mutex::new(None)) });
+            app.manage(AppState {
+                opc: opc.clone(),
+                hanger_detected: Arc::new(AtomicBool::new(false)),
+                hanger_task: Arc::new(Mutex::new(None)),
+            });
 
             let opc_for_task = opc.clone();
             tauri::async_runtime::spawn(async move {
@@ -107,17 +135,16 @@ pub fn run() {
                 }
                 opc_for_task.start_reconnect_loop();
             });
-            
+
             let num_frames = i16::try_from(settings.frames.len()).unwrap();
 
-            println!("Num frames: {num_frames}");
-            println!("Hello");
+            log::error!("Hello");
 
             let opc_for_frames = opc.clone();
             tauri::async_runtime::spawn(async move {
                 let _ = opc::opc_commands::set_number_of_frames(&opc_for_frames, num_frames).await;
             });
- 
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -185,9 +212,8 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
-
 pub fn async_watch(settings: AppSettings) {
-    let csv_dir =  crate::settings::pos_csv_dir(&settings);
+    let csv_dir = crate::settings::pos_csv_dir(&settings);
 
     tauri::async_runtime::spawn(async move {
         if csv_dir.is_empty() {
@@ -222,7 +248,7 @@ pub fn async_watch(settings: AppSettings) {
 
             let parse_result = match settings.posSystem.as_str() {
                 "wincleaners" => parse_wincleaners_csv_core(&contents, &settings.fieldMappings),
-                _             => parse_spot_csv_core(&contents, &settings.fieldMappings),
+                _ => parse_spot_csv_core(&contents, &settings.fieldMappings),
             };
 
             match parse_result {
@@ -231,12 +257,16 @@ pub fn async_watch(settings: AppSettings) {
                 }
                 Err(e) => {
                     println!("[FileWatch] ERROR parsing CSV: {}", e);
+                    log::error!("[FileWatch] Error parsing CSV: {}", e);
                     println!("[FileWatch] File NOT deleted due to parse error");
                     continue;
                 }
             }
 
-            println!("[FileWatch] Removing processed file: {}", csv_path.display());
+            println!(
+                "[FileWatch] Removing processed file: {}",
+                csv_path.display()
+            );
             if let Err(e) = std::fs::remove_file(csv_path) {
                 println!("[FileWatch] ERROR removing file: {}", e);
             } else {

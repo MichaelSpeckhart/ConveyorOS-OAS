@@ -10,7 +10,11 @@ pub fn check_file_exists() -> bool {
 
 #[test]
 pub fn test_file_existence() {
-    assert!(check_file_exists(), "Test file does not exist: {}", TEST_FILE_PATH);
+    assert!(
+        check_file_exists(),
+        "Test file does not exist: {}",
+        TEST_FILE_PATH
+    );
 }
 
 #[test]
@@ -20,7 +24,7 @@ pub fn test_empty_file() {
     match spot_file_utils::parse_spot_csv_core(&contents) {
         Ok(_) => {
             panic!("Expected error for empty file, but got Ok");
-        },
+        }
         Err(e) => {
             assert_eq!(e, "EMPTY_FILE", "Expected EMPTY_FILE error, got {}", e);
         }
@@ -39,7 +43,7 @@ pub fn test_delete_item() {
         Ok(count) => {
             println!("Parsed {} operations successfully.", count);
             assert_eq!(count, 1, "Expected to parse exactly one operation.");
-        },
+        }
         Err(e) => {
             panic!("Failed to parse spot CSV file: {}", e);
         }

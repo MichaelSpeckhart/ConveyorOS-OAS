@@ -1,19 +1,29 @@
-use std::{fmt, str::FromStr};
-use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Local};
+use serde::{Deserialize, Serialize};
+use std::{fmt, str::FromStr};
 
 use crate::pos::spot;
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 
 pub enum add_item_errors {
-    EmptyField { field: &'static str },
-    InvalidValue { field: &'static str, reason: &'static str },
+    EmptyField {
+        field: &'static str,
+    },
+    InvalidValue {
+        field: &'static str,
+        reason: &'static str,
+    },
 }
 
 pub enum delete_item_errors {
-    EmptyField { field: &'static str },
-    InvalidValue { field: &'static str, reason: &'static str },
+    EmptyField {
+        field: &'static str,
+    },
+    InvalidValue {
+        field: &'static str,
+        reason: &'static str,
+    },
 }
 
 impl fmt::Display for add_item_errors {
@@ -45,21 +55,20 @@ pub enum spot_ops_types {
     DeleteItem,
     AddInvoice,
     DeleteInvoice,
-    Default
+    Default,
 }
 
 impl fmt::Display for spot_ops_types {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            spot_ops_types::AddItem => write!(f, "ADDITEM"), 
-            spot_ops_types::DeleteItem => write!(f, "DELITEM"), 
+            spot_ops_types::AddItem => write!(f, "ADDITEM"),
+            spot_ops_types::DeleteItem => write!(f, "DELITEM"),
             spot_ops_types::AddInvoice => write!(f, "ADDINV"),
             spot_ops_types::DeleteInvoice => write!(f, "DELINV"),
-            spot_ops_types::Default => write!(f, "UNSUPPORTED")
+            spot_ops_types::Default => write!(f, "UNSUPPORTED"),
         }
     }
 }
-
 
 impl FromStr for spot_ops_types {
     type Err = ();
@@ -74,7 +83,6 @@ impl FromStr for spot_ops_types {
         }
     }
 }
-
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AddItemOp {
@@ -92,18 +100,17 @@ pub struct AddItemOp {
     pub item_descriptions: String,
     pub invoice_dropoff_date: DateTime<Local>,
     pub invoice_promised_date: DateTime<Local>,
-    pub invoice_comments: String
+    pub invoice_comments: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct DeleteItemOp {
     pub op_type: spot_ops_types,
     pub full_invoice_number: String,
-    pub item_id: String
+    pub item_id: String,
 }
 
-
-/// Add Invoice Operation 
+/// Add Invoice Operation
 /// Defined in Xplor SPOT Conveyor CSV Documentation.
 /// Add or update invoice in Conveyor database
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -118,7 +125,7 @@ pub struct AddInvoiceOp {
     pub customer_first_name: String,
     pub customer_last_name: String,
     pub customer_phone_number: String,
-    pub customer_pin: String
+    pub customer_pin: String,
 }
 
 /// Delete Invoice Operation
@@ -134,4 +141,3 @@ pub struct DeleteInvoiceOp {
     pub full_invoice_number: String,
     pub unload_point_number: String,
 }
-

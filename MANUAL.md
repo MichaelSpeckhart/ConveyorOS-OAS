@@ -10,8 +10,8 @@
 
 1. [Overview](#1-overview)
 2. [System Requirements](#2-system-requirements)
-3. [First-Time Setup](#3-first-time-setup)
-4. [User Guide — Non-Technical](#4-user-guide--non-technical)
+<!--3. [First-Time Setup](#3-first-time-setup) -->
+3. [User Guide — Non-Technical](#4-user-guide--non-technical)
    - 4.1 [Logging In](#41-logging-in)
    - 4.2 [Dashboard](#42-dashboard)
    - 4.3 [Scanning Garments](#43-scanning-garments)
@@ -20,11 +20,11 @@
    - 4.6 [Viewing Data (Customers, Orders, Garments)](#46-viewing-data)
    - 4.7 [Clearing the Conveyor](#47-clearing-the-conveyor)
    - 4.8 [Logging Out](#48-logging-out)
-5. [Manager / Admin Guide](#5-manager--admin-guide)
+4. [Manager / Admin Guide](#5-manager--admin-guide)
    - 5.1 [Creating Operators](#51-creating-operators)
    - 5.2 [Operator Performance Data](#52-operator-performance-data)
    - 5.3 [Slot & Occupancy Monitoring](#53-slot--occupancy-monitoring)
-6. [Technical Reference — IT & Administrators](#6-technical-reference--it--administrators)
+<!--6. [Technical Reference — IT & Administrators](#6-technical-reference--it--administrators)
    - 6.1 [Architecture Overview](#61-architecture-overview)
    - 6.2 [Technology Stack](#62-technology-stack)
    - 6.3 [Database Schema](#63-database-schema)
@@ -35,13 +35,13 @@
    - 6.8 [Session & Authentication Model](#68-session--authentication-model)
    - 6.9 [Database Migrations](#69-database-migrations)
    - 6.10 [Build & Deployment](#610-build--deployment)
-   - 6.11 [Log Files & Troubleshooting](#611-log-files--troubleshooting)
-7. [Workflows — End-to-End](#7-workflows--end-to-end)
+   - 6.11 [Log Files & Troubleshooting](#611-log-files--troubleshooting) -->
+5. [Workflows — End-to-End](#7-workflows--end-to-end)
    - 7.1 [Order Scanning Workflow](#71-order-scanning-workflow)
    - 7.2 [CSV Order Import Workflow](#72-csv-order-import-workflow)
    - 7.3 [Conveyor Clearing Workflow](#73-conveyor-clearing-workflow)
-8. [Roles & Permissions Reference](#8-roles--permissions-reference)
-9. [Glossary](#9-glossary)
+6. [Roles & Permissions Reference](#8-roles--permissions-reference)
+7. [Glossary](#9-glossary)
 
 ---
 
@@ -97,7 +97,7 @@ ConveyorOS OAS (Order Assembly System) is a desktop/kiosk application designed f
 
 ---
 
-## 3. First-Time Setup
+<!--## 3. First-Time Setup
 
 The first time ConveyorOS OAS is launched with no prior configuration, a **Setup Wizard** will appear automatically. You must complete all three steps before the application will open normally.
 
@@ -128,7 +128,7 @@ The first time ConveyorOS OAS is launched with no prior configuration, a **Setup
 
 After completing the wizard, the app restarts into the **Login** screen and prompts you to create the first administrator account.
 
----
+--- -->
 
 ## 4. User Guide — Non-Technical
 
@@ -214,6 +214,8 @@ You can manually reprint a ticket at any time from the **Print Tickets** screen.
 2. Search by customer name, phone number, or invoice number.
 3. Select the order from the results.
 4. Click **Print**.
+
+> **Important:** If a printer is not connected, an error will appear on the screen. To connect a printer, refer to section:
 
 ---
 
@@ -312,7 +314,7 @@ You can click any slot to view which ticket and garment are assigned to it.
 
 ---
 
-## 6. Technical Reference — IT & Administrators
+<!--## 6. Technical Reference — IT & Administrators
 
 This section is intended for **IT personnel, system integrators, and software engineers** responsible for installation, maintenance, and integration of ConveyorOS OAS.
 
@@ -727,7 +729,7 @@ npm run tauri build
 | Migration error on startup | Insufficient database permissions | Grant `CREATE`, `ALTER`, `INSERT`, `SELECT` to the database user |
 | CSV not being imported | Watcher path incorrect or file permissions | Verify `posCsvDir` is the exact directory; check read permissions |
 
----
+--->
 
 ## 7. Workflows — End-to-End
 

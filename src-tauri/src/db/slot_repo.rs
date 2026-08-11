@@ -9,7 +9,10 @@ pub struct SlotRepo;
 impl SlotRepo {
     pub fn get(conn: &mut PgConnection, num: i32) -> QueryResult<Option<Slot>> {
         use crate::schema::slots::dsl::*;
-        slots.filter(slot_number.eq(num)).first::<Slot>(conn).optional()
+        slots
+            .filter(slot_number.eq(num))
+            .first::<Slot>(conn)
+            .optional()
     }
 
     pub fn list_all(conn: &mut PgConnection) -> QueryResult<Vec<Slot>> {
@@ -44,10 +47,7 @@ impl SlotRepo {
         Ok(count > 0)
     }
 
-    pub fn free_slot(
-        conn: &mut PgConnection,
-        slot_number_val: i32,
-    ) -> QueryResult<()> {
+    pub fn free_slot(conn: &mut PgConnection, slot_number_val: i32) -> QueryResult<()> {
         use crate::schema::slots::dsl::*;
 
         diesel::update(slots.filter(slot_number.eq(slot_number_val)))
