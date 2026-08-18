@@ -22,10 +22,19 @@ pub fn load_settings(app: &AppHandle) -> AppSettings {
         return AppSettings::default();
     };
 
-    serde_json::from_value::<AppSettings>(value).unwrap_or_else(|e| {
+    let mut settings = serde_json::from_value::<AppSettings>(value).unwrap_or_else(|e| {
         eprintln!("⚠️ Failed to parse app_settings from store: {e}");
         AppSettings::default()
-    })
+    });
+
+    settings.numFrames = u32::try_from(settings.frames.len()).unwrap_or(u32::MAX);
+    settings.slotsPerFrame = settings
+        .frames
+        .first()
+        .map(|frame| u32::try_from(frame.slots.len()).unwrap_or(u32::MAX))
+        .unwrap_or(0);
+
+    settings
 }
 
 /// Convenience helper: build Postgres DATABASE_URL from saved settings

@@ -119,7 +119,7 @@ pub async fn set_slots_per_frame(
 ) -> Result<(), String> {
     opc_client
         .write_value(
-            ua::NodeId::numeric(1, 258),
+            ua::NodeId::numeric(1, 261),
             DataValue::new(ua::Variant::scalar(ua::Int16::new(slots_per_frame))),
         )
         .await

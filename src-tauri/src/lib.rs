@@ -1,6 +1,6 @@
 use std::sync::{atomic::AtomicBool, Arc};
-use tauri_plugin_log::{Target, TargetKind};
 use tauri::Manager;
+use tauri_plugin_log::{Target, TargetKind};
 use tokio::sync::Mutex;
 
 use crate::{
@@ -32,6 +32,7 @@ pub mod result;
 pub mod schema;
 pub mod settings;
 pub mod slot_manager;
+pub mod slot_map;
 pub mod tauri_commands;
 
 #[tauri::command]
@@ -136,13 +137,25 @@ pub fn run() {
                 opc_for_task.start_reconnect_loop();
             });
 
-            let num_frames = i16::try_from(settings.frames.len()).unwrap();
-
-            log::error!("Hello");
+            let num_frames = i16::try_from(settings.frames.len()).unwrap_or(i16::MAX);
+            let slots_per_frame = settings
+                .frames
+                .first()
+                .map(|frame| i16::try_from(frame.slots.len()).unwrap_or(i16::MAX))
+                .unwrap_or(0);
 
             let opc_for_frames = opc.clone();
             tauri::async_runtime::spawn(async move {
-                let _ = opc::opc_commands::set_number_of_frames(&opc_for_frames, num_frames).await;
+                if let Err(e) =
+                    opc::opc_commands::set_number_of_frames(&opc_for_frames, num_frames).await
+                {
+                    eprintln!("Failed to set OPC frame count: {e}");
+                }
+                if let Err(e) =
+                    opc::opc_commands::set_slots_per_frame(&opc_for_frames, slots_per_frame).await
+                {
+                    eprintln!("Failed to set OPC slots per frame: {e}");
+                }
             });
 
             Ok(())
@@ -195,6 +208,7 @@ pub fn run() {
             tauri_commands::load_item_tauri,
             tauri_commands::unload_item_tauri,
             tauri_commands::update_garment_slot_tauri,
+            tauri_commands::update_garment_code_tauri,
             tauri_commands::remove_garment_from_slot_tauri,
             tauri_commands::get_occupied_slots_tauri,
             tauri_commands::is_ticket_complete_tauri,

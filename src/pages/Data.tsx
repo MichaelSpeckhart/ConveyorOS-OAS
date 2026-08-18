@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Check, Pencil, X } from "lucide-react";
 import {
   CustomerRow,
   GarmentRow,
@@ -6,6 +7,7 @@ import {
   listCustomers,
   listGarmentsForTicket,
   listTicketsForCustomer,
+  updateGarmentCode,
 } from "../lib/data";
 import { fmtDateTime as fmtDate } from "../lib/format";
 
@@ -21,6 +23,10 @@ export default function DataPage() {
   const [loadingCustomers, setLoadingCustomers] = useState(false);
   const [loadingTickets, setLoadingTickets] = useState(false);
   const [loadingGarments, setLoadingGarments] = useState(false);
+  const [editingGarmentId, setEditingGarmentId] = useState<number | null>(null);
+  const [editingCode, setEditingCode] = useState("");
+  const [savingGarmentId, setSavingGarmentId] = useState<number | null>(null);
+  const [garmentEditError, setGarmentEditError] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   // customers
@@ -54,6 +60,9 @@ export default function DataPage() {
     setTickets([]);
     setGarments([]);
     setSelectedTicket(null);
+    setEditingGarmentId(null);
+    setEditingCode("");
+    setGarmentEditError(null);
 
     if (!selectedCustomer) return;
 
@@ -81,6 +90,9 @@ export default function DataPage() {
   useEffect(() => {
     let alive = true;
     setGarments([]);
+    setEditingGarmentId(null);
+    setEditingCode("");
+    setGarmentEditError(null);
 
     if (!selectedTicket) return;
 
@@ -113,6 +125,45 @@ export default function DataPage() {
     if (!selectedTicket) return "Select a ticket";
     return `${selectedTicket.display_invoice_number} (${selectedTicket.garments_processed}/${selectedTicket.number_of_items})`;
   }, [selectedTicket]);
+
+  const startEditGarment = (garment: GarmentRow) => {
+    setEditingGarmentId(garment.id);
+    setEditingCode(garment.item_id);
+    setGarmentEditError(null);
+  };
+
+  const cancelEditGarment = () => {
+    setEditingGarmentId(null);
+    setEditingCode("");
+    setGarmentEditError(null);
+  };
+
+  const saveGarmentCode = async (garment: GarmentRow) => {
+    const nextCode = editingCode.trim();
+
+    if (!nextCode) {
+      setGarmentEditError("Garment code is required.");
+      return;
+    }
+
+    if (nextCode === garment.item_id) {
+      cancelEditGarment();
+      return;
+    }
+
+    setSavingGarmentId(garment.id);
+    setGarmentEditError(null);
+
+    try {
+      const updated = await updateGarmentCode(garment.item_id, nextCode);
+      setGarments((rows) => rows.map((row) => (row.id === garment.id ? updated : row)));
+      cancelEditGarment();
+    } catch (e) {
+      setGarmentEditError(String(e));
+    } finally {
+      setSavingGarmentId(null);
+    }
+  };
 
   return (
     <div className="h-full w-full p-5 overflow-auto bg-surface">
@@ -240,24 +291,88 @@ export default function DataPage() {
           </div>
 
           <div className="max-h-[70vh] overflow-auto">
-            {garments.map((g) => (
-              <div key={g.id} className="px-5 py-4 border-b border-[#f0ede8]">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="font-black text-slate-900">{g.item_description}</div>
-                  <div className="text-xs font-black px-2 py-1 rounded-full bg-slate-100 text-slate-800">
-                    Slot {g.slot_number}
+            {garments.map((g) => {
+              const editing = editingGarmentId === g.id;
+              const saving = savingGarmentId === g.id;
+
+              return (
+                <div key={g.id} className="px-5 py-4 border-b border-[#f0ede8]">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="font-black text-slate-900">{g.item_description}</div>
+                    <div className="text-xs font-black px-2 py-1 rounded-full bg-slate-100 text-slate-800">
+                      Slot {g.slot_number}
+                    </div>
                   </div>
+                  {editing ? (
+                    <div className="mt-3">
+                      <div className="flex items-center gap-2">
+                        <input
+                          className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2 font-mono text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+                          value={editingCode}
+                          onChange={(e) => {
+                            setEditingCode(e.target.value);
+                            setGarmentEditError(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              saveGarmentCode(g);
+                            }
+                            if (e.key === "Escape") cancelEditGarment();
+                          }}
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          title="Save garment code"
+                          aria-label="Save garment code"
+                          disabled={saving}
+                          onClick={() => saveGarmentCode(g)}
+                          className="grid h-10 w-10 place-items-center rounded-xl bg-slate-900 text-white shadow-sm transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <Check size={18} />
+                        </button>
+                        <button
+                          type="button"
+                          title="Cancel"
+                          aria-label="Cancel"
+                          disabled={saving}
+                          onClick={cancelEditGarment}
+                          className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <X size={18} />
+                        </button>
+                      </div>
+                      {garmentEditError && (
+                        <div className="mt-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-800">
+                          {garmentEditError}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="mt-1 flex items-center justify-between gap-3">
+                      <div className="min-w-0 text-sm text-slate-600 font-mono break-all">
+                        Item: {g.item_id}
+                      </div>
+                      <button
+                        type="button"
+                        title="Edit garment code"
+                        aria-label="Edit garment code"
+                        onClick={() => startEditGarment(g)}
+                        className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                    </div>
+                  )}
+                  {g.invoice_comments?.trim() && (
+                    <div className="text-sm text-slate-500 mt-2 whitespace-pre-wrap">
+                      {g.invoice_comments}
+                    </div>
+                  )}
                 </div>
-                <div className="text-sm text-slate-600 font-mono mt-1">
-                  Item: {g.item_id}
-                </div>
-                {g.invoice_comments?.trim() && (
-                  <div className="text-sm text-slate-500 mt-2 whitespace-pre-wrap">
-                    {g.invoice_comments}
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
 
             {!loadingGarments && selectedTicket && garments.length === 0 && (
               <div className="px-5 py-6 text-slate-500">No garments found for this ticket.</div>

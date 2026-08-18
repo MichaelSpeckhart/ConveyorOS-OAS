@@ -52,3 +52,10 @@ export async function listGarmentsForTicket(full_invoice_number: string): Promis
   console.log("Listing garments for ticket:", full_invoice_number);
   return invoke<GarmentRow[]>("data_list_garments_for_ticket", { fullInvoiceNumber: full_invoice_number });
 }
+
+export async function updateGarmentCode(current_item_id: string, new_item_id: string): Promise<GarmentRow> {
+  return invoke<GarmentRow>("update_garment_code_tauri", {
+    currentItemId: current_item_id,
+    newItemId: new_item_id,
+  });
+}

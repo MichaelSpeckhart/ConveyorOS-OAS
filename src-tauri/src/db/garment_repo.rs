@@ -67,3 +67,68 @@ pub fn update_garment_slot(
         .map(|_| ())
         .map_err(|e| e.to_string())
 }
+
+pub fn update_garment_code(
+    conn: &mut PgConnection,
+    current_item_id: &str,
+    new_item_id: &str,
+) -> Result<Garment, String> {
+    let current_code = current_item_id.trim();
+    let new_code = new_item_id.trim();
+
+    if current_code.is_empty() {
+        return Err("Current garment code is required".to_string());
+    }
+
+    if new_code.is_empty() {
+        return Err("New garment code is required".to_string());
+    }
+
+    let existing = garments
+        .filter(item_id.eq(current_code))
+        .first::<Garment>(conn)
+        .map_err(|_| "Garment not found".to_string())?;
+
+    if current_code == new_code {
+        return Ok(existing);
+    }
+
+    let duplicate_count = garments
+        .filter(item_id.eq(new_code))
+        .count()
+        .get_result::<i64>(conn)
+        .map_err(|e| e.to_string())?;
+
+    if duplicate_count > 0 {
+        return Err("Another garment already uses that code".to_string());
+    }
+
+    conn.transaction(|conn| {
+        diesel::update(garments.filter(item_id.eq(current_code)))
+            .set(item_id.eq(new_code))
+            .execute(conn)?;
+
+        diesel::update(crate::schema::garment_details::dsl::garment_details.filter(
+            crate::schema::garment_details::dsl::item_id.eq(current_code),
+        ))
+        .set(crate::schema::garment_details::dsl::item_id.eq(new_code))
+        .execute(conn)?;
+
+        diesel::update(crate::schema::slots::dsl::slots.filter(
+            crate::schema::slots::dsl::item_id.eq(Some(current_code.to_string())),
+        ))
+        .set(crate::schema::slots::dsl::item_id.eq(Some(new_code.to_string())))
+        .execute(conn)?;
+
+        diesel::update(crate::schema::conveyoractivity::dsl::conveyoractivity.filter(
+            crate::schema::conveyoractivity::dsl::item_id.eq(current_code),
+        ))
+        .set(crate::schema::conveyoractivity::dsl::item_id.eq(new_code))
+        .execute(conn)?;
+
+        garments
+            .filter(item_id.eq(new_code))
+            .first::<Garment>(conn)
+    })
+    .map_err(|e| e.to_string())
+}

@@ -65,8 +65,8 @@ impl Default for FieldMappings {
         // SPOT defaults
         Self {
             customer_identifier: 6,
-            customer_first_name: Some(8),
-            customer_last_name: Some(7),
+            customer_first_name: Some(7),
+            customer_last_name: Some(8),
             customer_phone: Some(9),
             address_one: None,
             address_two: None,
@@ -279,10 +279,22 @@ pub struct AppSettings {
     pub printer: PrinterSettings,
     #[serde(default = "default_frames")]
     pub frames: Vec<FrameConfig>,
+    #[serde(default = "default_num_frames")]
+    pub numFrames: u32,
+    #[serde(default = "default_slots_per_frame")]
+    pub slotsPerFrame: u32,
 }
 
 fn default_pos_system() -> String {
     "spot".to_string()
+}
+
+fn default_num_frames() -> u32 {
+    10
+}
+
+fn default_slots_per_frame() -> u32 {
+    5
 }
 
 impl Default for AppSettings {
@@ -300,6 +312,8 @@ impl Default for AppSettings {
             fieldMappings: FieldMappings::default(),
             printer: PrinterSettings::default(),
             frames: default_frames(),
+            numFrames: default_num_frames(),
+            slotsPerFrame: default_slots_per_frame(),
         }
     }
 }

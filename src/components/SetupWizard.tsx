@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { testDatabaseConnection, saveSettings, type AppSettings } from "../lib/settings";
+import { createDefaultSettings, testDatabaseConnection, saveSettings, type AppSettings } from "../lib/settings";
 import { Database, Server, CheckCircle } from "lucide-react";
 
 interface SetupWizardProps {
@@ -8,17 +8,10 @@ interface SetupWizardProps {
 
 export default function SetupWizard({ onComplete }: SetupWizardProps) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [settings, setSettings] = useState<AppSettings>({
-    posCsvDir: "",
-    conveyorCsvOutputDir: "",
-    dbHost: "localhost",
-    dbPort: 5432,
-    dbName: "conveyor-app",
-    dbUser: "postgres",
+  const [settings, setSettings] = useState<AppSettings>(() => ({
+    ...createDefaultSettings(),
     dbPassword: "",
-    opcServerUrl: "opc.tcp://localhost:4840",
-    frames: [{ latches: 5, slots: Array(5).fill(true) }],
-  });
+  }));
   const [testingConnection, setTestingConnection] = useState(false);
   const [connectionResult, setConnectionResult] = useState<{ success: boolean; message: string } | null>(null);
   const [saving, setSaving] = useState(false);

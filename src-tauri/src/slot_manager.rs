@@ -10,6 +10,12 @@ pub struct SlotManagerStats {
     pub occupancy_percentage: f64,
 }
 
+pub struct Slots {
+    pub is_occupied: bool,
+    pub ticket_number: i64,
+    pub num_garments: i64,
+}
+
 impl SlotManagerStats {
     pub fn fetch(conn: &mut PgConnection) -> diesel::QueryResult<Self> {
         let occupied = SlotManager::get_number_occupied_slots(conn)?;

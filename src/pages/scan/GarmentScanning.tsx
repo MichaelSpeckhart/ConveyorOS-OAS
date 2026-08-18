@@ -272,6 +272,7 @@ function GarmentList({ garments, lastScan }: { garments: GarmentRow[]; lastScan:
   if (garments.length === 0) {
     return <div className="py-4 text-slate-400 text-sm text-center">No garments on this ticket.</div>;
   }
+  
   return (
     <div className="flex-1 min-h-0 overflow-auto divide-y divide-slate-100">
       {garments.map((g) => (

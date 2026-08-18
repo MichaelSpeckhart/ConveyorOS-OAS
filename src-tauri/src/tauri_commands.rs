@@ -594,10 +594,21 @@ pub fn save_settings_tauri(
     pos_csv_dir: String,
     conveyor_csv_output_dir: String,
     frames: Vec<crate::settings::appsettings::FrameConfig>,
+    pos_system: Option<String>,
+    field_mappings: Option<crate::settings::appsettings::FieldMappings>,
+    printer: Option<crate::settings::appsettings::PrinterSettings>,
+    _num_frames: Option<u32>,
+    _slots_per_frame: Option<u32>,
 ) -> Result<(), String> {
     use tauri_plugin_store::StoreExt;
 
     let existing = crate::settings::load_settings(&app);
+    let derived_num_frames = u32::try_from(frames.len()).unwrap_or(u32::MAX);
+    let derived_slots_per_frame = frames
+        .first()
+        .map(|frame| u32::try_from(frame.slots.len()).unwrap_or(u32::MAX))
+        .unwrap_or(0);
+
     let settings = crate::settings::appsettings::AppSettings {
         posCsvDir: pos_csv_dir,
         conveyorCsvOutputDir: conveyor_csv_output_dir,
@@ -614,10 +625,12 @@ pub fn save_settings_tauri(
             db_password
         },
         opcServerUrl: opc_server_url,
-        posSystem: existing.posSystem,
-        fieldMappings: existing.fieldMappings,
-        printer: existing.printer,
+        posSystem: pos_system.unwrap_or(existing.posSystem),
+        fieldMappings: field_mappings.unwrap_or(existing.fieldMappings),
+        printer: printer.unwrap_or(existing.printer),
         frames,
+        numFrames: derived_num_frames,
+        slotsPerFrame: derived_slots_per_frame,
     };
 
     let store = app
@@ -816,6 +829,16 @@ pub fn update_garment_slot_tauri(barcode: String, slot_number: i32) -> Result<()
         .map_err(|e| format!("DB Error: {}", e))?;
 
     Ok(())
+}
+
+#[tauri::command]
+pub fn update_garment_code_tauri(
+    current_item_id: String,
+    new_item_id: String,
+) -> Result<crate::model::Garment, String> {
+    let mut conn = establish_connection()?;
+    garment_repo::update_garment_code(&mut conn, &current_item_id, &new_item_id)
+        .map_err(|e| format!("DB Error: {}", e))
 }
 
 #[tauri::command]
