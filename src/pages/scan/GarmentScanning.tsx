@@ -5,6 +5,7 @@ import GarmentKeyboard from "../../components/GarmentKeyboard";
 import TicketAckModal from "../../components/scan/TicketAckModal";
 import ClearConveyorModal from "../../components/scan/ClearConveyorModal";
 import SlotMapModal from "../../components/scan/SlotMapModal";
+import RecallData from "./RecallData";
 import { useScanHandler, type ScanState } from "../../hooks/useScanHandler";
 import { fmtDate } from "../../lib/format";
 import type { GarmentRow } from "../../lib/data";
@@ -28,11 +29,9 @@ function capacityStyle(pct: number | string): { color: string; border: string } 
 }
 
 export default function GarmentScanner({
-  onOpenRecall,
   sessionId,
   username,
 }: {
-  onOpenRecall?: () => void;
   sessionId?: number | null;
   username?: string;
 }) {
@@ -43,6 +42,7 @@ export default function GarmentScanner({
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
   const [slotMapOpen, setSlotMapOpen] = useState(false);
+  const [recallOpen, setRecallOpen] = useState(false);
 
   const {
     state,
@@ -69,11 +69,13 @@ export default function GarmentScanner({
   } = useScanHandler({ sessionId });
 
   useEffect(() => {
+    if (keypadOpen || clearOpen || slotMapOpen || recallOpen || ticketAckOpen) return;
+
     const focusInput = () => inputRef.current?.focus();
     focusInput();
     window.addEventListener("click", focusInput);
     return () => window.removeEventListener("click", focusInput);
-  }, []);
+  }, [keypadOpen, clearOpen, slotMapOpen, recallOpen, ticketAckOpen]);
 
   const openKeypad = () => { setManualCode(""); setKeypadOpen(true); };
   const closeKeypad = () => { setKeypadOpen(false); setTimeout(() => inputRef.current?.focus(), 0); };
@@ -81,6 +83,8 @@ export default function GarmentScanner({
   const closeClear = () => { setClearOpen(false); setTimeout(() => inputRef.current?.focus(), 0); };
   const handleOpenSlotMap = async () => { await openSlotMap(); setSlotMapOpen(true); };
   const closeSlotMap = () => { setSlotMapOpen(false); setTimeout(() => inputRef.current?.focus(), 0); };
+  const openRecall = () => setRecallOpen(true);
+  const closeRecall = () => { setRecallOpen(false); setTimeout(() => inputRef.current?.focus(), 0); };
 
   // Enqueueing is synchronous now, so the keypad closes immediately instead of
   // hanging until the conveyor finishes travelling.
@@ -232,7 +236,7 @@ export default function GarmentScanner({
             <span className="font-black uppercase tracking-tighter text-sm">Manual Entry</span>
           </button>
           <button
-            onClick={() => onOpenRecall?.()}
+            onClick={openRecall}
             className="flex-1 flex flex-col items-center justify-center gap-1.5 bg-white hover:bg-[#f0ede8] text-slate-700 rounded-2xl transition-all active:scale-95 shadow-sm border border-[#ddd8d0] h-full"
           >
             <img src={garmentRecallIcon} alt="" draggable={false} className="h-[30px] w-[30px] object-contain pointer-events-none" />
@@ -264,6 +268,8 @@ export default function GarmentScanner({
       <TicketAckModal open={ticketAckOpen} data={ticketAckData} onAck={handleTicketAck} />
 
       <ClearConveyorModal open={clearOpen} onClose={closeClear} onConfirm={handleClearAndReset} />
+
+      <RecallData open={recallOpen} onClose={closeRecall} />
     </div>
   );
 }

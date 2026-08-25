@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { loadSettings, type AppSettings } from "../lib/settings";
 import { invoke } from "@tauri-apps/api/core";
+import logoBackground from "../assets/Logo1.png";
 
 export default function HomePage({ onNavigate }: { onNavigate?: (page: string) => void }) {
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -38,7 +39,15 @@ export default function HomePage({ onNavigate }: { onNavigate?: (page: string) =
   }, []);
 
   return (
-    <div className="h-full overflow-auto bg-surface">
+    <div
+      className="relative h-full overflow-auto bg-surface"
+      style={{
+        backgroundImage: `linear-gradient(rgba(240, 237, 232, 0.82), rgba(240, 237, 232, 0.9)), url(${logoBackground})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
 
       {/* Hero */}
       <div className="bg-navy px-8 py-10">
@@ -77,7 +86,7 @@ export default function HomePage({ onNavigate }: { onNavigate?: (page: string) =
         {/* Status Row */}
         <div className="grid grid-cols-3 gap-4">
           <StatusTile
-            label="OPC / PLC"
+            label="Conveyor Connection"
             value={opcConnected ? "Connected" : "Disconnected"}
             on={opcConnected}
             onColor="bg-green-500"

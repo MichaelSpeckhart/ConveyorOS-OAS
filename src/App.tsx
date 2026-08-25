@@ -7,7 +7,6 @@ import Home from "./pages/Home";
 import { LoginResult } from "./types/auth";
 import PosSettings from "./pages/pos/PosSettings";
 import GarmentScanningPage from "./pages/scan/GarmentScanning";
-import RecallData from "./pages/scan/RecallData";
 import CreateUser from "./pages/login/CreateUser";
 import DataPage from "./pages/Data";
 import OperatorData from "./pages/operators/OperatorData";
@@ -157,8 +156,7 @@ export default function App() {
         onLogout={() => setShowLogoutConfirm(true)}
       >
         {active === "dashboard" && <Home onNavigate={setActive} />}
-        {active === "scan" && <GarmentScanningPage onOpenRecall={() => setActive("recall")} sessionId={sessionId} username={user.username} />}
-        {active === "recall" && <RecallData />}
+        {active === "scan" && <GarmentScanningPage sessionId={sessionId} username={user.username} />}
         {active === "data" && <DataPage />}
         {active === "operator-data" && <OperatorData />}
         {active === "print" && <PrintTickets />}
