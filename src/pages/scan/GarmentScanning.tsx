@@ -85,6 +85,7 @@ export default function GarmentScanner({
   const closeSlotMap = () => { setSlotMapOpen(false); setTimeout(() => inputRef.current?.focus(), 0); };
   const openRecall = () => setRecallOpen(true);
   const closeRecall = () => { setRecallOpen(false); setTimeout(() => inputRef.current?.focus(), 0); };
+  const scannerInputPaused = keypadOpen || clearOpen || slotMapOpen || recallOpen || ticketAckOpen;
 
   // Enqueueing is synchronous now, so the keypad closes immediately instead of
   // hanging until the conveyor finishes travelling.
@@ -169,16 +170,20 @@ export default function GarmentScanner({
   value={barcode}
   onChange={(e) => setBarcode(e.target.value)}
   onKeyDown={(e) => { 
+    if (scannerInputPaused) return;
     if (e.key === "Enter") { 
       e.preventDefault();
       handleScan(barcode); 
       setBarcode(""); 
     } 
   }}
-  onBlur={() => setTimeout(() => inputRef.current?.focus(), 0)}
+  onBlur={() => {
+    if (!scannerInputPaused) setTimeout(() => inputRef.current?.focus(), 0);
+  }}
   className="absolute top-0 left-0 w-px h-px opacity-0"
   autoFocus
   autoComplete="off"
+  disabled={scannerInputPaused}
 />
       </div>
 
