@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Mockups</title>
+    <style>
+      :root {
+        font-family: "Nunito", "Gill Sans", Calibri, "Trebuchet MS", system-ui, sans-serif;
+        color: #1a2a35;
+        background: #f0ede8;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          linear-gradient(rgba(240, 237, 232, 0.86), rgba(240, 237, 232, 0.94)),
+          url("./src/assets/Logo1.png") center / cover no-repeat fixed;
+      }
+
+      .page {
+        padding: 28px;
+      }
+
+      .mockup-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(320px, 1fr));
+        gap: 22px;
+        align-items: stretch;
+      }
+
+      .mockup {
+        min-height: calc(100vh - 56px);
+        border: 1px solid #ddd8d0;
+        border-radius: 28px;
+        background: rgba(255, 255, 255, 0.94);
+        box-shadow: 0 18px 45px rgba(30, 61, 79, 0.16);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .mockup-title {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f0ede8;
+        color: #6b7a84;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .screen {
+        flex: 1;
+        padding: 26px;
+      }
+
+      .navy {
+        color: #fff;
+        background: #1e3d4f;
+      }
+
+      .label {
+        margin: 0;
+        color: #9ec5d8;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .heading {
+        margin: 8px 0 0;
+        font-size: 34px;
+        line-height: 0.98;
+        font-weight: 900;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 44px;
+        padding: 9px 14px;
+        border-radius: 15px;
+        background: #eafaf0;
+        border: 1px solid #c7efd4;
+        color: #16713b;
+        font-size: 13px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      .dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 999px;
+        background: #22c55e;
+      }
+
+      .scan-button {
+        width: 100%;
+        min-height: 150px;
+        border: 0;
+        border-radius: 24px;
+        background: #2563eb;
+        color: #fff;
+        box-shadow: 0 14px 28px rgba(37, 99, 235, 0.24);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        font-size: 38px;
+        line-height: 1;
+        font-weight: 900;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .icon-box {
+        width: 58px;
+        height: 58px;
+        border-radius: 18px;
+        display: grid;
+        place-items: center;
+        background: rgba(255, 255, 255, 0.16);
+        flex: none;
+      }
+
+      .secondary-row,
+      .secondary-stack {
+        display: grid;
+        gap: 12px;
+      }
+
+      .secondary-row {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .task {
+        min-height: 92px;
+        border: 1px solid #ddd8d0;
+        border-radius: 20px;
+        background: #fff;
+        color: #1a2a35;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 16px;
+        font-size: 19px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      .task .small-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 13px;
+        display: grid;
+        place-items: center;
+        background: #f0ede8;
+        color: #334155;
+        flex: none;
+      }
+
+      .option-a {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 22px;
+      }
+
+      .option-a .hero {
+        border-radius: 26px;
+        padding: 26px;
+      }
+
+      .option-a .hero-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: flex-start;
+      }
+
+      .option-b {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 18px;
+        align-content: center;
+      }
+
+      .option-b .brand {
+        text-align: center;
+      }
+
+      .option-b .brand .heading {
+        color: #1e3d4f;
+        font-size: 42px;
+      }
+
+      .option-b .scan-button {
+        min-height: 240px;
+        flex-direction: column;
+        gap: 12px;
+        font-size: 46px;
+      }
+
+      .option-b .icon-box {
+        width: 80px;
+        height: 80px;
+        border-radius: 24px;
+      }
+
+      .option-c {
+        display: grid;
+        grid-template-columns: 1fr 210px;
+        gap: 18px;
+        align-items: stretch;
+      }
+
+      .option-c .left {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .option-c .header {
+        border-radius: 24px;
+        padding: 22px;
+      }
+
+      .option-c .scan-button {
+        flex: 1;
+        min-height: 230px;
+        align-items: flex-end;
+        justify-content: flex-start;
+        padding: 28px;
+      }
+
+      .option-c .secondary-stack {
+        grid-template-rows: repeat(3, 1fr);
+      }
+
+      .option-c .task {
+        min-height: auto;
+        justify-content: flex-start;
+      }
+
+      svg {
+        display: block;
+      }
+
+      @media (max-width: 1120px) {
+        .mockup-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .mockup {
+          min-height: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="mockup-grid">
+        <article class="mockup">
+          <div class="mockup-title">Option A - Balanced Console</div>
+          <div class="screen option-a">
+            <section class="hero navy">
+              <div class="hero-top">
+                <div>
+                  <p class="label">ConveyorOS</p>
+                  <h2 class="heading">Order Assembly</h2>
+                </div>
+                <div class="status"><span class="dot"></span>Ready</div>
+              </div>
+            </section>
+
+            <button class="scan-button">
+              <span class="icon-box">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg>
+              </span>
+              Scan Garments
+            </button>
+
+            <section class="secondary-row">
+              <button class="task"><span class="small-icon">⎙</span>Print</button>
+              <button class="task"><span class="small-icon">⌕</span>Lookup</button>
+              <button class="task"><span class="small-icon">⚙</span>Settings</button>
+            </section>
+          </div>
+        </article>
+
+        <article class="mockup">
+          <div class="mockup-title">Option B - Kiosk Start</div>
+          <div class="screen option-b">
+            <section class="brand">
+              <p class="label" style="color:#6b7a84">ConveyorOS</p>
+              <h2 class="heading">Order Assembly</h2>
+              <div style="margin-top:16px" class="status"><span class="dot"></span>Ready for next garment</div>
+            </section>
+
+            <button class="scan-button">
+              <span class="icon-box">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg>
+              </span>
+              Scan
+            </button>
+
+            <section class="secondary-row">
+              <button class="task">Print</button>
+              <button class="task">Lookup</button>
+              <button class="task">Settings</button>
+            </section>
+          </div>
+        </article>
+
+        <article class="mockup">
+          <div class="mockup-title">Option C - Workstation Panel</div>
+          <div class="screen option-c">
+            <div class="left">
+              <section class="header navy">
+                <p class="label">Current Station</p>
+                <h2 class="heading">Assembly Ready</h2>
+              </section>
+              <button class="scan-button">
+                <span>
+                  <span style="display:block;font-size:16px;color:#bfdbfe;font-weight:900;text-transform:uppercase;letter-spacing:.1em">Primary Action</span>
+                  <span style="display:block;margin-top:8px">Scan Garments</span>
+                </span>
+              </button>
+            </div>
+
+            <section class="secondary-stack">
+              <button class="task"><span class="small-icon">⎙</span>Print</button>
+              <button class="task"><span class="small-icon">⌕</span>Lookup</button>
+              <button class="task"><span class="small-icon">⚙</span>Setup</button>
+            </section>
+          </div>
+        </article>
+      </div>
+    </div>
+  </body>
+</html>
