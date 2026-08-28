@@ -36,6 +36,17 @@ export type ScanState =
   | "ticketcomplete"
   | "removegarment";
 
+export type ScanAudioCueName =
+  | "scan-success"
+  | "scan-error"
+  | "ticket-complete"
+  | "garment-on-conveyor";
+
+export type ScanAudioCue = {
+  id: number;
+  name: ScanAudioCueName;
+};
+
 export type TicketAckData = {
   ticketNum: string;
   customerName: string;
@@ -63,10 +74,12 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
   const [scanQueue, setScanQueue] = useState<string[]>([]);
   const [activeScan, setActiveScan] = useState<string | null>(null);
   const [queueRejected, setQueueRejected] = useState(false);
+  const [scanAudioCue, setScanAudioCue] = useState<ScanAudioCue | null>(null);
 
   const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nextResolveRef = useRef<(() => void) | null>(null);
   const ticketAckResolveRef = useRef<(() => void) | null>(null);
+  const scanAudioCueIdRef = useRef(0);
 
   // The queue is mirrored in a ref so enqueue/pump read the live value without
   // depending on a state flush, and in state so the UI can render it.
@@ -76,6 +89,11 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
   const rejectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const conveyorCapacity = slotStats ? Math.round(slotStats.capacity_percentage) : "—";
+
+  const emitScanAudioCue = (name: ScanAudioCueName) => {
+    scanAudioCueIdRef.current += 1;
+    setScanAudioCue({ id: scanAudioCueIdRef.current, name });
+  };
 
   const waitForNext = () =>
     new Promise<void>((resolve) => {
@@ -187,6 +205,7 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
   const flashError = () => {
     if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
     setState("error");
+    emitScanAudioCue("scan-error");
     errorTimeoutRef.current = setTimeout(() => setState("waiting"), 1500);
   };
 
@@ -214,6 +233,7 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
     if (queueRef.current.length >= MAX_QUEUE) {
       if (rejectTimeoutRef.current) clearTimeout(rejectTimeoutRef.current);
       setQueueRejected(true);
+      emitScanAudioCue("scan-error");
       rejectTimeoutRef.current = setTimeout(() => setQueueRejected(false), 2500);
       return;
     }
@@ -267,6 +287,7 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
       const exists = await ticketExists(code);
       if (!exists) {
         setState("error");
+        emitScanAudioCue("scan-error");
         setCustomerInfo(null);
         setTicketMeta(null);
         setGarments([]);
@@ -291,6 +312,7 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
         setCustomerInfo(info);
         setLastScan(code);
         setState("garmentonconveyor");
+        emitScanAudioCue("garment-on-conveyor");
         setTicketMeta(ticketinfo);
         setGarments(preloadedGarments);
         try {
@@ -309,6 +331,7 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
 
       if (isCompleted) {
         setState("ticketcomplete");
+        emitScanAudioCue("ticket-complete");
         let completedTicketNum: string | null = null;
         let garmentCount = 0;
 
@@ -345,6 +368,7 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
       if (isLast) {
         const slotNum = await completeTicketTauri(code);
         setState("ticketcomplete");
+        emitScanAudioCue("ticket-complete");
         let completedTicketNum: string | null = null;
         let garmentCount = 0;
 
@@ -411,11 +435,13 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
       } catch (err) {
         console.error("handleScanTauri failed:", err);
         setState("error");
+        emitScanAudioCue("scan-error");
         return;
       }
 
       if (slotNum !== null) {
         setState("success");
+        emitScanAudioCue("scan-success");
 
         if (sessionId) {
           const session = await incrementSessionGarmentsTauri(sessionId);
@@ -440,7 +466,10 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
 
           await slotRunRequest(slotNum);
           const sensorTriggered = await loadSensorHanger();
-          if (sensorTriggered) setState("garmentonconveyor");
+          if (sensorTriggered) {
+            setState("garmentonconveyor");
+            emitScanAudioCue("garment-on-conveyor");
+          }
 
           try { await LoadItem(code); } catch (err) { console.error("LoadItem failed:", err); }
 
@@ -451,6 +480,7 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
         }
       } else {
         setState("error");
+        emitScanAudioCue("scan-error");
       }
     } catch (err) {
       // Never let one bad garment stall the queue behind it.
@@ -476,6 +506,7 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
     scanQueue,
     activeScan,
     queueRejected,
+    scanAudioCue,
     handleScan: enqueueScan,
     handleClearAndReset,
     handleNextClear,

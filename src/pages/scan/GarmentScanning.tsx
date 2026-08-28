@@ -8,6 +8,7 @@ import SlotMapModal from "../../components/scan/SlotMapModal";
 import RecallData from "./RecallData";
 import { useScanHandler, type ScanState } from "../../hooks/useScanHandler";
 import { fmtDate } from "../../lib/format";
+import { playScanAudioCue } from "../../lib/scanAudio";
 import type { GarmentRow } from "../../lib/data";
 
 const STATE_STYLE: Record<ScanState, { bg: string; text: string; title: string; subtitle: string }> = {
@@ -36,6 +37,7 @@ export default function GarmentScanner({
   username?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const lastPlayedAudioCueId = useRef<number | null>(null);
   const [barcode, setBarcode] = useState("");
   const [keypadOpen, setKeypadOpen] = useState(false);
   const [manualCode, setManualCode] = useState("");
@@ -60,6 +62,7 @@ export default function GarmentScanner({
     ticketAckData,
     scanQueue,
     queueRejected,
+    scanAudioCue,
     handleScan,
     handleClearAndReset,
     handleNextClear,
@@ -76,6 +79,14 @@ export default function GarmentScanner({
     window.addEventListener("click", focusInput);
     return () => window.removeEventListener("click", focusInput);
   }, [keypadOpen, clearOpen, slotMapOpen, recallOpen, ticketAckOpen]);
+
+  useEffect(() => {
+    if (!scanAudioCue) return;
+    if (lastPlayedAudioCueId.current === scanAudioCue.id) return;
+
+    lastPlayedAudioCueId.current = scanAudioCue.id;
+    playScanAudioCue(scanAudioCue.name);
+  }, [scanAudioCue]);
 
   const openKeypad = () => { setManualCode(""); setKeypadOpen(true); };
   const closeKeypad = () => { setKeypadOpen(false); setTimeout(() => inputRef.current?.focus(), 0); };
