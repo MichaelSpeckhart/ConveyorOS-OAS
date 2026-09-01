@@ -7,6 +7,7 @@ import { invokeMock, mockTauriCommands } from "./utils/tauri";
 
 const hookMocks = vi.hoisted(() => ({
   handleScan: vi.fn(),
+  handleCancelScan: vi.fn(),
   handleClearAndReset: vi.fn(),
   handleNextClear: vi.fn(),
   handleTicketAck: vi.fn(),
@@ -32,7 +33,11 @@ vi.mock("../src/hooks/useScanHandler", () => ({
     scanQueue: [],
     queueRejected: false,
     scanAudioCue: null,
+    isClearingConveyor: false,
+    cancelableScan: null,
+    isCancelingScan: false,
     handleScan: hookMocks.handleScan,
+    handleCancelScan: hookMocks.handleCancelScan,
     handleClearAndReset: hookMocks.handleClearAndReset,
     handleNextClear: hookMocks.handleNextClear,
     handleTicketAck: hookMocks.handleTicketAck,

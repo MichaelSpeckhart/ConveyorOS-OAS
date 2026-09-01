@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Ban } from "lucide-react";
 import garmentRecallIcon from "../../assets/GarmentRecall.png";
 import { GarmentRail, Hanger, LaundryTag, RailUnload } from "../../components/icons/DryCleaningIcons";
 import GarmentKeyboard from "../../components/GarmentKeyboard";
@@ -63,7 +64,11 @@ export default function GarmentScanner({
     scanQueue,
     queueRejected,
     scanAudioCue,
+    isClearingConveyor,
+    cancelableScan,
+    isCancelingScan,
     handleScan,
+    handleCancelScan,
     handleClearAndReset,
     handleNextClear,
     handleTicketAck,
@@ -72,13 +77,13 @@ export default function GarmentScanner({
   } = useScanHandler({ sessionId });
 
   useEffect(() => {
-    if (keypadOpen || clearOpen || slotMapOpen || recallOpen || ticketAckOpen) return;
+    if (keypadOpen || clearOpen || slotMapOpen || recallOpen || ticketAckOpen || isClearingConveyor) return;
 
     const focusInput = () => inputRef.current?.focus();
     focusInput();
     window.addEventListener("click", focusInput);
     return () => window.removeEventListener("click", focusInput);
-  }, [keypadOpen, clearOpen, slotMapOpen, recallOpen, ticketAckOpen]);
+  }, [keypadOpen, clearOpen, slotMapOpen, recallOpen, ticketAckOpen, isClearingConveyor]);
 
   useEffect(() => {
     if (!scanAudioCue) return;
@@ -96,7 +101,7 @@ export default function GarmentScanner({
   const closeSlotMap = () => { setSlotMapOpen(false); setTimeout(() => inputRef.current?.focus(), 0); };
   const openRecall = () => setRecallOpen(true);
   const closeRecall = () => { setRecallOpen(false); setTimeout(() => inputRef.current?.focus(), 0); };
-  const scannerInputPaused = keypadOpen || clearOpen || slotMapOpen || recallOpen || ticketAckOpen;
+  const scannerInputPaused = keypadOpen || clearOpen || slotMapOpen || recallOpen || ticketAckOpen || isClearingConveyor;
 
   // Enqueueing is synchronous now, so the keypad closes immediately instead of
   // hanging until the conveyor finishes travelling.
@@ -154,6 +159,17 @@ export default function GarmentScanner({
 
         <h1 className="text-8xl font-black mb-3 tracking-tight uppercase">{STATE_STYLE[state].title}</h1>
         <p className="text-2xl font-black opacity-80">{STATE_STYLE[state].subtitle}</p>
+
+        {cancelableScan && (
+          <button
+            onClick={handleCancelScan}
+            disabled={isCancelingScan}
+            className="absolute bottom-5 right-5 bg-white text-red-600 hover:bg-red-50 disabled:opacity-60 disabled:cursor-wait font-black text-lg px-6 py-4 rounded-2xl shadow-lg border-2 border-white/70 active:scale-95 transition-all flex items-center gap-3"
+          >
+            <Ban size={24} strokeWidth={3} />
+            {isCancelingScan ? "Canceling..." : "Cancel Scan"}
+          </button>
+        )}
 
         {state === "removegarment" && clearingSlot && (
           <div className="mt-4 flex items-center gap-6">

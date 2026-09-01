@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 
-use crate::model::{Garment, NewGarment};
+use crate::model::{Garment, GarmentState, NewGarment};
 use crate::schema::garments;
 use crate::schema::garments::dsl::*;
 
@@ -63,6 +63,20 @@ pub fn update_garment_slot(
 ) -> Result<(), String> {
     diesel::update(garments.filter(item_id.eq(barcode)))
         .set(slot_number.eq(slot_num))
+        .execute(conn)
+        .map(|_| ())
+        .map_err(|e| e.to_string())
+}
+
+pub fn mark_ticket_garments_processed(
+    conn: &mut PgConnection,
+    invoice_number: &str,
+) -> Result<(), String> {
+    diesel::update(garments.filter(full_invoice_number.eq(invoice_number)))
+        .set((
+            garment_state.eq(GarmentState::Processed.as_str()),
+            slot_number.eq(-1),
+        ))
         .execute(conn)
         .map(|_| ())
         .map_err(|e| e.to_string())

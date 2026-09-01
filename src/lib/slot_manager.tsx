@@ -95,6 +95,10 @@ export async function clearConveyorTauri(): Promise<void> {
     await invoke<void>("clear_conveyor_tauri");
 }
 
+export async function cancelScanTauri(barcode: string, slot_number: number): Promise<void> {
+    await invoke<void>("cancel_scan_tauri", { barcode, slotNum: slot_number });
+}
+
 export async function getOccupiedSlotsTauri(): Promise<Slot[]> {
     return invoke<Slot[]>("get_occupied_slots_tauri");
 }   
@@ -110,5 +114,4 @@ export async function addConveyorActivityTauri(ticket: string, garment: string, 
 export async function addConveyorActivityUnloadTauri(ticket: string, garment: string, slotNum: number, customerIdentifier: string) {
     await invoke<void>("add_conveyor_activity_unload_tauri", {ticket, garment, slotNum: slotNum, customerIdentifier: customerIdentifier})
 }
-
 

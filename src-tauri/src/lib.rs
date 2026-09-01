@@ -194,6 +194,7 @@ pub fn run() {
             tauri_commands::garment_ticket_on_conveyor_tauri,
             tauri_commands::get_slot_manager_stats,
             tauri_commands::clear_conveyor_tauri,
+            tauri_commands::cancel_scan_tauri,
             tauri_commands::start_user_session,
             tauri_commands::end_user_session,
             tauri_commands::increment_session_garments,

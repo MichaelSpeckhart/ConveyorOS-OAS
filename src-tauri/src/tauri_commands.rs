@@ -1,4 +1,8 @@
-use std::{collections::HashMap, sync::atomic::Ordering, time::Duration};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::atomic::Ordering,
+    time::Duration,
+};
 
 use chrono::{NaiveDate, Utc};
 use diesel::prelude::*;
@@ -209,10 +213,18 @@ pub fn get_customer_from_ticket_tauri(
     ticket: String,
 ) -> Result<Option<crate::model::Customer>, String> {
     let mut conn = establish_connection()?;
-    let garment = garment_repo::get_garment(&mut conn, &ticket);
-    let res =
-        ticket_repo::get_customer_from_ticket(&mut conn, &garment.unwrap().full_invoice_number)
-            .map_err(|e| format!("DB Error: {}", e))?;
+    let lookup = ticket.trim();
+    if lookup.is_empty() {
+        return Ok(None);
+    }
+
+    let invoice_number = match garment_repo::get_garment(&mut conn, lookup) {
+        Ok(garment) => garment.full_invoice_number,
+        Err(_) => lookup.to_string(),
+    };
+
+    let res = ticket_repo::get_customer_from_ticket(&mut conn, &invoice_number)
+        .map_err(|e| format!("DB Error: {}", e))?;
     Ok(res)
 }
 
@@ -281,7 +293,8 @@ pub async fn get_slot_number_from_barcode_tauri(barcode: String) -> Result<Optio
 
 /// Called when the last garment on a ticket is scanned.
 /// Writes load_item for the scanned garment, then unload_item for every
-/// garment on the ticket, and marks the ticket as Complete.
+/// garment on the ticket, clears the ticket's conveyor slot, marks every
+/// garment as Processed, and marks the ticket as Processed.
 #[tauri::command]
 pub fn complete_ticket_tauri(barcode: String) -> Result<Option<i32>, String> {
     let mut conn = establish_connection()?;
@@ -289,9 +302,8 @@ pub fn complete_ticket_tauri(barcode: String) -> Result<Option<i32>, String> {
     let garment = garment_repo::get_garment(&mut conn, &barcode)
         .map_err(|_| format!("Garment not found: {}", barcode))?;
 
-    let mut ticket =
-        ticket_repo::get_ticket_by_invoice_number(&mut conn, &garment.full_invoice_number)
-            .map_err(|_| format!("Ticket not found for garment: {}", barcode))?;
+    let ticket = ticket_repo::get_ticket_by_invoice_number(&mut conn, &garment.full_invoice_number)
+        .map_err(|_| format!("Ticket not found for garment: {}", barcode))?;
 
     // Find the existing conveyor slot, or reserve one for single-item tickets
     let slot_number = match SlotRepo::find_ticket_slot(&mut conn, &ticket.full_invoice_number)
@@ -301,10 +313,6 @@ pub fn complete_ticket_tauri(barcode: String) -> Result<Option<i32>, String> {
         None => SlotManager::reserve_next_slot(&mut conn, Some(&ticket.full_invoice_number))
             .map_err(|e| format!("DB Error (reserve slot): {e}"))?,
     };
-
-    // Clear the slot
-    slot_manager::SlotManager::free_slot(&mut conn, slot_number)
-        .map_err(|e| format!("DB Error (free slot): {e}"))?;
 
     // Load the last garment onto the conveyor
     let _ = write_load_item(
@@ -328,17 +336,43 @@ pub fn complete_ticket_tauri(barcode: String) -> Result<Option<i32>, String> {
         );
     }
 
-    // Mark ticket complete
-    ticket.garments_processed += 1;
-    let update_ticket = &UpdateTicket {
-        full_invoice_number: Some(ticket.full_invoice_number.clone()),
-        display_invoice_number: Some(ticket.display_invoice_number.clone()),
-        number_of_items: Some(ticket.number_of_items),
-        garments_processed: Some(ticket.garments_processed),
-        invoice_pickup_date: ticket.invoice_pickup_date,
-        ticket_status: Some("Complete".to_string()),
-    };
-    let _res = ticket_repo::update_ticket(&mut conn, ticket.id, update_ticket);
+    conn.transaction::<(), diesel::result::Error, _>(|conn| {
+        use crate::schema::garments::dsl as garments_dsl;
+        use crate::schema::tickets::dsl as tickets_dsl;
+
+        slot_manager::SlotManager::free_slot(conn, slot_number)?;
+
+        let updated_garments = diesel::update(
+            garments_dsl::garments
+                .filter(garments_dsl::full_invoice_number.eq(&ticket.full_invoice_number)),
+        )
+        .set((
+            garments_dsl::garment_state.eq("Processed"),
+            garments_dsl::slot_number.eq(-1),
+        ))
+        .execute(conn)?;
+
+        if updated_garments == 0 {
+            return Err(diesel::result::Error::NotFound);
+        }
+
+        let updated_tickets = diesel::update(
+            tickets_dsl::tickets
+                .filter(tickets_dsl::full_invoice_number.eq(&ticket.full_invoice_number)),
+        )
+        .set((
+            tickets_dsl::garments_processed.eq(ticket.number_of_items),
+            tickets_dsl::ticket_status.eq("Processed"),
+        ))
+        .execute(conn)?;
+
+        if updated_tickets != 1 {
+            return Err(diesel::result::Error::NotFound);
+        }
+
+        Ok(())
+    })
+    .map_err(|e| format!("DB Error (complete ticket): {e}"))?;
 
     write_print_invoice(
         ConveyorOpsTypes::PrintInvoice,
@@ -443,11 +477,21 @@ pub fn clear_conveyor_tauri() -> Result<(), String> {
         use crate::schema::slots::dsl as slots_dsl;
         use crate::schema::tickets::dsl as tickets_dsl;
 
-        let _affected_tickets: Vec<String> = garments_dsl::garments
+        let garment_tickets: Vec<String> = garments_dsl::garments
             .filter(garments_dsl::slot_number.ne(-1))
             .select(garments_dsl::full_invoice_number)
             .distinct()
             .load(conn)?;
+
+        let slot_tickets: Vec<Option<String>> = slots_dsl::slots
+            .filter(slots_dsl::assigned_ticket.is_not_null())
+            .select(slots_dsl::assigned_ticket)
+            .distinct()
+            .load(conn)?;
+
+        let mut affected_ticket_set: HashSet<String> = garment_tickets.into_iter().collect();
+        affected_ticket_set.extend(slot_tickets.into_iter().flatten());
+        let affected_tickets: Vec<String> = affected_ticket_set.into_iter().collect();
 
         diesel::update(slots_dsl::slots)
             .set((
@@ -462,16 +506,89 @@ pub fn clear_conveyor_tauri() -> Result<(), String> {
             .set(garments_dsl::slot_number.eq(-1))
             .execute(conn)?;
 
-        diesel::update(tickets_dsl::tickets)
+        if !affected_tickets.is_empty() {
+            diesel::update(
+                tickets_dsl::tickets
+                    .filter(tickets_dsl::full_invoice_number.eq_any(&affected_tickets)),
+            )
             .set((
                 tickets_dsl::garments_processed.eq(0),
                 tickets_dsl::ticket_status.eq("Not Processed"),
             ))
             .execute(conn)?;
+        }
 
         Ok(())
     })
     .map_err(|e| format!("DB Error: {}", e))
+}
+
+#[tauri::command]
+pub fn cancel_scan_tauri(barcode: String, slot_num: i32) -> Result<(), String> {
+    let mut conn = establish_connection()?;
+    let code = barcode.trim().to_string();
+    if code.is_empty() {
+        return Err("Barcode is required".to_string());
+    }
+
+    let garment = garment_repo::get_garment(&mut conn, &code)
+        .map_err(|_| format!("Garment not found: {}", code))?;
+    let ticket = ticket_repo::get_ticket_by_invoice_number(&mut conn, &garment.full_invoice_number)
+        .map_err(|_| format!("Ticket not found for garment: {}", code))?;
+
+    conn.transaction::<(), diesel::result::Error, _>(|conn| {
+        use crate::schema::garments::dsl as garments_dsl;
+        use crate::schema::tickets::dsl as tickets_dsl;
+
+        let updated_garments =
+            diesel::update(garments_dsl::garments.filter(garments_dsl::item_id.eq(&code)))
+                .set((
+                    garments_dsl::slot_number.eq(-1),
+                    garments_dsl::garment_state.eq("Not Processed"),
+                ))
+                .execute(conn)?;
+
+        if updated_garments != 1 {
+            return Err(diesel::result::Error::NotFound);
+        }
+
+        let remaining_in_slot: i64 = garments_dsl::garments
+            .filter(garments_dsl::full_invoice_number.eq(&ticket.full_invoice_number))
+            .filter(garments_dsl::slot_number.eq(slot_num))
+            .filter(garments_dsl::item_id.ne(&code))
+            .count()
+            .get_result(conn)?;
+
+        if remaining_in_slot == 0 {
+            slot_manager::SlotManager::free_slot(conn, slot_num)?;
+        }
+
+        let processed_count = (ticket.garments_processed - 1).max(0);
+        let status = if processed_count == 0 {
+            "Not Processed"
+        } else {
+            "Processing"
+        };
+
+        let updated_tickets = diesel::update(
+            tickets_dsl::tickets
+                .filter(tickets_dsl::full_invoice_number.eq(&ticket.full_invoice_number)),
+        )
+        .set((
+            tickets_dsl::garments_processed.eq(processed_count),
+            tickets_dsl::ticket_status.eq(status),
+        ))
+        .execute(conn)?;
+
+        if updated_tickets != 1 {
+            return Err(diesel::result::Error::NotFound);
+        }
+
+        Ok(())
+    })
+    .map_err(|e| format!("DB Error (cancel scan): {e}"))?;
+
+    Ok(())
 }
 
 #[tauri::command]
@@ -898,7 +1015,7 @@ pub fn is_ticket_complete_tauri(ticket: String) -> Result<bool, String> {
     let ticket_info = ticket_repo::get_ticket_by_invoice_number(&mut conn, &ticket)
         .map_err(|e| format!("DB Error (get ticket): {e}"))?;
 
-    Ok(ticket_info.ticket_status == "Complete")
+    Ok(ticket_info.ticket_status == "Processed" || ticket_info.ticket_status == "Complete")
 }
 
 #[tauri::command]

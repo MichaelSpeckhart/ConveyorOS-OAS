@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   addConveyorActivityTauri,
   addConveyorActivityUnloadTauri,
+  cancelScanTauri,
   clearConveyorTauri,
   completeTicketTauri,
   getCustomerFromTicket,
@@ -53,6 +54,16 @@ export type TicketAckData = {
   garmentCount: number;
 };
 
+export type CancelableScanData = {
+  code: string;
+  slotNumber: number;
+  ticketNum: string;
+};
+
+type CancelableScanToken = CancelableScanData & {
+  canceled: boolean;
+};
+
 /** Operators scan ahead of the conveyor, so pending scans buffer here. */
 const MAX_QUEUE = 8;
 /** Barcode guns commonly double-fire; ignore a repeat of the same code inside this window. */
@@ -75,11 +86,15 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
   const [activeScan, setActiveScan] = useState<string | null>(null);
   const [queueRejected, setQueueRejected] = useState(false);
   const [scanAudioCue, setScanAudioCue] = useState<ScanAudioCue | null>(null);
+  const [isClearingConveyor, setIsClearingConveyor] = useState(false);
+  const [cancelableScan, setCancelableScan] = useState<CancelableScanData | null>(null);
+  const [isCancelingScan, setIsCancelingScan] = useState(false);
 
   const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nextResolveRef = useRef<(() => void) | null>(null);
   const ticketAckResolveRef = useRef<(() => void) | null>(null);
   const scanAudioCueIdRef = useRef(0);
+  const cancelableScanRef = useRef<CancelableScanToken | null>(null);
 
   // The queue is mirrored in a ref so enqueue/pump read the live value without
   // depending on a state flush, and in state so the UI can render it.
@@ -117,6 +132,40 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
     if (ticketAckResolveRef.current) {
       ticketAckResolveRef.current();
       ticketAckResolveRef.current = null;
+    }
+  };
+
+  const handleCancelScan = async () => {
+    const token = cancelableScanRef.current;
+    if (!token || isCancelingScan) return;
+
+    token.canceled = true;
+    setIsCancelingScan(true);
+    setCancelableScan(null);
+    queueRef.current = [];
+    setScanQueue([]);
+    lastEnqueuedRef.current = null;
+
+    try {
+      await cancelScanTauri(token.code, token.slotNumber);
+      await refreshSlotStats();
+
+      try {
+        const rows = await listGarmentsForTicket(token.ticketNum);
+        setGarments(rows);
+      } catch {
+        setGarments([]);
+      }
+
+      setLastScan(null);
+      setCustomerInfo(null);
+      setTicketMeta(null);
+      setState("waiting");
+    } catch (err) {
+      console.error("cancelScanTauri failed:", err);
+      flashError();
+    } finally {
+      setIsCancelingScan(false);
     }
   };
 
@@ -188,18 +237,24 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
   };
 
   const handleClearAndReset = async () => {
+    setIsClearingConveyor(true);
+
     // Pending scans refer to garments that are about to be taken off the
     // conveyor, so they must not survive the clear.
     queueRef.current = [];
     setScanQueue([]);
     lastEnqueuedRef.current = null;
 
-    await handleClearConveyor();
-    await refreshSlotStats();
-    setCustomerInfo(null);
-    setTicketMeta(null);
-    setGarments([]);
-    setState("waiting");
+    try {
+      await handleClearConveyor();
+      await refreshSlotStats();
+      setCustomerInfo(null);
+      setTicketMeta(null);
+      setGarments([]);
+      setState("waiting");
+    } finally {
+      setIsClearingConveyor(false);
+    }
   };
 
   const flashError = () => {
@@ -376,12 +431,16 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
           const ticket = await getTicketFromGarment(code);
           if (ticket) {
             completedTicketNum = ticket.full_invoice_number;
-            if (slotNum !== null) await updateGarmentSlotTauri(code, slotNum);
             setTicketMeta(ticket);
             const rows = await listGarmentsForTicket(ticket.full_invoice_number);
             
             rows.forEach(async (garment) => {
-              await addConveyorActivityUnloadTauri(ticket.full_invoice_number, garment.item_id, garment.slot_number, ticket.customer_identifier);
+              await addConveyorActivityUnloadTauri(
+                ticket.full_invoice_number,
+                garment.item_id,
+                slotNum ?? garment.slot_number,
+                ticket.customer_identifier,
+              );
             });
 
             setGarments(rows);
@@ -418,9 +477,6 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
         try {
           if (slotNum !== null) await slotRunRequest(slotNum);
           await UnloadItem(code);
-          if (slotNum !== null && completedTicketNum) {
-            await removeGarmentFromSlotTauri(completedTicketNum, slotNum);
-          }
         } catch (err) {
           console.error("Hardware operation failed:", err);
         }
@@ -443,13 +499,6 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
         setState("success");
         emitScanAudioCue("scan-success");
 
-        if (sessionId) {
-          const session = await incrementSessionGarmentsTauri(sessionId);
-          setScanCount(session.garments_scanned);
-        } else {
-          setScanCount((prev) => prev + 1);
-        }
-
         await refreshSlotStats();
 
         try {
@@ -462,13 +511,43 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
           } else {
             setTicketMeta(null);
             setGarments([]);
+            setCancelableScan(null);
+            cancelableScanRef.current = null;
+            return;
           }
 
+          const cancelToken: CancelableScanToken = {
+            code,
+            slotNumber: slotNum,
+            ticketNum: ticket.full_invoice_number,
+            canceled: false,
+          };
+          cancelableScanRef.current = cancelToken;
+          setCancelableScan({
+            code: cancelToken.code,
+            slotNumber: cancelToken.slotNumber,
+            ticketNum: cancelToken.ticketNum,
+          });
+
           await slotRunRequest(slotNum);
+          if (cancelToken.canceled) return;
+
           const sensorTriggered = await loadSensorHanger();
+          if (cancelToken.canceled) return;
+
+          cancelableScanRef.current = null;
+          setCancelableScan(null);
+
           if (sensorTriggered) {
             setState("garmentonconveyor");
             emitScanAudioCue("garment-on-conveyor");
+          }
+
+          if (sessionId) {
+            const session = await incrementSessionGarmentsTauri(sessionId);
+            setScanCount(session.garments_scanned);
+          } else {
+            setScanCount((prev) => prev + 1);
           }
 
           try { await LoadItem(code); } catch (err) { console.error("LoadItem failed:", err); }
@@ -477,6 +556,11 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
 
         } catch (err) {
           console.error("Hardware operation failed:", err);
+        } finally {
+          if (cancelableScanRef.current?.code === code) {
+            cancelableScanRef.current = null;
+            setCancelableScan(null);
+          }
         }
       } else {
         setState("error");
@@ -507,7 +591,11 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
     activeScan,
     queueRejected,
     scanAudioCue,
+    isClearingConveyor,
+    cancelableScan,
+    isCancelingScan,
     handleScan: enqueueScan,
+    handleCancelScan,
     handleClearAndReset,
     handleNextClear,
     handleTicketAck,
