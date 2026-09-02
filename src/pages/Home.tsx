@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { AlertTriangle, CheckCircle2, Database, Printer, ScanLine, Search, Settings } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import logoBackground from "../assets/Logo1.png";
 import { loadSettings, type AppSettings } from "../lib/settings";
 
@@ -22,6 +23,10 @@ export default function HomePage({ onNavigate }: { onNavigate?: (page: string) =
 
   useEffect(() => {
     let alive = true;
+    const unlistenPromise = listen<boolean>("opc_connection_changed", (event) => {
+      if (alive) setOpcConnected(event.payload);
+    });
+
     const tick = async () => {
       try {
         const connected = await invoke<boolean>("check_opc_connection_tauri").catch(() => false);
@@ -33,7 +38,11 @@ export default function HomePage({ onNavigate }: { onNavigate?: (page: string) =
     };
     tick();
     const id = setInterval(tick, 800);
-    return () => { alive = false; clearInterval(id); };
+    return () => {
+      alive = false;
+      clearInterval(id);
+      unlistenPromise.then((unlisten) => unlisten());
+    };
   }, []);
 
   const posConfigured = Boolean(settings?.posCsvDir);

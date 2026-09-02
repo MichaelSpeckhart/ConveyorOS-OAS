@@ -1,5 +1,5 @@
 use std::sync::{atomic::AtomicBool, Arc};
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 use tauri_plugin_log::{Target, TargetKind};
 use tokio::sync::Mutex;
 
@@ -146,6 +146,27 @@ pub fn run() {
                     eprintln!("OPC connect failed: {e}");
                 }
                 opc_for_task.start_reconnect_loop();
+            });
+
+            let opc_for_status = opc.clone();
+            let app_handle_for_status = app_handle.clone();
+            tauri::async_runtime::spawn(async move {
+                let mut last_connected = opc_for_status.is_connected();
+
+                loop {
+                    let connected = opc_for_status.is_connected();
+                    if connected != last_connected {
+                        last_connected = connected;
+                        if connected {
+                            log::info!("OPC connection restored");
+                        } else {
+                            log::warn!("OPC connection lost");
+                        }
+                        let _ = app_handle_for_status.emit("opc_connection_changed", connected);
+                    }
+
+                    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+                }
             });
 
             let sensor_opc = opc.clone();

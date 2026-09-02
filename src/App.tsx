@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { LayoutDashboard, ScanLine, Settings, Database, BarChart3, Printer, FileText } from "lucide-react";
+import { AlertTriangle, BarChart3, CheckCircle2, Database, FileText, Keyboard, LayoutDashboard, Printer, ScanLine, Settings } from "lucide-react";
+import { listen } from "@tauri-apps/api/event";
 
 import { SideNavLayout } from "./layout/SideNavLayout";
 import Login from "./pages/login/Login";
@@ -15,8 +16,12 @@ import { endUserSessionTauri, startUserSessionTauri } from "./lib/session_manage
 import SetupWizard from "./components/SetupWizard";
 import { checkSetupRequired } from "./lib/settings";
 import RegularKeyboard from "./components/RegularKeyboard";
-import { Keyboard } from "lucide-react";
 import ReportsHome from "./pages/reports/ReportHome";
+
+type OpcConnectionNotice = {
+  connected: boolean;
+  message: string;
+};
 
 export default function App() {
   const [user, setUser] = useState<LoginResult | null>(null);
@@ -27,6 +32,7 @@ export default function App() {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [setupRequired, setSetupRequired] = useState<boolean | null>(null);
   const [showKeyboard, setShowKeyboard] = useState(false);
+  const [opcNotice, setOpcNotice] = useState<OpcConnectionNotice | null>(null);
 
   // Check if initial setup is required
   useEffect(() => {
@@ -68,6 +74,26 @@ export default function App() {
       alive = false;
     };
   }, [user]);
+
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const unlistenPromise = listen<boolean>("opc_connection_changed", (event) => {
+      const connected = event.payload;
+      setOpcNotice({
+        connected,
+        message: connected ? "Conveyor connection restored" : "Conveyor connection lost",
+      });
+
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => setOpcNotice(null), 5000);
+    });
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      unlistenPromise.then((unlisten) => unlisten());
+    };
+  }, []);
 
   const navItems = [
     {
@@ -183,6 +209,8 @@ export default function App() {
         />
       )}
 
+      {opcNotice && <OpcConnectionToast notice={opcNotice} />}
+
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="w-full max-w-sm rounded-3xl bg-white shadow-2xl p-6">
@@ -235,5 +263,29 @@ export default function App() {
         </div>
       )}
     </>
+  );
+}
+
+function OpcConnectionToast({ notice }: { notice: OpcConnectionNotice }) {
+  return (
+    <div className={`fixed top-5 right-5 z-[110] min-w-[280px] max-w-sm rounded-2xl border px-4 py-3 shadow-2xl flex items-center gap-3 ${
+      notice.connected
+        ? "bg-green-50 border-green-200 text-green-800"
+        : "bg-red-50 border-red-200 text-red-800"
+    }`}>
+      <span className={`h-10 w-10 rounded-xl grid place-items-center shrink-0 ${
+        notice.connected ? "bg-green-100" : "bg-red-100"
+      }`}>
+        {notice.connected ? <CheckCircle2 size={22} /> : <AlertTriangle size={22} />}
+      </span>
+      <div className="min-w-0">
+        <div className="text-sm font-black uppercase tracking-tight">
+          {notice.message}
+        </div>
+        <div className="text-xs font-bold opacity-75">
+          OPC status changed
+        </div>
+      </div>
+    </div>
   );
 }

@@ -60,8 +60,13 @@ impl OpcClient {
     }
 
     pub async fn connect(&self) -> Result<(), OpcError> {
-        let client =
-            AsyncClient::new(&self.cfg.endpoint_url).map_err(|e| OpcError::Ua(format!("{e:?}")))?;
+        let client = match AsyncClient::new(&self.cfg.endpoint_url) {
+            Ok(client) => client,
+            Err(e) => {
+                self.mark_disconnected().await;
+                return Err(OpcError::Ua(format!("{e:?}")));
+            }
+        };
         let mut inner = self.inner.lock().await;
         inner.client = Some(Arc::new(client));
         self.connected_flag.store(true, Ordering::Relaxed);
@@ -74,10 +79,13 @@ impl OpcClient {
             inner.client.clone().ok_or(OpcError::NotConnected)?
         };
 
-        let dv = client
-            .read_value(&node_id)
-            .await
-            .map_err(|e| OpcError::Ua(format!("{e:?}")))?;
+        let dv = match client.read_value(&node_id).await {
+            Ok(value) => value,
+            Err(e) => {
+                self.mark_disconnected().await;
+                return Err(OpcError::Ua(format!("{e:?}")));
+            }
+        };
 
         Ok(dv
             .value()
@@ -95,10 +103,10 @@ impl OpcClient {
             inner.client.clone().ok_or(OpcError::NotConnected)?
         };
 
-        client
-            .write_value(&node_id, &value)
-            .await
-            .map_err(|e| OpcError::Ua(format!("{e:?}")))?;
+        if let Err(e) = client.write_value(&node_id, &value).await {
+            self.mark_disconnected().await;
+            return Err(OpcError::Ua(format!("{e:?}")));
+        }
 
         Ok(())
     }
@@ -142,10 +150,7 @@ impl OpcClient {
         let this = self.clone();
         tokio::spawn(async move {
             loop {
-                let connected = {
-                    let inner = this.inner.lock().await;
-                    inner.client.is_some()
-                };
+                let connected = this.connected_flag.load(Ordering::Relaxed);
 
                 if !connected {
                     let _ = this.connect().await;
@@ -156,16 +161,16 @@ impl OpcClient {
     }
 
     pub async fn check_connection(&self) -> bool {
-        let this = self.clone();
-        let connected = {
-            let inner = this.inner.lock().await;
-            inner.client.is_some()
-        };
-
-        return connected;
+        self.connected_flag.load(Ordering::Relaxed)
     }
 
     pub fn is_connected(&self) -> bool {
         self.connected_flag.load(Ordering::Relaxed)
+    }
+
+    async fn mark_disconnected(&self) {
+        let mut inner = self.inner.lock().await;
+        inner.client = None;
+        self.connected_flag.store(false, Ordering::Relaxed);
     }
 }
