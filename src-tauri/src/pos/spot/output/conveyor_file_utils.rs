@@ -1,6 +1,8 @@
 use chrono::{NaiveDate, NaiveTime};
 
-use crate::pos::spot::output::conveyor_ops_types::{ConveyorOpsTypes, LoadItemOp, WinCleanersConveyorOpTypes};
+use crate::pos::spot::output::conveyor_ops_types::{
+    ConveyorOpsTypes, LoadItemOp, WinCleanersConveyorOpTypes,
+};
 // use crate::schema::garment_details::transaction_date;
 use std::io::Write;
 use std::sync::RwLock;
@@ -222,7 +224,7 @@ pub fn write_ticket_complete(
     loadstation_id: &str,
     conveyor_slot: u32,
     transaction_date: NaiveDate,
-    transaction_time: NaiveTime
+    transaction_time: NaiveTime,
 ) -> Result<(), String> {
     let line = format!(
         "\"{}\",\"{}\",\"{}\",\"{}\",\"{}\",\"{}\",\"{}\",\"{}\",\"{}\",\"{}\"",

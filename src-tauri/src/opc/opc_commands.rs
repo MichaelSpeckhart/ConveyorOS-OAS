@@ -3,7 +3,9 @@ use open62541::{
     ua::{self, DataValue},
     ScalarValue, VariantValue,
 };
+use std::time::Duration;
 use tauri::State;
+use tokio::task::JoinHandle;
 
 pub fn get_opc_client(opc_client: State<OpcClient>) -> OpcClient {
     opc_client.inner().clone()
@@ -124,4 +126,66 @@ pub async fn set_slots_per_frame(
         )
         .await
         .map_err(|e| e.to_string())
+}
+
+pub async fn get_heartbeat_value(opc_client: &OpcClient) -> Result<i16, String> {
+    let v: ua::Variant = opc_client
+        .read_value(ua::NodeId::numeric(1, 208))
+        .await
+        .map_err(|e| e.to_string())?;
+
+    match v.to_value() {
+        VariantValue::Scalar(ScalarValue::Int16(i)) => Ok(i.value()),
+        other => Err(format!("Expected Int16 at ns=1;i=208, got: {other:?}")),
+    }
+}
+
+pub async fn set_heartbeat_value(opc_client: &OpcClient, value: i16) -> Result<(), String> {
+    opc_client
+        .write_value(
+            ua::NodeId::numeric(1, 209),
+            DataValue::new(ua::Variant::scalar(ua::Int16::new(value))),
+        )
+        .await
+        .map_err(|e| e.to_string())
+}
+
+pub fn start_heartbeat_read_loop(opc_client: OpcClient, interval: Duration) -> JoinHandle<()> {
+    tokio::spawn(async move {
+        let mut last_value: Option<i16> = None;
+
+        loop {
+            match get_heartbeat_value(&opc_client).await {
+                Ok(value) => {
+                    if last_value != Some(value) {
+                        println!("PLC heartbeat: {value}");
+                        last_value = Some(value);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Heartbeat read error: {e}");
+                }
+            }
+
+            tokio::time::sleep(interval).await;
+        }
+    })
+}
+
+pub fn start_heartbeat_write_loop(opc_client: OpcClient, interval: Duration) -> JoinHandle<()> {
+    tokio::spawn(async move {
+        let mut value: i16 = 0;
+
+        loop {
+            if let Err(e) = set_heartbeat_value(&opc_client, value).await {
+                eprintln!("Heartbeat write error: {e}");
+            }
+            if value == 30000 {
+                value = 1;
+            }
+            value = value.wrapping_add(1);
+
+            tokio::time::sleep(interval).await;
+        }
+    })
 }

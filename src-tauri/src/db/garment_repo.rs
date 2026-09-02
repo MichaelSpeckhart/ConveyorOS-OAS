@@ -122,27 +122,28 @@ pub fn update_garment_code(
             .set(item_id.eq(new_code))
             .execute(conn)?;
 
-        diesel::update(crate::schema::garment_details::dsl::garment_details.filter(
-            crate::schema::garment_details::dsl::item_id.eq(current_code),
-        ))
+        diesel::update(
+            crate::schema::garment_details::dsl::garment_details
+                .filter(crate::schema::garment_details::dsl::item_id.eq(current_code)),
+        )
         .set(crate::schema::garment_details::dsl::item_id.eq(new_code))
         .execute(conn)?;
 
-        diesel::update(crate::schema::slots::dsl::slots.filter(
-            crate::schema::slots::dsl::item_id.eq(Some(current_code.to_string())),
-        ))
+        diesel::update(
+            crate::schema::slots::dsl::slots
+                .filter(crate::schema::slots::dsl::item_id.eq(Some(current_code.to_string()))),
+        )
         .set(crate::schema::slots::dsl::item_id.eq(Some(new_code.to_string())))
         .execute(conn)?;
 
-        diesel::update(crate::schema::conveyoractivity::dsl::conveyoractivity.filter(
-            crate::schema::conveyoractivity::dsl::item_id.eq(current_code),
-        ))
+        diesel::update(
+            crate::schema::conveyoractivity::dsl::conveyoractivity
+                .filter(crate::schema::conveyoractivity::dsl::item_id.eq(current_code)),
+        )
         .set(crate::schema::conveyoractivity::dsl::item_id.eq(new_code))
         .execute(conn)?;
 
-        garments
-            .filter(item_id.eq(new_code))
-            .first::<Garment>(conn)
+        garments.filter(item_id.eq(new_code)).first::<Garment>(conn)
     })
     .map_err(|e| e.to_string())
 }

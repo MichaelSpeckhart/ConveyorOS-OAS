@@ -1,6 +1,6 @@
 use crate::pos::spot::output::conveyor_ops_types::{
     self, ConveyorOpsTypes, LoadInvoiceOp, LoadItemOp, PrintInvoiceOp, SplitInvoiceOp,
-    UnloadInvoiceOp, UnloadItemOp, TicketCompleteOp
+    TicketCompleteOp, UnloadInvoiceOp, UnloadItemOp,
 };
 
 impl LoadItemOp {
@@ -169,15 +169,11 @@ impl PrintInvoiceOp {
 pub mod wincleaners {
     use crate::pos::spot::output::conveyor_ops_types::TicketCompleteOp;
 
-
-    impl TicketCompleteOp {     
+    impl TicketCompleteOp {
         pub fn perform_ticket_complete_op(operation: &TicketCompleteOp) -> Result<String, String> {
             let _ = operation;
-
 
             Ok("Ticket Complete Operation Successful".to_string())
         }
     }
-
-
 }

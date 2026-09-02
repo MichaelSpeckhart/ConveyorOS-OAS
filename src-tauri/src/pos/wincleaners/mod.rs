@@ -98,8 +98,10 @@ fn handle_garment_create(
     let transaction_time_idx = fm
         .transaction_time
         .ok_or_else(|| "MISSING_FIELD_MAPPING: transaction_time".to_string())?;
-    let dropoff_date =
-        parse_wincleaners_transaction_datetime(get(transaction_date_idx)?, get(transaction_time_idx)?)?;
+    let dropoff_date = parse_wincleaners_transaction_datetime(
+        get(transaction_date_idx)?,
+        get(transaction_time_idx)?,
+    )?;
 
     let pickup_date = pickup_dates
         .get(&full_invoice)
@@ -119,7 +121,13 @@ fn handle_garment_create(
         .map_err(|e| format!("CREATE_CUSTOMER_FAILED: {e}"))?;
     }
 
-    customer_details_repo::upsert_from_mapped_fields(conn, fields, fm, &customer_id, "WINCLEANERS")?;
+    customer_details_repo::upsert_from_mapped_fields(
+        conn,
+        fields,
+        fm,
+        &customer_id,
+        "WINCLEANERS",
+    )?;
     garment_details_repo::upsert_from_mapped_fields(conn, fields, fm, &item_id, "WINCLEANERS")?;
 
     if !garment_repo::garment_exists(conn, item_id.clone()) {

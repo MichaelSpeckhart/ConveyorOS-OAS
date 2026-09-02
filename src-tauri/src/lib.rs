@@ -137,6 +137,15 @@ pub fn run() {
                 opc_for_task.start_reconnect_loop();
             });
 
+            let _heartbeat_read_task = opc::opc_commands::start_heartbeat_read_loop(
+                opc.clone(),
+                std::time::Duration::from_secs(1),
+            );
+            let _heartbeat_write_task = opc::opc_commands::start_heartbeat_write_loop(
+                opc.clone(),
+                std::time::Duration::from_millis(50),
+            );
+
             let num_frames = i16::try_from(settings.frames.len()).unwrap_or(i16::MAX);
             let slots_per_frame = settings
                 .frames

@@ -4,8 +4,8 @@ use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::schema::{
-    app_state, conveyoractivity, customer_details, customers, garment_details, garments,
-    sessions, slots, ticket_details, tickets, users,
+    app_state, conveyoractivity, customer_details, customers, garment_details, garments, sessions,
+    slots, ticket_details, tickets, users,
 };
 
 //

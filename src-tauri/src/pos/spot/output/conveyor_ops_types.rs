@@ -49,7 +49,7 @@ pub struct TicketCompleteOp {
     pub loadstation_id: String,
     pub slot_number: u32,
     pub transaction_date: NaiveDate,
-    pub transaction_time: NaiveTime
+    pub transaction_time: NaiveTime,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -62,9 +62,8 @@ pub struct GarmentRemovedOp {
     pub loadstation_id: String,
     pub slot_number: u32,
     pub transaction_date: NaiveDate,
-    pub transaction_time: NaiveTime
+    pub transaction_time: NaiveTime,
 }
-
 
 /// SPOT Operations
 const LOADINVOICE: &str = "LOADINV";
@@ -73,7 +72,6 @@ const SPLITINVOICE: &str = "SPLITINV";
 const PRINTINVOICE: &str = "PRINTINV";
 const LOADITEM: &str = "LOADITEM";
 const UNLOADITEM: &str = "UNLOADITEM";
-
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub enum LoadItemErrors {}
@@ -120,8 +118,6 @@ impl FromStr for ConveyorOpsTypes {
         }
     }
 }
-
-
 
 // Conveyor SPOT Operations
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
