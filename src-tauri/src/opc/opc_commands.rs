@@ -5,7 +5,6 @@ use open62541::{
 };
 use std::time::Duration;
 use tauri::State;
-use tokio::task::JoinHandle;
 
 pub fn get_opc_client(opc_client: State<OpcClient>) -> OpcClient {
     opc_client.inner().clone()
@@ -150,8 +149,11 @@ pub async fn set_heartbeat_value(opc_client: &OpcClient, value: i16) -> Result<(
         .map_err(|e| e.to_string())
 }
 
-pub fn start_heartbeat_read_loop(opc_client: OpcClient, interval: Duration) -> JoinHandle<()> {
-    tokio::spawn(async move {
+pub fn start_heartbeat_read_loop(
+    opc_client: OpcClient,
+    interval: Duration,
+) -> tauri::async_runtime::JoinHandle<()> {
+    tauri::async_runtime::spawn(async move {
         let mut last_value: Option<i16> = None;
 
         loop {
@@ -172,8 +174,11 @@ pub fn start_heartbeat_read_loop(opc_client: OpcClient, interval: Duration) -> J
     })
 }
 
-pub fn start_heartbeat_write_loop(opc_client: OpcClient, interval: Duration) -> JoinHandle<()> {
-    tokio::spawn(async move {
+pub fn start_heartbeat_write_loop(
+    opc_client: OpcClient,
+    interval: Duration,
+) -> tauri::async_runtime::JoinHandle<()> {
+    tauri::async_runtime::spawn(async move {
         let mut value: i16 = 0;
 
         loop {
