@@ -39,7 +39,7 @@ pub async fn slot_run_request(opc_client: &OpcClient, target_slot: i16) -> Resul
     set_target_slot(opc_client, target_slot).await?;
     opc_client
         .write_value(
-            ua::NodeId::numeric(1, 83),
+            ua::NodeId::numeric(1, 67),
             DataValue::new(ua::Variant::scalar(ua::Boolean::new(false))),
         )
         .await
@@ -47,7 +47,7 @@ pub async fn slot_run_request(opc_client: &OpcClient, target_slot: i16) -> Resul
 
     let _ = match opc_client
         .write_value(
-            ua::NodeId::numeric(1, 83),
+            ua::NodeId::numeric(1, 67),
             DataValue::new(ua::Variant::scalar(ua::Boolean::new(true))),
         )
         .await
@@ -58,7 +58,7 @@ pub async fn slot_run_request(opc_client: &OpcClient, target_slot: i16) -> Resul
 
     opc_client
         .write_value(
-            ua::NodeId::numeric(1, 83),
+            ua::NodeId::numeric(1, 67),
             DataValue::new(ua::Variant::scalar(ua::Boolean::new(false))),
         )
         .await
@@ -69,7 +69,7 @@ pub async fn set_target_slot(opc_client: &OpcClient, target_slot: i16) -> Result
     println!("Slot Run Request");
     match opc_client
         .write_value(
-            ua::NodeId::numeric(1, 267),
+            ua::NodeId::numeric(1, 238),
             DataValue::new(ua::Variant::scalar(ua::Int16::new(target_slot))),
         )
         .await
@@ -82,14 +82,14 @@ pub async fn set_target_slot(opc_client: &OpcClient, target_slot: i16) -> Result
 pub async fn get_target_slot(opc_client: &OpcClient) -> Result<ua::Variant, String> {
     println!("Get Target Slot");
     opc_client
-        .read_value(ua::NodeId::numeric(1, 267))
+        .read_value(ua::NodeId::numeric(1, 238))
         .await
         .map_err(|e| e.to_string())
 }
 
 pub async fn get_load_hanger_sensor(opc_client: &OpcClient) -> Result<bool, String> {
     let v: ua::Variant = opc_client
-        .read_value(ua::NodeId::numeric(1, 102))
+        .read_value(ua::NodeId::numeric(1, 86))
         .await
         .map_err(|e| e.to_string())?;
 
@@ -106,7 +106,7 @@ pub fn check_opc_connection(opc_client: &OpcClient) -> bool {
 pub async fn set_number_of_frames(opc_client: &OpcClient, num_frames: i16) -> Result<(), String> {
     opc_client
         .write_value(
-            ua::NodeId::numeric(1, 259),
+            ua::NodeId::numeric(1, 230),
             DataValue::new(ua::Variant::scalar(ua::Int16::new(num_frames))),
         )
         .await
@@ -119,7 +119,7 @@ pub async fn set_slots_per_frame(
 ) -> Result<(), String> {
     opc_client
         .write_value(
-            ua::NodeId::numeric(1, 261),
+            ua::NodeId::numeric(1, 232),
             DataValue::new(ua::Variant::scalar(ua::Int16::new(slots_per_frame))),
         )
         .await
