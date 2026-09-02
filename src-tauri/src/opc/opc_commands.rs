@@ -160,12 +160,12 @@ pub fn start_heartbeat_read_loop(
             match get_heartbeat_value(&opc_client).await {
                 Ok(value) => {
                     if last_value != Some(value) {
-                        println!("PLC heartbeat: {value}");
+                        log::info!("PLC heartbeat: {value}");
                         last_value = Some(value);
                     }
                 }
                 Err(e) => {
-                    eprintln!("Heartbeat read error: {e}");
+                    log::error!("Heartbeat read error: {e}");
                 }
             }
 
@@ -183,7 +183,7 @@ pub fn start_heartbeat_write_loop(
 
         loop {
             if let Err(e) = set_heartbeat_value(&opc_client, value).await {
-                eprintln!("Heartbeat write error: {e}");
+                log::error!("Heartbeat write error: {e}");
             }
             if value == 30000 {
                 value = 1;

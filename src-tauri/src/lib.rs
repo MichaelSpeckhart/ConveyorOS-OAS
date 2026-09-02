@@ -45,10 +45,15 @@ pub fn run() {
         .plugin(
             tauri_plugin_log::Builder::new()
                 .level(tauri_plugin_log::log::LevelFilter::Info)
+                .targets([
+                    Target::new(TargetKind::Stdout),
+                    Target::new(TargetKind::LogDir {
+                        file_name: Some("conveyoros-oas".into()),
+                    }),
+                ])
                 .build(),
         )
         .plugin(tauri_plugin_store::Builder::new().build())
-        .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let app_handle = app.handle();
@@ -62,6 +67,10 @@ pub fn run() {
 
             println!("SETTINGS FILE PATH: {}", p.display());
             println!("Loaded settings: {:?}", settings);
+            match app.path().app_log_dir() {
+                Ok(log_dir) => log::info!("App log directory: {}", log_dir.display()),
+                Err(e) => log::warn!("Could not resolve app log directory: {e}"),
+            }
 
             let database_url = crate::settings::database_url(&settings);
             set_database_url(&database_url);
