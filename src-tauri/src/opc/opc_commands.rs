@@ -6,6 +6,10 @@ use open62541::{
 use std::time::Duration;
 use tauri::State;
 
+pub fn hanger_sensor_node_id() -> ua::NodeId {
+    ua::NodeId::numeric(1, 86)
+}
+
 pub fn get_opc_client(opc_client: State<OpcClient>) -> OpcClient {
     opc_client.inner().clone()
 }
@@ -90,13 +94,13 @@ pub async fn get_target_slot(opc_client: &OpcClient) -> Result<ua::Variant, Stri
 
 pub async fn get_load_hanger_sensor(opc_client: &OpcClient) -> Result<bool, String> {
     let v: ua::Variant = opc_client
-        .read_value(ua::NodeId::numeric(1, 86))
+        .read_value(hanger_sensor_node_id())
         .await
         .map_err(|e| e.to_string())?;
 
     match v.to_value() {
         VariantValue::Scalar(ScalarValue::Boolean(b)) => Ok(b.value()),
-        other => Err(format!("Expected Boolean at ns=1;i=99, got: {other:?}")),
+        other => Err(format!("Expected Boolean at ns=1;i=86, got: {other:?}")),
     }
 }
 
@@ -127,23 +131,23 @@ pub async fn set_slots_per_frame(
         .map_err(|e| e.to_string())
 }
 
-pub async fn get_heartbeat_value(opc_client: &OpcClient) -> Result<i16, String> {
+pub async fn get_heartbeat_value(opc_client: &OpcClient) -> Result<i32, String> {
     let v: ua::Variant = opc_client
         .read_value(ua::NodeId::numeric(1, 208))
         .await
         .map_err(|e| e.to_string())?;
 
     match v.to_value() {
-        VariantValue::Scalar(ScalarValue::Int16(i)) => Ok(i.value()),
-        other => Err(format!("Expected Int16 at ns=1;i=208, got: {other:?}")),
+        VariantValue::Scalar(ScalarValue::Int32(i)) => Ok(i.value()),
+        other => Err(format!("Expected Int32 at ns=1;i=208, got: {other:?}")),
     }
 }
 
-pub async fn set_heartbeat_value(opc_client: &OpcClient, value: i16) -> Result<(), String> {
+pub async fn set_heartbeat_value(opc_client: &OpcClient, value: i32) -> Result<(), String> {
     opc_client
         .write_value(
             ua::NodeId::numeric(1, 209),
-            DataValue::new(ua::Variant::scalar(ua::Int16::new(value))),
+            DataValue::new(ua::Variant::scalar(ua::Int32::new(value))),
         )
         .await
         .map_err(|e| e.to_string())
@@ -154,7 +158,7 @@ pub fn start_heartbeat_read_loop(
     interval: Duration,
 ) -> tauri::async_runtime::JoinHandle<()> {
     tauri::async_runtime::spawn(async move {
-        let mut last_value: Option<i16> = None;
+        let mut last_value: Option<i32> = None;
 
         loop {
             match get_heartbeat_value(&opc_client).await {
@@ -179,7 +183,7 @@ pub fn start_heartbeat_write_loop(
     interval: Duration,
 ) -> tauri::async_runtime::JoinHandle<()> {
     tauri::async_runtime::spawn(async move {
-        let mut value: i16 = 0;
+        let mut value: i32 = 0;
 
         loop {
             if let Err(e) = set_heartbeat_value(&opc_client, value).await {

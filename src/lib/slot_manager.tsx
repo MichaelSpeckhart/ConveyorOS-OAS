@@ -1,5 +1,4 @@
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
 import { customer } from "../types/customer";
 import type { TicketRow } from "./data";
 import type { Slot, SlotManagerStats } from "../types/slotstats";
@@ -31,24 +30,7 @@ export async function handleScanTauri(scan_code: string): Promise<number | null>
 }
 
 export async function loadSensorHanger(timeoutMs = 10_000): Promise<boolean> {
-    await invoke("subscribe_hanger_sensor");
-
-    return new Promise<boolean>((resolve) => {
-        let timeoutId: ReturnType<typeof setTimeout>;
-
-        const unlistenPromise = listen<boolean>("hanger_sensor", (event) => {
-            if (event.payload === true) {
-                clearTimeout(timeoutId);
-                unlistenPromise.then((fn) => fn());
-                resolve(true);
-            }
-        });
-
-        timeoutId = setTimeout(() => {
-            unlistenPromise.then((fn) => fn());
-            resolve(false);
-        }, timeoutMs);
-    });
+    return invoke<boolean>("wait_for_hanger_sensor", { timeoutMs });
 }
 
 export async function isLastGarmentTauri(ticket: string): Promise<boolean> {
@@ -114,4 +96,3 @@ export async function addConveyorActivityTauri(ticket: string, garment: string, 
 export async function addConveyorActivityUnloadTauri(ticket: string, garment: string, slotNum: number, customerIdentifier: string) {
     await invoke<void>("add_conveyor_activity_unload_tauri", {ticket, garment, slotNum: slotNum, customerIdentifier: customerIdentifier})
 }
-

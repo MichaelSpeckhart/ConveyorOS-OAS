@@ -132,9 +132,11 @@ pub fn run() {
 
             println!("OPC Client initialized");
 
+            let hanger_detected = Arc::new(AtomicBool::new(false));
+
             app.manage(AppState {
                 opc: opc.clone(),
-                hanger_detected: Arc::new(AtomicBool::new(false)),
+                hanger_detected: hanger_detected.clone(),
                 hanger_task: Arc::new(Mutex::new(None)),
             });
 
@@ -145,6 +147,9 @@ pub fn run() {
                 }
                 opc_for_task.start_reconnect_loop();
             });
+
+            let sensor_opc = opc.clone();
+            tauri::async_runtime::spawn(opc::sensor::hanger_poll_loop(sensor_opc, hanger_detected));
 
             let _heartbeat_read_task = opc::opc_commands::start_heartbeat_read_loop(
                 opc.clone(),

@@ -22,7 +22,7 @@ pub async fn subscribe_hanger_sensor(
 ) -> Result<(), String> {
     let mut rx = state
         .opc
-        .subscribe_value(ua::NodeId::numeric(1, 102))
+        .subscribe_value(opc_commands::hanger_sensor_node_id())
         .await
         .map_err(|e| e.to_string())?;
 

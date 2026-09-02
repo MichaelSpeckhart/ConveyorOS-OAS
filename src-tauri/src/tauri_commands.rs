@@ -244,17 +244,22 @@ pub fn get_num_items_on_ticket(ticket: String) -> Result<i32, String> {
 }
 
 #[tauri::command]
-pub async fn wait_for_hanger_sensor(state: tauri::State<'_, AppState>) -> Result<bool, String> {
-    println!("Waiting for hanger sensor...");
-    let result = timeout(Duration::from_secs(10), async {
+pub async fn wait_for_hanger_sensor(
+    state: tauri::State<'_, AppState>,
+    timeout_ms: Option<u64>,
+) -> Result<bool, String> {
+    let timeout_duration = Duration::from_millis(timeout_ms.unwrap_or(10_000));
+
+    log::info!("Waiting for hanger sensor...");
+    let result = timeout(timeout_duration, async {
         loop {
             match get_load_hanger_sensor(&state.opc).await {
                 Ok(true) => {
-                    println!("Hanger sensor detected!");
+                    log::info!("Hanger sensor detected");
                     return true;
                 }
                 Ok(false) => {}
-                Err(e) => eprintln!("Sensor poll error (retrying): {e}"),
+                Err(e) => log::warn!("Hanger sensor poll error, retrying: {e}"),
             }
             sleep(Duration::from_millis(10)).await;
         }
