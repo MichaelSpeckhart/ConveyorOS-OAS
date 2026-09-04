@@ -1,6 +1,7 @@
 use conveyoros_oas_lib::{
     io::fileutils::read_file, pos::spot::output::conveyor_file_utils::set_conveyor_csv_output_dir,
-    pos::spot::spot_file_utils::parse_spot_csv_core, tauri_commands,
+    pos::spot::spot_file_utils::parse_spot_csv_core, settings::appsettings::FieldMappings,
+    tauri_commands,
 };
 
 pub fn db_setup() {
@@ -106,7 +107,7 @@ pub fn test_split_invoice_six_add_items() {
         }
     };
 
-    match parse_spot_csv_core(&contents) {
+    match parse_spot_csv_core(&contents, &FieldMappings::default()) {
         Ok(count) => {
             println!("[FileWatch] Parsing succeeded (result={})", count);
         }

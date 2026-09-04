@@ -1,4 +1,6 @@
-use conveyoros_oas_lib::{io::fileutils::read_file, pos::spot::spot_file_utils};
+use conveyoros_oas_lib::{
+    io::fileutils::read_file, pos::spot::spot_file_utils, settings::appsettings::FieldMappings,
+};
 
 const TEST_FILE_PATH: &str = "tests/test_data/pos.csv";
 
@@ -21,7 +23,7 @@ pub fn test_file_existence() {
 pub fn test_empty_file() {
     let contents: Vec<String> = vec![];
 
-    match spot_file_utils::parse_spot_csv_core(&contents) {
+    match spot_file_utils::parse_spot_csv_core(&contents, &FieldMappings::default()) {
         Ok(_) => {
             panic!("Expected error for empty file, but got Ok");
         }
@@ -39,7 +41,7 @@ pub fn test_delete_item() {
 
     set_database_url("postgres://postgres:postgres123@localhost:5432/conveyor-app");
 
-    match spot_file_utils::parse_spot_csv_core(&contents) {
+    match spot_file_utils::parse_spot_csv_core(&contents, &FieldMappings::default()) {
         Ok(count) => {
             println!("Parsed {} operations successfully.", count);
             assert_eq!(count, 1, "Expected to parse exactly one operation.");

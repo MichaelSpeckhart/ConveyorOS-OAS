@@ -62,7 +62,38 @@ pub struct FieldMappings {
 
 impl Default for FieldMappings {
     fn default() -> Self {
-        // SPOT defaults
+        // SPOT defaults. These indexes are zero-based and match the documented
+        // 25-column ADDITEM layout, where column 10 is reserved/blank.
+        Self {
+            customer_identifier: 6,
+            customer_first_name: Some(7),
+            customer_last_name: Some(8),
+            customer_phone: Some(10),
+            address_one: Some(18),
+            address_two: Some(19),
+            city: Some(20),
+            state: Some(21),
+            zip_code: Some(22),
+            service_price: None,
+            service_type: None,
+            garment_color: None,
+            transaction_date: Some(16),
+            transaction_time: None,
+            full_invoice_number: 1,
+            display_invoice_number: 2,
+            num_items: 3,
+            slot_occupancy: 4,
+            item_id: 11,
+            item_description: 12,
+            dropoff_date: 13,
+            pickup_date: 14,
+            comments: 15,
+        }
+    }
+}
+
+impl FieldMappings {
+    pub fn spot_legacy_compact() -> Self {
         Self {
             customer_identifier: 6,
             customer_first_name: Some(7),
@@ -89,9 +120,7 @@ impl Default for FieldMappings {
             comments: 14,
         }
     }
-}
 
-impl FieldMappings {
     /// Column layout for Wincleaners' GARMENT_CREATE rows:
     /// TransactionCode, CustomerID, TicketNumber, GarmentID, GarmentDescription,
     /// ServicePrice, ServiceType, GarmentColor, TransactionDate, TransactionTime.

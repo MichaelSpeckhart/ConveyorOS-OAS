@@ -1,5 +1,6 @@
-use chrono::{Local, NaiveDateTime, TimeZone};
+use chrono::{Local, NaiveDate, NaiveDateTime, TimeZone};
 use diesel::PgConnection;
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::str::FromStr;
 
@@ -28,6 +29,75 @@ fn get_field(fields: &[String], idx: u32) -> Result<&str, String> {
     })
 }
 
+fn get_optional_field(fields: &[String], idx: u32) -> &str {
+    fields.get(idx as usize).map(|s| s.as_str()).unwrap_or("")
+}
+
+fn parse_spot_datetime(value: &str, field_name: &str) -> Result<chrono::DateTime<Local>, String> {
+    let cleaned = value.trim().trim_end_matches('\r');
+
+    let naive = NaiveDateTime::parse_from_str(cleaned, "%Y-%m-%dT%H:%M:%S")
+        .or_else(|_| NaiveDateTime::parse_from_str(cleaned, "%Y-%m-%dT%H:%M:%S%.f"))
+        .or_else(|_| {
+            NaiveDate::parse_from_str(cleaned, "%Y-%m-%d").map(|date| {
+                date.and_hms_opt(0, 0, 0)
+                    .expect("00:00:00 is always a valid time")
+            })
+        })
+        .map_err(|e| format!("BAD_DATE_{} {:?}: {}", field_name, cleaned, e))?;
+
+    Local
+        .from_local_datetime(&naive)
+        .single()
+        .ok_or_else(|| format!("AMBIGUOUS_{}_TIME", field_name))
+}
+
+fn add_item_mapping_is_usable(fields: &[String], fm: &FieldMappings) -> bool {
+    let required_text_fields = [
+        fm.full_invoice_number,
+        fm.display_invoice_number,
+        fm.item_id,
+        fm.item_description,
+    ];
+
+    if required_text_fields.iter().any(|idx| {
+        fields
+            .get(*idx as usize)
+            .map(|s| s.trim().is_empty())
+            .unwrap_or(true)
+    }) {
+        return false;
+    }
+
+    get_field(fields, fm.dropoff_date)
+        .and_then(|value| parse_spot_datetime(value, "DROPOFF").map(|_| ()))
+        .is_ok()
+        && get_field(fields, fm.pickup_date)
+            .and_then(|value| parse_spot_datetime(value, "PICKUP").map(|_| ()))
+            .is_ok()
+}
+
+fn resolve_add_item_mapping<'a>(
+    fields: &[String],
+    configured: &'a FieldMappings,
+) -> Result<Cow<'a, FieldMappings>, String> {
+    if add_item_mapping_is_usable(fields, configured) {
+        return Ok(Cow::Borrowed(configured));
+    }
+
+    let documented = FieldMappings::default();
+    if add_item_mapping_is_usable(fields, &documented) {
+        return Ok(Cow::Owned(documented));
+    }
+
+    let legacy = FieldMappings::spot_legacy_compact();
+    if add_item_mapping_is_usable(fields, &legacy) {
+        return Ok(Cow::Owned(legacy));
+    }
+
+    Err("BAD_ADD_ITEM_ROW: no compatible SPOT ADDITEM field mapping".to_string())
+}
+
 pub fn parse_spot_csv_core(contents: &[String], fm: &FieldMappings) -> Result<u32, String> {
     if contents.is_empty() {
         return Err("EMPTY_FILE".to_string());
@@ -53,18 +123,19 @@ pub fn parse_spot_csv_core(contents: &[String], fm: &FieldMappings) -> Result<u3
         let op = spot_ops_types::from_str(&fields[0]).map_err(|_| "BAD_OP".to_string())?;
 
         if op == spot_ops_types::AddItem {
-            let invoice_key = get_field(&fields, fm.full_invoice_number)?.to_string();
+            let row_fm = resolve_add_item_mapping(&fields, fm)?;
+            let invoice_key = get_field(&fields, row_fm.full_invoice_number)?.to_string();
             let count = invoice_counts.entry(invoice_key.clone()).or_insert(0);
             *count += 1;
 
             if count > &mut 5 {
-                let item_id = get_field(&fields, fm.item_id)?.to_string();
+                let item_id = get_field(&fields, row_fm.item_id)?.to_string();
                 invoice_mappings
                     .entry(invoice_key)
                     .or_insert_with(Vec::new)
                     .push(item_id);
             } else {
-                handle_add_item_op(&fields, &mut conn, fm)?;
+                handle_add_item_op(&fields, &mut conn, &row_fm)?;
             }
         } else if op == spot_ops_types::DeleteItem {
             handle_delete_item_op(&fields, &mut conn, fm)?;
@@ -117,28 +188,8 @@ pub fn handle_add_item_op(
     conn: &mut PgConnection,
     fm: &FieldMappings,
 ) -> Result<(), String> {
-    let start_str = get_field(fields, fm.dropoff_date)?
-        .trim()
-        .trim_end_matches('\r')
-        .to_string();
-    let end_str = get_field(fields, fm.pickup_date)?
-        .trim()
-        .trim_end_matches('\r')
-        .to_string();
-
-    let start_naive = NaiveDateTime::parse_from_str(&start_str, "%Y-%m-%dT%H:%M:%S")
-        .map_err(|e| format!("BAD_DATE_DROPOFF {:?}: {}", start_str, e))?;
-    let end_naive = NaiveDateTime::parse_from_str(&end_str, "%Y-%m-%dT%H:%M:%S")
-        .map_err(|e| format!("BAD_DATE_PICKUP {:?}: {}", end_str, e))?;
-
-    let start_local = Local
-        .from_local_datetime(&start_naive)
-        .single()
-        .ok_or_else(|| "AMBIGUOUS_START_TIME".to_string())?;
-    let end_local = Local
-        .from_local_datetime(&end_naive)
-        .single()
-        .ok_or_else(|| "AMBIGUOUS_END_TIME".to_string())?;
+    let start_local = parse_spot_datetime(get_field(fields, fm.dropoff_date)?, "DROPOFF")?;
+    let end_local = parse_spot_datetime(get_field(fields, fm.pickup_date)?, "PICKUP")?;
 
     let add_op = spotops_types::AddItemOp::create_add_item_op(
         get_field(fields, fm.full_invoice_number)?,
@@ -165,7 +216,7 @@ pub fn handle_add_item_op(
         get_field(fields, fm.item_description)?,
         start_local,
         end_local,
-        get_field(fields, fm.comments)?,
+        get_optional_field(fields, fm.comments),
     )
     .map_err(|e| format!("ADD_OP_CREATE_FAILED: {}", e))?;
 
@@ -339,4 +390,66 @@ pub fn update_ticket_from_add_op(
 
 pub fn clean_spot_csv_line(line: &str) -> String {
     line.trim().trim_matches('"').to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::{Datelike, Timelike};
+
+    fn split_test_line(line: &str) -> Vec<String> {
+        line.split("\",\"").map(clean_spot_csv_line).collect()
+    }
+
+    #[test]
+    fn documented_add_item_layout_accepts_date_only_values() {
+        let fields = split_test_line(
+            "\"ADDITEM\",\".WAWA02-900001\",\"02-900001\",\"1\",\"0\",\"\",\"999888999\",\"Harry \",\"Truman\",\"\",\"9735076394\",\"000000140\",\"Blue-Shirt\",\"2026-10-18\",\"2026-10-18\",\"\",\"2026-09-04T13:22:29\",\"5478\",\"66 Silver Spring Road\",\"\",\"Short Hills\",\"NJ\",\"07078\",\"\",\"\"",
+        );
+
+        let configured = FieldMappings::spot_legacy_compact();
+        let mapping = resolve_add_item_mapping(&fields, &configured)
+            .expect("documented ADDITEM mapping should be detected");
+
+        assert_eq!(mapping.customer_phone, Some(10));
+        assert_eq!(mapping.item_id, 11);
+        assert_eq!(mapping.item_description, 12);
+        assert_eq!(mapping.dropoff_date, 13);
+        assert_eq!(get_field(&fields, mapping.item_id).unwrap(), "000000140");
+        assert_eq!(
+            get_field(&fields, mapping.item_description).unwrap(),
+            "Blue-Shirt"
+        );
+
+        let dropoff =
+            parse_spot_datetime(get_field(&fields, mapping.dropoff_date).unwrap(), "DROPOFF")
+                .unwrap();
+
+        assert_eq!(dropoff.year(), 2026);
+        assert_eq!(dropoff.month(), 10);
+        assert_eq!(dropoff.day(), 18);
+        assert_eq!(dropoff.hour(), 0);
+        assert_eq!(dropoff.minute(), 0);
+    }
+
+    #[test]
+    fn legacy_compact_add_item_layout_still_resolves() {
+        let fields = split_test_line(
+            "\"ADDITEM\",\".DCDC03-090374\",\"03-090374\",\"6\",\"100\",\"0.00\",\"DC3407\",\"Sabina\",\"Tacitus\",\"801-208-2200\",\"AA90664756\",\"Shirts-Regular Hang - Black,Solid\",\"2025-04-18T14:27:49\",\"2025-04-22T17:00:00\",\"Do not crease\"",
+        );
+
+        let configured = FieldMappings::default();
+        let mapping = resolve_add_item_mapping(&fields, &configured)
+            .expect("legacy ADDITEM mapping should still be detected");
+
+        assert_eq!(mapping.customer_phone, Some(9));
+        assert_eq!(mapping.item_id, 10);
+        assert_eq!(mapping.item_description, 11);
+        assert_eq!(mapping.dropoff_date, 12);
+        assert_eq!(get_field(&fields, mapping.item_id).unwrap(), "AA90664756");
+        assert_eq!(
+            get_field(&fields, mapping.item_description).unwrap(),
+            "Shirts-Regular Hang - Black,Solid"
+        );
+    }
 }
