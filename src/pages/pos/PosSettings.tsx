@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import {
   createSlotModeFrames,
+  getFrameCount,
   getSlotMode,
   loadSettings,
   pickConveyorOutputDir,
@@ -154,7 +155,18 @@ export default function SettingsPage() {
   };
 
   const setSlotMode = (slotMode: SlotMode) => {
-    const frames = createSlotModeFrames(slotMode);
+    const frames = createSlotModeFrames(slotMode, getFrameCount(s));
+    setS({
+      ...s,
+      frames,
+      numFrames: frames.length,
+      slotsPerFrame: frames[0]?.slots.length ?? 0,
+    });
+  };
+
+  const setFrameCount = (frameCount: number) => {
+    const nextFrameCount = Math.max(1, Math.min(20, Math.trunc(frameCount) || 1));
+    const frames = createSlotModeFrames(slotMode, nextFrameCount);
     setS({
       ...s,
       frames,
@@ -181,7 +193,9 @@ export default function SettingsPage() {
   };
 
   const slotMode = getSlotMode(s);
-  const slotPreview = createSlotModeFrames(slotMode)[0].slots;
+  const frameCount = getFrameCount(s);
+  const slotPreview = createSlotModeFrames(slotMode, frameCount).flatMap((frame) => frame.slots);
+  const totalSlots = slotMode * frameCount;
 
   return (
     <div className="min-h-full w-full bg-surface p-6">
@@ -287,13 +301,32 @@ export default function SettingsPage() {
                 <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow">
                   <div className="mb-4 flex items-center justify-between gap-4">
                     <div>
-                      <div className="text-xs font-bold uppercase tracking-widest text-slate-500">Enabled Slots</div>
+                      <div className="text-xs font-bold uppercase tracking-widest text-slate-500">Frame Count</div>
                       <div className="text-sm font-semibold text-slate-500">
-                        {slotMode === 5 ? "Even-numbered slots are disabled in 5 slot mode." : "Every slot is enabled in 10 slot mode."}
+                        Slot map capacity is slots per frame multiplied by frames.
+                      </div>
+                    </div>
+                    <input
+                      className="w-28 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center text-slate-900 font-black focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={frameCount}
+                      onChange={(e) => setFrameCount(Number(e.target.value))}
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow">
+                  <div className="mb-4 flex items-center justify-between gap-4">
+                    <div>
+                      <div className="text-xs font-bold uppercase tracking-widest text-slate-500">Slot Map Capacity</div>
+                      <div className="text-sm font-semibold text-slate-500">
+                        {slotMode} slots per frame × {frameCount} frame{frameCount === 1 ? "" : "s"}
                       </div>
                     </div>
                     <div className="rounded-xl bg-slate-100 px-3 py-2 text-sm font-black text-slate-700">
-                      {slotPreview.filter(Boolean).length} active
+                      {totalSlots} active
                     </div>
                   </div>
                   <div className="grid grid-cols-5 md:grid-cols-10 gap-2">

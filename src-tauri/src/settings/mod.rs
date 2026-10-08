@@ -3,7 +3,37 @@ pub mod appsettings;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_store::StoreExt;
 
-use crate::settings::appsettings::AppSettings;
+use crate::settings::appsettings::{AppSettings, FrameConfig};
+
+fn normalize_frames(settings: &mut AppSettings) {
+    let first_frame = settings.frames.first();
+    let legacy_enabled_count = first_frame
+        .map(|frame| frame.slots.iter().filter(|enabled| **enabled).count())
+        .unwrap_or(0);
+    let stored_slots_per_frame = if first_frame
+        .map(|frame| frame.slots.len() == 10 && legacy_enabled_count == 5)
+        .unwrap_or(false)
+    {
+        5
+    } else if settings.slotsPerFrame > 5 {
+        10
+    } else {
+        5
+    };
+    let frame_count = usize::try_from(settings.numFrames)
+        .ok()
+        .filter(|count| *count > 0)
+        .unwrap_or_else(|| settings.frames.len().max(1));
+
+    settings.frames = (0..frame_count)
+        .map(|_| FrameConfig {
+            latches: stored_slots_per_frame as u8,
+            slots: vec![true; stored_slots_per_frame as usize],
+        })
+        .collect();
+    settings.numFrames = u32::try_from(settings.frames.len()).unwrap_or(u32::MAX);
+    settings.slotsPerFrame = stored_slots_per_frame;
+}
 
 /// Reads settings.json -> key "app_settings" (written by the frontend)
 pub fn load_settings(app: &AppHandle) -> AppSettings {
@@ -27,12 +57,7 @@ pub fn load_settings(app: &AppHandle) -> AppSettings {
         AppSettings::default()
     });
 
-    settings.numFrames = u32::try_from(settings.frames.len()).unwrap_or(u32::MAX);
-    settings.slotsPerFrame = settings
-        .frames
-        .first()
-        .map(|frame| u32::try_from(frame.slots.len()).unwrap_or(u32::MAX))
-        .unwrap_or(0);
+    normalize_frames(&mut settings);
 
     settings
 }

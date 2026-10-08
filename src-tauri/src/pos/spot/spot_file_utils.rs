@@ -138,44 +138,52 @@ pub fn parse_spot_csv_core(contents: &[String], fm: &FieldMappings) -> Result<u3
     let mut invoice_mappings: HashMap<String, Vec<String>> = HashMap::new();
     let mut conn = establish_connection()?;
 
-    for line in contents {
+    for (line_index, line) in contents.iter().enumerate() {
         if line.trim().is_empty() {
             continue;
         }
 
-        let mut fields: Vec<String> = line.split("\",\"").map(|s| s.to_string()).collect();
-        if fields.len() < 3 {
-            continue;
-        }
-        for f in &mut fields {
-            *f = clean_spot_csv_line(f);
-        }
-
-        let op = spot_ops_types::from_str(&fields[0]).map_err(|_| "BAD_OP".to_string())?;
-
-        if op == spot_ops_types::AddItem {
-            let row_fm = resolve_add_item_mapping(&fields, fm)?;
-            let invoice_key = get_field(&fields, row_fm.full_invoice_number)?.to_string();
-            let count = invoice_counts.entry(invoice_key.clone()).or_insert(0);
-            *count += 1;
-
-            if count > &mut 5 {
-                let item_id = get_field(&fields, row_fm.item_id)?.to_string();
-                invoice_mappings
-                    .entry(invoice_key)
-                    .or_insert_with(Vec::new)
-                    .push(item_id);
-            } else {
-                handle_add_item_op(&fields, &mut conn, &row_fm)?;
+        let row_result = (|| -> Result<(), String> {
+            let mut fields: Vec<String> = line.split("\",\"").map(|s| s.to_string()).collect();
+            if fields.len() < 3 {
+                return Ok(());
             }
-        } else if op == spot_ops_types::DeleteItem {
-            handle_delete_item_op(&fields, &mut conn, fm)?;
-        } else if op == spot_ops_types::AddInvoice {
-            handle_add_invoice_op(&fields, &mut conn)?;
-        } else if op == spot_ops_types::DeleteInvoice {
-            handle_delete_invoice_op(&fields, &mut conn)?;
-        } else {
-            return Err(format!("UNSUPPORTED_OP: {}", fields[0]));
+            for f in &mut fields {
+                *f = clean_spot_csv_line(f);
+            }
+
+            let op = spot_ops_types::from_str(&fields[0]).map_err(|_| "BAD_OP".to_string())?;
+
+            if op == spot_ops_types::AddItem {
+                let row_fm = resolve_add_item_mapping(&fields, fm)?;
+                let invoice_key = get_field(&fields, row_fm.full_invoice_number)?.to_string();
+                let count = invoice_counts.entry(invoice_key.clone()).or_insert(0);
+                *count += 1;
+
+                if count > &mut 5 {
+                    let item_id = get_field(&fields, row_fm.item_id)?.to_string();
+                    invoice_mappings
+                        .entry(invoice_key)
+                        .or_insert_with(Vec::new)
+                        .push(item_id);
+                } else {
+                    handle_add_item_op(&fields, &mut conn, &row_fm)?;
+                }
+            } else if op == spot_ops_types::DeleteItem {
+                handle_delete_item_op(&fields, &mut conn, fm)?;
+            } else if op == spot_ops_types::AddInvoice {
+                handle_add_invoice_op(&fields, &mut conn)?;
+            } else if op == spot_ops_types::DeleteInvoice {
+                handle_delete_invoice_op(&fields, &mut conn)?;
+            } else {
+                return Err(format!("UNSUPPORTED_OP: {}", fields[0]));
+            }
+
+            Ok(())
+        })();
+
+        if let Err(e) = row_result {
+            return Err(format!("Line {}: {}. Row: {}", line_index + 1, e, line));
         }
     }
 

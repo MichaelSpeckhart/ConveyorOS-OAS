@@ -319,7 +319,7 @@ fn default_pos_system() -> String {
 }
 
 fn default_num_frames() -> u32 {
-    10
+    1
 }
 
 fn default_slots_per_frame() -> u32 {

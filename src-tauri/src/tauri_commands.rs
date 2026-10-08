@@ -11,6 +11,7 @@ use serde::Serialize;
 use tokio::time::{sleep, timeout};
 
 use crate::{
+    app_log::{self, AppLogEntry},
     db::{
         connection::establish_connection,
         conveyor_activity_repo,
@@ -136,6 +137,17 @@ pub fn clear_database_tauri() -> Result<ClearDatabaseResult, String> {
         })
     })
     .map_err(|e| format!("DB Error (clear database): {e}"))
+}
+
+#[tauri::command]
+pub fn get_app_logs_tauri() -> Result<Vec<AppLogEntry>, String> {
+    Ok(app_log::list())
+}
+
+#[tauri::command]
+pub fn clear_app_logs_tauri() -> Result<(), String> {
+    app_log::clear();
+    Ok(())
 }
 
 #[tauri::command]
@@ -768,9 +780,7 @@ pub fn perform_split_invoice_op_non_tauri(
     Ok(true)
 }
 
-fn enabled_slot_numbers(
-    frames: &[crate::settings::appsettings::FrameConfig],
-) -> HashSet<i32> {
+fn enabled_slot_numbers(frames: &[crate::settings::appsettings::FrameConfig]) -> HashSet<i32> {
     let mut enabled = HashSet::new();
     let mut offset = 0_i32;
 
@@ -786,7 +796,7 @@ fn enabled_slot_numbers(
     enabled
 }
 
-fn apply_slot_settings(
+pub(crate) fn apply_slot_settings(
     conn: &mut PgConnection,
     frames: &[crate::settings::appsettings::FrameConfig],
 ) -> Result<(), String> {

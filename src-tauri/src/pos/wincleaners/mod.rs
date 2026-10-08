@@ -49,12 +49,13 @@ pub fn parse_wincleaners_csv_core(contents: &[String], fm: &FieldMappings) -> Re
     // Pass 2: process GARMENT_CREATE rows
     let mut conn = establish_connection()?;
     let mut count = 0u32;
-    for line in contents {
+    for (line_index, line) in contents.iter().enumerate() {
         let fields = parse_csv_line(line.trim());
         if fields.is_empty() || fields[0].to_uppercase() != "GARMENT_CREATE" {
             continue;
         }
-        handle_garment_create(&fields, &pickup_dates, &ticket_creates, fm, &mut conn)?;
+        handle_garment_create(&fields, &pickup_dates, &ticket_creates, fm, &mut conn)
+            .map_err(|e| format!("Line {}: {}. Row: {}", line_index + 1, e, line))?;
         count += 1;
     }
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle, BarChart3, CheckCircle2, Database, FileText, Keyboard, LayoutDashboard, Printer, ScanLine, Settings } from "lucide-react";
+import { AlertTriangle, BarChart3, CheckCircle2, Database, FileText, Keyboard, LayoutDashboard, Printer, ScanLine, ScrollText, Settings } from "lucide-react";
 import { listen } from "@tauri-apps/api/event";
 
 import { SideNavLayout } from "./layout/SideNavLayout";
@@ -17,6 +17,7 @@ import SetupWizard from "./components/SetupWizard";
 import { checkSetupRequired } from "./lib/settings";
 import RegularKeyboard from "./components/RegularKeyboard";
 import ReportsHome from "./pages/reports/ReportHome";
+import LogPage from "./pages/runtime/LogPage";
 
 type OpcConnectionNotice = {
   connected: boolean;
@@ -137,6 +138,12 @@ export default function App() {
       label: "Reports",
       icon: <FileText size={20} />,
       onClick: () => setActive("reports")
+    },
+    {
+      key: "logs",
+      label: "Logs",
+      icon: <ScrollText size={20} />,
+      onClick: () => setActive("logs")
     }
   ];
 
@@ -188,6 +195,7 @@ export default function App() {
         {active === "print" && <PrintTickets />}
         {active === "settings" && <PosSettings />}
         {active === "reports" && <ReportsHome />}
+        {active === "logs" && <LogPage />}
       </SideNavLayout>
 
       {/* Floating keyboard toggle button */}

@@ -65,7 +65,7 @@ export type AppSettings = {
 
 export type SlotMode = 5 | 10;
 
-const PHYSICAL_SLOTS_PER_FRAME = 10;
+export const DEFAULT_NUM_FRAMES = 1;
 
 const DEFAULT_FIELD_MAPPINGS: FieldMappings = {
   customerIdentifier: 6,
@@ -113,36 +113,39 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   posSystem: "spot",
   fieldMappings: DEFAULT_FIELD_MAPPINGS,
   printer: DEFAULT_PRINTER,
-  frames: createSlotModeFrames(5),
-  numFrames: 1,
-  slotsPerFrame: PHYSICAL_SLOTS_PER_FRAME,
+  frames: createSlotModeFrames(5, DEFAULT_NUM_FRAMES),
+  numFrames: DEFAULT_NUM_FRAMES,
+  slotsPerFrame: 5,
 };
 
-export function createSlotModeFrames(slotMode: SlotMode): FrameConfig[] {
-  return [
-    {
-      latches: PHYSICAL_SLOTS_PER_FRAME,
-      slots: Array.from(
-        { length: PHYSICAL_SLOTS_PER_FRAME },
-        (_, index) => slotMode === 10 || (index + 1) % 2 === 1
-      ),
-    },
-  ];
+export function createSlotModeFrames(slotMode: SlotMode, numFrames = DEFAULT_NUM_FRAMES): FrameConfig[] {
+  const frameCount = Math.max(1, Math.trunc(numFrames) || DEFAULT_NUM_FRAMES);
+  return Array.from({ length: frameCount }, () => ({
+    latches: slotMode,
+    slots: Array(slotMode).fill(true),
+  }));
 }
 
 export function getSlotMode(settings: AppSettings): SlotMode {
-  const slots = settings.frames[0]?.slots ?? [];
-  const enabledCount = slots.filter(Boolean).length;
-  return enabledCount <= 5 ? 5 : 10;
+  const slotsPerFrame = settings.frames[0]?.slots?.length ?? settings.slotsPerFrame ?? 5;
+  return slotsPerFrame <= 5 ? 5 : 10;
 }
 
-function normalizeFrames(frames: FrameConfig[] | undefined): FrameConfig[] {
-  const firstFrame = frames?.[0];
-  if (!firstFrame) return createSlotModeFrames(5);
+export function getFrameCount(settings: AppSettings): number {
+  return Math.max(1, settings.frames.length || settings.numFrames || DEFAULT_NUM_FRAMES);
+}
 
-  const enabledCount = firstFrame.slots?.filter(Boolean).length ?? 0;
-  const slotMode: SlotMode = enabledCount <= 5 ? 5 : 10;
-  return createSlotModeFrames(slotMode);
+function normalizeFrames(frames: FrameConfig[] | undefined, numFrames?: number, slotsPerFrame?: number): FrameConfig[] {
+  const firstFrame = frames?.[0];
+  if (!firstFrame) {
+    const slotMode: SlotMode = slotsPerFrame && slotsPerFrame > 5 ? 10 : 5;
+    return createSlotModeFrames(slotMode, numFrames ?? DEFAULT_NUM_FRAMES);
+  }
+
+  const frameCount = Math.max(1, Math.trunc(numFrames ?? frames?.length ?? DEFAULT_NUM_FRAMES));
+  const detectedSlotsPerFrame = slotsPerFrame ?? firstFrame.slots?.length ?? firstFrame.latches ?? 5;
+  const slotMode: SlotMode = detectedSlotsPerFrame <= 5 ? 5 : 10;
+  return createSlotModeFrames(slotMode, frameCount);
 }
 
 export function createDefaultSettings(): AppSettings {
@@ -178,7 +181,7 @@ export async function loadSettings(): Promise<AppSettings> {
   if (!saved) return createDefaultSettings();
 
   const defaults = createDefaultSettings();
-  const frames = normalizeFrames(saved.frames ?? defaults.frames);
+  const frames = normalizeFrames(saved.frames ?? defaults.frames, saved.numFrames, saved.slotsPerFrame);
   return {
     ...defaults,
     ...saved,
@@ -199,7 +202,7 @@ export async function loadSettings(): Promise<AppSettings> {
 }
 
 export async function saveSettings(s: AppSettings): Promise<void> {
-  const frames = normalizeFrames(s.frames);
+  const frames = normalizeFrames(s.frames, s.numFrames, s.slotsPerFrame);
   const numFrames = frames.length;
   const slotsPerFrame = frames[0]?.slots?.length ?? frames[0]?.latches ?? 0;
 

@@ -19,6 +19,7 @@ use crate::{
 };
 
 pub mod admin;
+pub mod app_log;
 pub mod configurator_config;
 pub mod db;
 pub mod domain;
@@ -104,6 +105,7 @@ pub fn run() {
             watch_settings.posCsvDir = pos_csv_path;
             watch_settings.conveyorCsvOutputDir = output_dir;
 
+            let startup_frames = settings.frames.clone();
             match establish_connection() {
                 Ok(mut conn) => {
                     std::thread::spawn(move || {
@@ -112,6 +114,12 @@ pub fn run() {
                             eprintln!("   Please configure database settings in the app");
                         } else {
                             println!("Database migrations completed successfully");
+                            if let Err(e) = crate::tauri_commands::apply_slot_settings(
+                                &mut conn,
+                                &startup_frames,
+                            ) {
+                                eprintln!("Failed to apply slot settings: {}", e);
+                            }
                         }
                     });
                 }
@@ -209,6 +217,8 @@ pub fn run() {
             plc::client::write_m5_command,
             io::fileutils_tauri::read_file_cmd,
             pos::spot::spot_tauri::parse_spot_csv_tauri,
+            tauri_commands::get_app_logs_tauri,
+            tauri_commands::clear_app_logs_tauri,
             tauri_commands::auth_login_user_tauri,
             tauri_commands::auth_create_user_tauri,
             tauri_commands::get_all_users_tauri,
@@ -297,6 +307,11 @@ pub fn async_watch(settings: AppSettings) {
                 Ok(c) => c,
                 Err(e) => {
                     println!("[FileWatch] ERROR reading file: {}", e);
+                    crate::app_log::error(
+                        "POS Import",
+                        "Failed to read POS CSV file",
+                        Some(format!("File: {}\nError: {}", csv_path.display(), e)),
+                    );
                     continue;
                 }
             };
@@ -318,6 +333,17 @@ pub fn async_watch(settings: AppSettings) {
                 Err(e) => {
                     println!("[FileWatch] ERROR parsing CSV: {}", e);
                     log::error!("[FileWatch] Error parsing CSV: {}", e);
+                    crate::app_log::error(
+                        "POS Import",
+                        "Failed to import POS data",
+                        Some(format!(
+                            "File: {}\nPOS system: {}\nError: {}\nLines read: {}",
+                            csv_path.display(),
+                            settings.posSystem,
+                            e,
+                            contents.len()
+                        )),
+                    );
                     println!("[FileWatch] File NOT deleted due to parse error");
                     continue;
                 }
