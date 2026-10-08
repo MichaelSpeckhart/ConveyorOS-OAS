@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { Minimize2, X } from "lucide-react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import logo from "../assets/Logo1.png";
 
 type NavItem = {
@@ -54,6 +56,44 @@ export const SideNavLayout: React.FC<SideNavLayoutProps> = ({
   const navWidth = useMemo(() => (collapsed ? 72 : 260), [collapsed]);
   const avatarLetter = (user.username?.trim()?.[0] ?? "U").toUpperCase();
 
+  const minimizeWindow = async () => {
+    try {
+      await getCurrentWindow().minimize();
+    } catch (e) {
+      console.error("Failed to minimize window", e);
+    }
+  };
+
+  const closeWindow = async () => {
+    try {
+      await getCurrentWindow().close();
+    } catch (e) {
+      console.error("Failed to close window", e);
+      window.close();
+    }
+  };
+
+  const windowControls = (
+    <div className={`flex items-center ${collapsed ? "flex-col gap-1" : "gap-1 ml-auto"}`}>
+      <button
+        type="button"
+        onClick={minimizeWindow}
+        title="Minimize"
+        className="h-8 w-8 rounded-lg grid place-items-center text-navy-muted hover:bg-white/15 hover:text-white transition-colors"
+      >
+        <Minimize2 size={16} />
+      </button>
+      <button
+        type="button"
+        onClick={closeWindow}
+        title="Exit"
+        className="h-8 w-8 rounded-lg grid place-items-center text-navy-muted hover:bg-red-500/90 hover:text-white transition-colors"
+      >
+        <X size={17} />
+      </button>
+    </div>
+  );
+
   return (
     <div className="flex h-screen w-screen bg-navy">
       {/* Sidebar */}
@@ -62,7 +102,10 @@ export const SideNavLayout: React.FC<SideNavLayoutProps> = ({
         style={{ width: navWidth, transition: "width 180ms ease" }}
       >
         {/* Brand row */}
-        <div className="flex items-center gap-2.5 px-2.5 py-2.5 rounded-2xl bg-navy border border-white/15 shadow-sm">
+        <div
+          className={`flex items-center gap-2.5 px-2.5 py-2.5 rounded-2xl bg-navy border border-white/15 shadow-sm
+            ${collapsed ? "flex-col" : ""}`}
+        >
           <div className="w-10 h-10 rounded-[14px] grid place-items-center bg-blue-100 flex-none">
             <img src={logo} alt="Company logo" className="w-full h-full object-contain" />
           </div>
@@ -76,6 +119,7 @@ export const SideNavLayout: React.FC<SideNavLayoutProps> = ({
               </span>
             </div>
           )}
+          {windowControls}
         </div>
 
         {/* Nav items */}

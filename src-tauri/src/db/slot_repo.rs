@@ -105,6 +105,30 @@ impl SlotRepo {
         Ok(())
     }
 
+    pub fn set_occupied_with_item(
+        conn: &mut PgConnection,
+        num: i32,
+        ticket: Option<&str>,
+        item: Option<&str>,
+    ) -> QueryResult<()> {
+        use crate::schema::slots::dsl::*;
+
+        let rows = diesel::update(slots.filter(slot_number.eq(num)))
+            .set((
+                slot_state.eq("occupied"),
+                assigned_ticket.eq(ticket.map(|s| s.to_string())),
+                item_id.eq(item.map(|s| s.to_string())),
+                updated_at.eq(diesel::dsl::now),
+            ))
+            .execute(conn)?;
+
+        if rows == 1 {
+            Ok(())
+        } else {
+            Err(diesel::result::Error::NotFound)
+        }
+    }
+
     pub fn clear(conn: &mut PgConnection, num: i32) -> QueryResult<()> {
         use crate::schema::slots::dsl::*;
 

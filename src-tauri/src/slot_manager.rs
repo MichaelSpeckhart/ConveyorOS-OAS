@@ -91,7 +91,7 @@ impl SlotManager {
     fn list_occupied_slot_numbers(conn: &mut PgConnection) -> diesel::QueryResult<Vec<i32>> {
         use crate::schema::slots::dsl::*;
         slots
-            .filter(slot_state.ne("empty"))
+            .filter(slot_state.eq_any(["reserved", "occupied"]))
             .select(slot_number)
             .order(slot_number.asc())
             .load::<i32>(conn)
@@ -131,7 +131,7 @@ impl SlotManager {
     pub fn get_number_occupied_slots(conn: &mut PgConnection) -> diesel::QueryResult<i64> {
         use crate::schema::slots::dsl::*;
         slots
-            .filter(slot_state.ne("empty"))
+            .filter(slot_state.eq_any(["reserved", "occupied"]))
             .count()
             .get_result::<i64>(conn)
     }
@@ -139,13 +139,17 @@ impl SlotManager {
     pub fn get_occupied_slots(conn: &mut PgConnection) -> diesel::QueryResult<Vec<Slot>> {
         use crate::schema::slots::dsl::*;
         slots
-            .filter(slot_state.ne("empty"))
+            .filter(slot_state.eq_any(["reserved", "occupied"]))
             .order(slot_number.asc())
             .load::<Slot>(conn)
     }
 
     pub fn get_total_slots(conn: &mut PgConnection) -> diesel::QueryResult<i64> {
         use crate::schema::slots::dsl::*;
-        slots.count().get_result::<i64>(conn)
+        slots
+            .filter(slot_state.ne("blocked"))
+            .filter(slot_state.ne("error"))
+            .count()
+            .get_result::<i64>(conn)
     }
 }

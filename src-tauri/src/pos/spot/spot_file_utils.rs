@@ -7,7 +7,7 @@ use std::str::FromStr;
 use crate::{
     db::{
         connection::establish_connection, customer_details_repo, customer_repo,
-        garment_details_repo, garment_repo, ticket_repo,
+        garment_details_repo, garment_repo, slot_repo::SlotRepo, ticket_repo,
     },
     model::{NewCustomer, UpdateTicket},
     pos::spot::{
@@ -31,6 +31,37 @@ fn get_field(fields: &[String], idx: u32) -> Result<&str, String> {
 
 fn get_optional_field(fields: &[String], idx: u32) -> &str {
     fields.get(idx as usize).map(|s| s.as_str()).unwrap_or("")
+}
+
+fn mapped_slot_number(slot_occupancy: u32) -> Result<i32, String> {
+    if slot_occupancy == 0 {
+        Ok(-1)
+    } else {
+        i32::try_from(slot_occupancy)
+            .map_err(|_| format!("SLOT_OCCUPANCY_OUT_OF_RANGE: {}", slot_occupancy))
+    }
+}
+
+fn assign_spot_occupied_slot(
+    conn: &mut PgConnection,
+    add_op: &spotops_types::AddItemOp,
+) -> Result<(), String> {
+    if add_op.slot_occupancy == 0 {
+        return Ok(());
+    }
+
+    let slot_number = mapped_slot_number(add_op.slot_occupancy)?;
+    garment_repo::update_garment_slot(conn, &add_op.item_id, slot_number)
+        .map_err(|e| format!("UPDATE_GARMENT_SLOT_FAILED: {}", e))?;
+    SlotRepo::set_occupied_with_item(
+        conn,
+        slot_number,
+        Some(&add_op.full_invoice_number),
+        Some(&add_op.item_id),
+    )
+    .map_err(|e| format!("ASSIGN_SLOT_OCCUPANCY_FAILED: {}", e))?;
+
+    Ok(())
 }
 
 fn parse_spot_datetime(value: &str, field_name: &str) -> Result<chrono::DateTime<Local>, String> {
@@ -239,6 +270,7 @@ pub fn handle_add_item_op(
     } else {
         update_ticket_from_add_op(conn, &add_op)?;
     }
+    assign_spot_occupied_slot(conn, &add_op)?;
 
     Ok(())
 }
@@ -310,7 +342,7 @@ pub fn create_garment_from_add_op(
             full_invoice_number: add_op.full_invoice_number.clone(),
             invoice_dropoff_date: add_op.invoice_dropoff_date.naive_local(),
             invoice_pickup_date: add_op.invoice_promised_date.naive_local(),
-            slot_number: add_op.slot_occupancy as i32,
+            slot_number: mapped_slot_number(add_op.slot_occupancy)?,
             garment_state: "Not Processed".to_string(),
         },
     )

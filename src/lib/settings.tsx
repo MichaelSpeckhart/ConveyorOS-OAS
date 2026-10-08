@@ -63,6 +63,10 @@ export type AppSettings = {
   slotsPerFrame: number;
 };
 
+export type SlotMode = 5 | 10;
+
+const PHYSICAL_SLOTS_PER_FRAME = 10;
+
 const DEFAULT_FIELD_MAPPINGS: FieldMappings = {
   customerIdentifier: 6,
   customerFirstName: 7,
@@ -109,10 +113,37 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   posSystem: "spot",
   fieldMappings: DEFAULT_FIELD_MAPPINGS,
   printer: DEFAULT_PRINTER,
-  frames: [{ latches: 5, slots: Array(5).fill(true) }],
+  frames: createSlotModeFrames(5),
   numFrames: 1,
-  slotsPerFrame: 5,
+  slotsPerFrame: PHYSICAL_SLOTS_PER_FRAME,
 };
+
+export function createSlotModeFrames(slotMode: SlotMode): FrameConfig[] {
+  return [
+    {
+      latches: PHYSICAL_SLOTS_PER_FRAME,
+      slots: Array.from(
+        { length: PHYSICAL_SLOTS_PER_FRAME },
+        (_, index) => slotMode === 10 || (index + 1) % 2 === 1
+      ),
+    },
+  ];
+}
+
+export function getSlotMode(settings: AppSettings): SlotMode {
+  const slots = settings.frames[0]?.slots ?? [];
+  const enabledCount = slots.filter(Boolean).length;
+  return enabledCount <= 5 ? 5 : 10;
+}
+
+function normalizeFrames(frames: FrameConfig[] | undefined): FrameConfig[] {
+  const firstFrame = frames?.[0];
+  if (!firstFrame) return createSlotModeFrames(5);
+
+  const enabledCount = firstFrame.slots?.filter(Boolean).length ?? 0;
+  const slotMode: SlotMode = enabledCount <= 5 ? 5 : 10;
+  return createSlotModeFrames(slotMode);
+}
 
 export function createDefaultSettings(): AppSettings {
   return {
@@ -147,7 +178,7 @@ export async function loadSettings(): Promise<AppSettings> {
   if (!saved) return createDefaultSettings();
 
   const defaults = createDefaultSettings();
-  const frames = saved.frames ?? defaults.frames;
+  const frames = normalizeFrames(saved.frames ?? defaults.frames);
   return {
     ...defaults,
     ...saved,
@@ -168,8 +199,9 @@ export async function loadSettings(): Promise<AppSettings> {
 }
 
 export async function saveSettings(s: AppSettings): Promise<void> {
-  const numFrames = s.frames.length;
-  const slotsPerFrame = s.frames[0]?.slots?.length ?? s.frames[0]?.latches ?? 0;
+  const frames = normalizeFrames(s.frames);
+  const numFrames = frames.length;
+  const slotsPerFrame = frames[0]?.slots?.length ?? frames[0]?.latches ?? 0;
 
   await invoke("save_settings_tauri", {
     dbHost: s.dbHost,
@@ -183,7 +215,7 @@ export async function saveSettings(s: AppSettings): Promise<void> {
     posSystem: s.posSystem,
     fieldMappings: s.fieldMappings,
     printer: s.printer,
-    frames: s.frames,
+    frames,
     numFrames,
     slotsPerFrame,
   });

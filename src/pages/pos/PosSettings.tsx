@@ -1,12 +1,22 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { loadSettings, pickConveyorOutputDir, pickPosCsvFile, saveSettings, testDatabaseConnection, type AppSettings } from "../../lib/settings";
+import {
+  createSlotModeFrames,
+  getSlotMode,
+  loadSettings,
+  pickConveyorOutputDir,
+  pickPosCsvFile,
+  saveSettings,
+  testDatabaseConnection,
+  type AppSettings,
+  type SlotMode,
+} from "../../lib/settings";
 
 export default function SettingsPage() {
   const [s, setS] = useState<AppSettings | null>(null);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [section, setSection] = useState<"pos" | "db" | "opc" | "operators">("pos");
+  const [section, setSection] = useState<"pos" | "conveyor" | "db" | "opc" | "operators">("pos");
 
   // Add operator form state
   const [opUsername, setOpUsername] = useState("");
@@ -17,6 +27,8 @@ export default function SettingsPage() {
   const [opLoading, setOpLoading] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
   const [connectionResult, setConnectionResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [clearingDatabase, setClearingDatabase] = useState(false);
+  const [clearDatabaseResult, setClearDatabaseResult] = useState<{ success: boolean; message: string } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -111,6 +123,46 @@ export default function SettingsPage() {
     }
   };
 
+  const onClearDatabase = async () => {
+    const confirmed = window.confirm(
+      "Clear all customers, tickets, and garments? This cannot be undone."
+    );
+    if (!confirmed) return;
+
+    setClearingDatabase(true);
+    setClearDatabaseResult(null);
+    setErr(null);
+
+    try {
+      const result = await invoke<{
+        customers_deleted: number;
+        tickets_deleted: number;
+        garments_deleted: number;
+      }>("clear_database_tauri");
+      setClearDatabaseResult({
+        success: true,
+        message: `Cleared ${result.customers_deleted} customers, ${result.tickets_deleted} tickets, and ${result.garments_deleted} garments.`,
+      });
+    } catch (e) {
+      setClearDatabaseResult({
+        success: false,
+        message: typeof e === "string" ? e : "Failed to clear database.",
+      });
+    } finally {
+      setClearingDatabase(false);
+    }
+  };
+
+  const setSlotMode = (slotMode: SlotMode) => {
+    const frames = createSlotModeFrames(slotMode);
+    setS({
+      ...s,
+      frames,
+      numFrames: frames.length,
+      slotsPerFrame: frames[0]?.slots.length ?? 0,
+    });
+  };
+
   const onSave = async () => {
     setErr(null);
     setSaved(false);
@@ -128,6 +180,9 @@ export default function SettingsPage() {
     }
   };
 
+  const slotMode = getSlotMode(s);
+  const slotPreview = createSlotModeFrames(slotMode)[0].slots;
+
   return (
     <div className="min-h-full w-full bg-surface p-6">
       <div className="w-full max-w-6xl mx-auto">
@@ -137,7 +192,7 @@ export default function SettingsPage() {
               <div className="text-xs uppercase tracking-[0.3em] text-slate-500 font-bold">System</div>
               <h1 className="text-3xl font-black tracking-tight text-slate-900">POS Settings</h1>
             </div>
-            <div className="flex gap-2 bg-white rounded-2xl p-2 shadow border border-slate-200">
+            <div className="flex flex-wrap gap-2 bg-white rounded-2xl p-2 shadow border border-slate-200">
               <button
                 onClick={() => setSection("pos")}
                 className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${section === "pos" ? "bg-slate-900 text-white shadow" : "text-slate-600 hover:text-slate-900"}`}
@@ -149,6 +204,12 @@ export default function SettingsPage() {
                 className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${section === "db" ? "bg-slate-900 text-white shadow" : "text-slate-600 hover:text-slate-900"}`}
               >
                 Database
+              </button>
+              <button
+                onClick={() => setSection("conveyor")}
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${section === "conveyor" ? "bg-slate-900 text-white shadow" : "text-slate-600 hover:text-slate-900"}`}
+              >
+                Conveyor
               </button>
               <button
                 onClick={() => setSection("opc")}
@@ -193,6 +254,66 @@ export default function SettingsPage() {
                   {s.conveyorCsvOutputDir || "No folder selected"}
                 </div>
               </div>
+              </section>
+            )}
+
+            {section === "conveyor" && (
+              <section className="space-y-5">
+                <div className="text-xs uppercase tracking-[0.3em] text-slate-500 font-bold">Conveyor Settings</div>
+                <h2 className="text-2xl font-black text-slate-900">Slot Mode</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[5, 10].map((mode) => {
+                    const selected = slotMode === mode;
+                    return (
+                      <button
+                        key={mode}
+                        onClick={() => setSlotMode(mode as SlotMode)}
+                        className={`rounded-2xl border p-5 text-left transition-all ${
+                          selected
+                            ? "border-slate-900 bg-slate-900 text-white shadow"
+                            : "border-slate-200 bg-white text-slate-800 shadow hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="text-sm font-black uppercase tracking-widest opacity-70">{mode} Slot</div>
+                        <div className="mt-1 text-3xl font-black">{mode}</div>
+                        <div className={`mt-2 text-sm font-semibold ${selected ? "text-slate-200" : "text-slate-500"}`}>
+                          {mode === 5 ? "Enables slots 1, 3, 5, 7, and 9." : "Enables slots 1 through 10."}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow">
+                  <div className="mb-4 flex items-center justify-between gap-4">
+                    <div>
+                      <div className="text-xs font-bold uppercase tracking-widest text-slate-500">Enabled Slots</div>
+                      <div className="text-sm font-semibold text-slate-500">
+                        {slotMode === 5 ? "Even-numbered slots are disabled in 5 slot mode." : "Every slot is enabled in 10 slot mode."}
+                      </div>
+                    </div>
+                    <div className="rounded-xl bg-slate-100 px-3 py-2 text-sm font-black text-slate-700">
+                      {slotPreview.filter(Boolean).length} active
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
+                    {slotPreview.map((enabled, index) => {
+                      const slotNumber = index + 1;
+                      return (
+                        <div
+                          key={slotNumber}
+                          className={`flex aspect-square items-center justify-center rounded-xl border text-sm font-black ${
+                            enabled
+                              ? "border-green-500/40 bg-green-50 text-green-700"
+                              : "border-slate-200 bg-slate-100 text-slate-400"
+                          }`}
+                        >
+                          {slotNumber}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </section>
             )}
 
@@ -265,6 +386,34 @@ export default function SettingsPage() {
                       : "border-red-500/40 bg-red-500/10 text-red-700"
                   }`}>
                     {connectionResult.message}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-5">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <div className="text-xs font-black uppercase tracking-widest text-red-600">Danger Zone</div>
+                    <div className="mt-1 text-lg font-black text-red-900">Clear Database</div>
+                    <div className="mt-1 text-sm font-semibold text-red-700">
+                      Removes customers, tickets, garments, and related POS details. Conveyor slots are reset.
+                    </div>
+                  </div>
+                  <button
+                    onClick={onClearDatabase}
+                    disabled={clearingDatabase}
+                    className="px-5 py-3 rounded-2xl bg-red-600 text-white font-black tracking-tight shadow-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {clearingDatabase ? "Clearing..." : "Clear Database"}
+                  </button>
+                </div>
+                {clearDatabaseResult && (
+                  <div className={`mt-4 rounded-xl border px-4 py-2 text-sm font-semibold ${
+                    clearDatabaseResult.success
+                      ? "border-green-500/40 bg-white text-green-700"
+                      : "border-red-500/40 bg-white text-red-700"
+                  }`}>
+                    {clearDatabaseResult.message}
                   </div>
                 )}
               </div>

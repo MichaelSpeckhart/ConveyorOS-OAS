@@ -212,6 +212,7 @@ pub fn run() {
             tauri_commands::auth_login_user_tauri,
             tauri_commands::auth_create_user_tauri,
             tauri_commands::get_all_users_tauri,
+            tauri_commands::clear_database_tauri,
             opc::opc_tauri_commands::station1_jog_fwd,
             opc::opc_tauri_commands::get_target_slot_tauri,
             opc::opc_tauri_commands::slot_run_request_tauri,

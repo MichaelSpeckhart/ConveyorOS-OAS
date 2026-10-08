@@ -42,6 +42,13 @@ pub struct LoginResult {
     pub id: i32,
 }
 
+#[derive(Serialize)]
+pub struct ClearDatabaseResult {
+    pub customers_deleted: usize,
+    pub tickets_deleted: usize,
+    pub garments_deleted: usize,
+}
+
 #[tauri::command]
 pub fn auth_login_user_tauri(pin_input: String) -> Result<User, String> {
     if pin_input.len() != 4 || !pin_input.chars().all(|c| c.is_ascii_digit()) {
@@ -72,6 +79,63 @@ pub fn get_all_users_tauri() -> Result<Vec<User>, String> {
     let mut conn = establish_connection()?;
 
     users_repo::get_all_users(&mut conn).map_err(|_| "Connection Error".to_string())
+}
+
+#[tauri::command]
+pub fn clear_database_tauri() -> Result<ClearDatabaseResult, String> {
+    let mut conn = establish_connection()?;
+
+    conn.transaction::<ClearDatabaseResult, diesel::result::Error, _>(|conn| {
+        use crate::schema::customer_details::dsl as customer_details_dsl;
+        use crate::schema::customers::dsl as customers_dsl;
+        use crate::schema::garment_details::dsl as garment_details_dsl;
+        use crate::schema::garments::dsl as garments_dsl;
+        use crate::schema::slots::dsl as slots_dsl;
+        use crate::schema::ticket_details::dsl as ticket_details_dsl;
+        use crate::schema::tickets::dsl as tickets_dsl;
+
+        let garments_deleted = diesel::delete(garments_dsl::garments).execute(conn)?;
+        let tickets_deleted = diesel::delete(tickets_dsl::tickets).execute(conn)?;
+        let customers_deleted = diesel::delete(customers_dsl::customers).execute(conn)?;
+
+        diesel::delete(garment_details_dsl::garment_details).execute(conn)?;
+        diesel::delete(ticket_details_dsl::ticket_details).execute(conn)?;
+        diesel::delete(customer_details_dsl::customer_details).execute(conn)?;
+
+        diesel::update(
+            slots_dsl::slots.filter(slots_dsl::slot_state.eq_any(["reserved", "occupied"])),
+        )
+        .set((
+            slots_dsl::slot_state.eq("empty"),
+            slots_dsl::assigned_ticket.eq::<Option<String>>(None),
+            slots_dsl::item_id.eq::<Option<String>>(None),
+            slots_dsl::updated_at.eq(diesel::dsl::now),
+        ))
+        .execute(conn)?;
+
+        diesel::update(
+            slots_dsl::slots
+                .filter(slots_dsl::slot_state.eq_any(["blocked", "error"]))
+                .filter(
+                    slots_dsl::assigned_ticket
+                        .is_not_null()
+                        .or(slots_dsl::item_id.is_not_null()),
+                ),
+        )
+        .set((
+            slots_dsl::assigned_ticket.eq::<Option<String>>(None),
+            slots_dsl::item_id.eq::<Option<String>>(None),
+            slots_dsl::updated_at.eq(diesel::dsl::now),
+        ))
+        .execute(conn)?;
+
+        Ok(ClearDatabaseResult {
+            customers_deleted,
+            tickets_deleted,
+            garments_deleted,
+        })
+    })
+    .map_err(|e| format!("DB Error (clear database): {e}"))
 }
 
 #[tauri::command]
@@ -704,6 +768,46 @@ pub fn perform_split_invoice_op_non_tauri(
     Ok(true)
 }
 
+fn enabled_slot_numbers(
+    frames: &[crate::settings::appsettings::FrameConfig],
+) -> HashSet<i32> {
+    let mut enabled = HashSet::new();
+    let mut offset = 0_i32;
+
+    for frame in frames {
+        for (index, slot_enabled) in frame.slots.iter().enumerate() {
+            if *slot_enabled {
+                enabled.insert(offset + index as i32 + 1);
+            }
+        }
+        offset += i32::try_from(frame.slots.len()).unwrap_or(0);
+    }
+
+    enabled
+}
+
+fn apply_slot_settings(
+    conn: &mut PgConnection,
+    frames: &[crate::settings::appsettings::FrameConfig],
+) -> Result<(), String> {
+    let enabled = enabled_slot_numbers(frames);
+    let all_slots = SlotRepo::list_all(conn).map_err(|e| format!("DB Error (list slots): {e}"))?;
+
+    for slot in all_slots {
+        if enabled.contains(&slot.slot_number) {
+            if slot.slot_state == "blocked" {
+                SlotRepo::free_slot(conn, slot.slot_number)
+                    .map_err(|e| format!("DB Error (enable slot {}): {e}", slot.slot_number))?;
+            }
+        } else if slot.slot_state == "empty" {
+            SlotRepo::set_blocked(conn, slot.slot_number)
+                .map_err(|e| format!("DB Error (disable slot {}): {e}", slot.slot_number))?;
+        }
+    }
+
+    Ok(())
+}
+
 #[tauri::command]
 pub fn save_settings_tauri(
     app: tauri::AppHandle,
@@ -782,6 +886,7 @@ pub fn save_settings_tauri(
             if let Err(e) = crate::db::db_migrations::run_db_migrations(&mut conn) {
                 return Err(format!("Failed to run migrations: {}", e));
             }
+            apply_slot_settings(&mut conn, &settings.frames)?;
         }
         Err(e) => return Err(format!("Failed to connect with new settings: {}", e)),
     }
