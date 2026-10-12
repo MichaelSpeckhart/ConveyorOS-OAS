@@ -9,7 +9,7 @@ use crate::{
         connection::establish_connection, customer_details_repo, customer_repo,
         garment_details_repo, garment_repo, slot_repo::SlotRepo, ticket_repo,
     },
-    model::{NewCustomer, UpdateTicket},
+    model::{GarmentState, NewCustomer, UpdateTicket},
     pos::spot::{
         output::{
             conveyor_file_utils::write_split_invoice_batch, conveyor_ops_types::ConveyorOpsTypes,
@@ -50,6 +50,12 @@ fn assign_spot_occupied_slot(
         return Ok(());
     }
 
+    // A garment SPOT has already racked is counted once, the first time it gets a
+    // slot. Its state moves off "Not Processed", so re-sent ADDITEM rows don't recount.
+    let garment = garment_repo::get_garment(conn, &add_op.item_id)?;
+    let newly_racked =
+        GarmentState::from_db(&garment.garment_state) == Some(GarmentState::NotProcessed);
+
     let slot_number = mapped_slot_number(add_op.slot_occupancy)?;
     garment_repo::update_garment_slot(conn, &add_op.item_id, slot_number)
         .map_err(|e| format!("UPDATE_GARMENT_SLOT_FAILED: {}", e))?;
@@ -61,7 +67,33 @@ fn assign_spot_occupied_slot(
     )
     .map_err(|e| format!("ASSIGN_SLOT_OCCUPANCY_FAILED: {}", e))?;
 
+    if newly_racked {
+        garment_repo::update_garment_state(conn, &add_op.item_id, GarmentState::Processing)
+            .map_err(|e| format!("UPDATE_GARMENT_STATE_FAILED: {}", e))?;
+        mark_spot_garment_processed(conn, &add_op.full_invoice_number)?;
+    }
+
     Ok(())
+}
+
+fn mark_spot_garment_processed(conn: &mut PgConnection, full_invoice_number: &str) -> Result<(), String> {
+    let ticket = ticket_repo::get_ticket_by_invoice_number(conn, full_invoice_number)?;
+    let garments_processed = (ticket.garments_processed + 1).min(ticket.number_of_items);
+
+    ticket_repo::update_ticket(
+        conn,
+        ticket.id,
+        &UpdateTicket {
+            full_invoice_number: Some(ticket.full_invoice_number.clone()),
+            display_invoice_number: Some(ticket.display_invoice_number.clone()),
+            number_of_items: Some(ticket.number_of_items),
+            invoice_pickup_date: ticket.invoice_pickup_date,
+            garments_processed: Some(garments_processed),
+            ticket_status: Some("Processing".to_string()),
+        },
+    )
+    .map(|_| ())
+    .map_err(|e| format!("UPDATE_TICKET_FAILED: {}", e))
 }
 
 fn parse_spot_datetime(value: &str, field_name: &str) -> Result<chrono::DateTime<Local>, String> {

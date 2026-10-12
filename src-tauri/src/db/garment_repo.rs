@@ -68,6 +68,18 @@ pub fn update_garment_slot(
         .map_err(|e| e.to_string())
 }
 
+pub fn update_garment_state(
+    conn: &mut PgConnection,
+    barcode: &str,
+    state: GarmentState,
+) -> Result<(), String> {
+    diesel::update(garments.filter(item_id.eq(barcode)))
+        .set(garment_state.eq(state.as_str()))
+        .execute(conn)
+        .map(|_| ())
+        .map_err(|e| e.to_string())
+}
+
 pub fn mark_ticket_garments_processed(
     conn: &mut PgConnection,
     invoice_number: &str,
