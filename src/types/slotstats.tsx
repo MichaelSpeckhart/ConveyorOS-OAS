@@ -1,5 +1,6 @@
 export interface SlotManagerStats {
     total_slots: number;
+    active_slot_numbers: number[];
     slots_used: number;
     capacity_percentage: number;
 }

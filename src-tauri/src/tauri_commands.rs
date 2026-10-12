@@ -130,6 +130,8 @@ pub fn clear_database_tauri() -> Result<ClearDatabaseResult, String> {
         ))
         .execute(conn)?;
 
+        SlotRepo::block_outside_layout(conn)?;
+
         Ok(ClearDatabaseResult {
             customers_deleted,
             tickets_deleted,
@@ -582,6 +584,7 @@ pub fn clear_conveyor_tauri() -> Result<(), String> {
                 slots_dsl::updated_at.eq(diesel::dsl::now),
             ))
             .execute(conn)?;
+        SlotRepo::block_outside_layout(conn)?;
 
         diesel::update(garments_dsl::garments.filter(garments_dsl::slot_number.ne(-1)))
             .set(garments_dsl::slot_number.eq(-1))
@@ -801,6 +804,13 @@ pub(crate) fn apply_slot_settings(
     frames: &[crate::settings::appsettings::FrameConfig],
 ) -> Result<(), String> {
     let enabled = enabled_slot_numbers(frames);
+    let configured_total: i32 = frames
+        .iter()
+        .map(|frame| i32::try_from(frame.slots.len()).unwrap_or(0))
+        .sum();
+    SlotRepo::ensure_slots(conn, configured_total)
+        .map_err(|e| format!("DB Error (create slots): {e}"))?;
+    crate::db::slot_repo::set_active_layout(enabled.clone());
     let all_slots = SlotRepo::list_all(conn).map_err(|e| format!("DB Error (list slots): {e}"))?;
 
     for slot in all_slots {
@@ -842,7 +852,7 @@ pub fn save_settings_tauri(
     let derived_num_frames = u32::try_from(frames.len()).unwrap_or(u32::MAX);
     let derived_slots_per_frame = frames
         .first()
-        .map(|frame| u32::try_from(frame.slots.len()).unwrap_or(u32::MAX))
+        .map(|frame| u32::try_from(frame.slots.iter().filter(|on| **on).count()).unwrap_or(u32::MAX))
         .unwrap_or(0);
 
     let settings = crate::settings::appsettings::AppSettings {

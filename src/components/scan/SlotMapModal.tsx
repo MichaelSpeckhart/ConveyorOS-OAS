@@ -40,7 +40,7 @@ export default function SlotMapModal({ open, onClose, slotStats, slotMapData, on
           </div>
         </div>
 
-        <SlotMapGrid totalSlots={slotStats.total_slots} occupiedSlots={slotMapData} />
+        <SlotMapGrid slotNumbers={slotStats.active_slot_numbers} occupiedSlots={slotMapData} />
 
         <div className="flex justify-end px-8 py-4 border-t border-slate-100 flex-shrink-0">
           <button
@@ -61,7 +61,7 @@ export default function SlotMapModal({ open, onClose, slotStats, slotMapData, on
   );
 }
 
-function SlotMapGrid({ totalSlots, occupiedSlots }: { totalSlots: number; occupiedSlots: Slot[] }) {
+function SlotMapGrid({ slotNumbers, occupiedSlots }: { slotNumbers: number[]; occupiedSlots: Slot[] }) {
   const [runningSlot, setRunningSlot] = useState<number | null>(null);
 
   const handleSlotClick = async (slotNum: number) => {
@@ -79,8 +79,7 @@ function SlotMapGrid({ totalSlots, occupiedSlots }: { totalSlots: number; occupi
   return (
     <div className="flex-1 overflow-auto p-6">
       <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))" }}>
-        {Array.from({ length: totalSlots }, (_, i) => {
-          const slotNum = i + 1;
+        {slotNumbers.map((slotNum) => {
           const occupied = occupiedSlots.find((s) => s.slot_number === slotNum);
           const isRunning = runningSlot === slotNum;
           return (

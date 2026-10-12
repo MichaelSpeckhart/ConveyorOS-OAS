@@ -1,6 +1,7 @@
 import { Store } from "@tauri-apps/plugin-store";
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
+import { setNumberOfFrames, setSlotsPerFrame } from "./opc";
 import { DEFAULT_TICKET_TEMPLATE, type TicketTemplateConfig } from "../types/printer";
 
 export type FrameConfig = {
@@ -66,6 +67,9 @@ export type AppSettings = {
 export type SlotMode = 5 | 10;
 
 export const DEFAULT_NUM_FRAMES = 1;
+export const MAX_NUM_FRAMES = 20;
+// Every frame has 10 physical latches; 5-slot mode only enables the odd ones.
+export const LATCHES_PER_FRAME = 10;
 
 const DEFAULT_FIELD_MAPPINGS: FieldMappings = {
   customerIdentifier: 6,
@@ -118,34 +122,39 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   slotsPerFrame: 5,
 };
 
+export function clampFrameCount(value: number | undefined): number {
+  const n = Math.trunc(Number(value));
+  if (!Number.isFinite(n) || n < 1) return DEFAULT_NUM_FRAMES;
+  return Math.min(MAX_NUM_FRAMES, n);
+}
+
+function toSlotMode(slotsPerFrame: number | undefined): SlotMode {
+  return slotsPerFrame && slotsPerFrame > 5 ? 10 : 5;
+}
+
 export function createSlotModeFrames(slotMode: SlotMode, numFrames = DEFAULT_NUM_FRAMES): FrameConfig[] {
-  const frameCount = Math.max(1, Math.trunc(numFrames) || DEFAULT_NUM_FRAMES);
-  return Array.from({ length: frameCount }, () => ({
-    latches: slotMode,
-    slots: Array(slotMode).fill(true),
+  return Array.from({ length: clampFrameCount(numFrames) }, () => ({
+    latches: LATCHES_PER_FRAME,
+    // 10-slot mode: every latch. 5-slot mode: latches 1, 3, 5, 7, 9.
+    slots: Array.from({ length: LATCHES_PER_FRAME }, (_, i) => slotMode === 10 || i % 2 === 0),
   }));
 }
 
+function enabledCount(frame: FrameConfig | undefined): number | undefined {
+  return frame?.slots?.filter(Boolean).length;
+}
+
 export function getSlotMode(settings: AppSettings): SlotMode {
-  const slotsPerFrame = settings.frames[0]?.slots?.length ?? settings.slotsPerFrame ?? 5;
-  return slotsPerFrame <= 5 ? 5 : 10;
+  return toSlotMode(settings.slotsPerFrame ?? enabledCount(settings.frames[0]));
 }
 
 export function getFrameCount(settings: AppSettings): number {
-  return Math.max(1, settings.frames.length || settings.numFrames || DEFAULT_NUM_FRAMES);
+  return clampFrameCount(settings.frames.length || settings.numFrames);
 }
 
 function normalizeFrames(frames: FrameConfig[] | undefined, numFrames?: number, slotsPerFrame?: number): FrameConfig[] {
-  const firstFrame = frames?.[0];
-  if (!firstFrame) {
-    const slotMode: SlotMode = slotsPerFrame && slotsPerFrame > 5 ? 10 : 5;
-    return createSlotModeFrames(slotMode, numFrames ?? DEFAULT_NUM_FRAMES);
-  }
-
-  const frameCount = Math.max(1, Math.trunc(numFrames ?? frames?.length ?? DEFAULT_NUM_FRAMES));
-  const detectedSlotsPerFrame = slotsPerFrame ?? firstFrame.slots?.length ?? firstFrame.latches ?? 5;
-  const slotMode: SlotMode = detectedSlotsPerFrame <= 5 ? 5 : 10;
-  return createSlotModeFrames(slotMode, frameCount);
+  const slotMode = toSlotMode(slotsPerFrame ?? enabledCount(frames?.[0]));
+  return createSlotModeFrames(slotMode, clampFrameCount(numFrames ?? frames?.length));
 }
 
 export function createDefaultSettings(): AppSettings {
@@ -197,14 +206,14 @@ export async function loadSettings(): Promise<AppSettings> {
     },
     frames,
     numFrames: frames.length,
-    slotsPerFrame: frames[0]?.slots?.length ?? frames[0]?.latches ?? 0,
+    slotsPerFrame: enabledCount(frames[0]) ?? 0,
   };
 }
 
 export async function saveSettings(s: AppSettings): Promise<void> {
   const frames = normalizeFrames(s.frames, s.numFrames, s.slotsPerFrame);
   const numFrames = frames.length;
-  const slotsPerFrame = frames[0]?.slots?.length ?? frames[0]?.latches ?? 0;
+  const slotsPerFrame = enabledCount(frames[0]) ?? 0;
 
   await invoke("save_settings_tauri", {
     dbHost: s.dbHost,
@@ -222,6 +231,15 @@ export async function saveSettings(s: AppSettings): Promise<void> {
     numFrames,
     slotsPerFrame,
   });
+
+  // Keep the PLC in sync with the new layout. OPC may be offline; the values
+  // are pushed again on startup, so don't fail the save over it.
+  try {
+    await setNumberOfFrames(numFrames);
+    await setSlotsPerFrame(slotsPerFrame);
+  } catch (e) {
+    console.warn("Failed to push frame settings to OPC:", e);
+  }
 }
 
 export async function pickPosCsvFile(): Promise<string | null> {

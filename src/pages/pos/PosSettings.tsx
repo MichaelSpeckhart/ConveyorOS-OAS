@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import {
+  LATCHES_PER_FRAME,
+  MAX_NUM_FRAMES,
+  clampFrameCount,
   createSlotModeFrames,
   getFrameCount,
   getSlotMode,
@@ -154,24 +157,13 @@ export default function SettingsPage() {
     }
   };
 
-  const setSlotMode = (slotMode: SlotMode) => {
-    const frames = createSlotModeFrames(slotMode, getFrameCount(s));
+  const setFrameLayout = (slotMode: SlotMode, frameCount: number) => {
+    const frames = createSlotModeFrames(slotMode, clampFrameCount(frameCount));
     setS({
       ...s,
       frames,
       numFrames: frames.length,
-      slotsPerFrame: frames[0]?.slots.length ?? 0,
-    });
-  };
-
-  const setFrameCount = (frameCount: number) => {
-    const nextFrameCount = Math.max(1, Math.min(20, Math.trunc(frameCount) || 1));
-    const frames = createSlotModeFrames(slotMode, nextFrameCount);
-    setS({
-      ...s,
-      frames,
-      numFrames: frames.length,
-      slotsPerFrame: frames[0]?.slots.length ?? 0,
+      slotsPerFrame: slotMode,
     });
   };
 
@@ -194,11 +186,11 @@ export default function SettingsPage() {
 
   const slotMode = getSlotMode(s);
   const frameCount = getFrameCount(s);
-  const slotPreview = createSlotModeFrames(slotMode, frameCount).flatMap((frame) => frame.slots);
   const totalSlots = slotMode * frameCount;
+  const previewFrames = createSlotModeFrames(slotMode, frameCount);
 
   return (
-    <div className="min-h-full w-full bg-surface p-6">
+    <div className="h-full w-full overflow-y-auto bg-surface p-6">
       <div className="w-full max-w-6xl mx-auto">
         <div className="bg-white rounded-[2.5rem] shadow p-8 md:p-10 border border-slate-200">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
@@ -274,14 +266,14 @@ export default function SettingsPage() {
             {section === "conveyor" && (
               <section className="space-y-5">
                 <div className="text-xs uppercase tracking-[0.3em] text-slate-500 font-bold">Conveyor Settings</div>
-                <h2 className="text-2xl font-black text-slate-900">Slot Mode</h2>
+                <h2 className="text-2xl font-black text-slate-900">Slots Per Frame</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[5, 10].map((mode) => {
+                  {([5, 10] as SlotMode[]).map((mode) => {
                     const selected = slotMode === mode;
                     return (
                       <button
                         key={mode}
-                        onClick={() => setSlotMode(mode as SlotMode)}
+                        onClick={() => setFrameLayout(mode, frameCount)}
                         className={`rounded-2xl border p-5 text-left transition-all ${
                           selected
                             ? "border-slate-900 bg-slate-900 text-white shadow"
@@ -291,7 +283,7 @@ export default function SettingsPage() {
                         <div className="text-sm font-black uppercase tracking-widest opacity-70">{mode} Slot</div>
                         <div className="mt-1 text-3xl font-black">{mode}</div>
                         <div className={`mt-2 text-sm font-semibold ${selected ? "text-slate-200" : "text-slate-500"}`}>
-                          {mode === 5 ? "Enables slots 1, 3, 5, 7, and 9." : "Enables slots 1 through 10."}
+                          {mode === 5 ? "Enables odd slots only (1, 3, 5, 7, 9) on each frame." : "Enables slots 1 through 10 on each frame."}
                         </div>
                       </button>
                     );
@@ -299,20 +291,18 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow">
-                  <div className="mb-4 flex items-center justify-between gap-4">
+                  <div className="flex items-center justify-between gap-4">
                     <div>
                       <div className="text-xs font-bold uppercase tracking-widest text-slate-500">Frame Count</div>
-                      <div className="text-sm font-semibold text-slate-500">
-                        Slot map capacity is slots per frame multiplied by frames.
-                      </div>
+                      <div className="text-sm font-semibold text-slate-500">1 to {MAX_NUM_FRAMES} frames on the conveyor.</div>
                     </div>
                     <input
                       className="w-28 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center text-slate-900 font-black focus:outline-none focus:ring-2 focus:ring-slate-900/10"
                       type="number"
                       min={1}
-                      max={20}
+                      max={MAX_NUM_FRAMES}
                       value={frameCount}
-                      onChange={(e) => setFrameCount(Number(e.target.value))}
+                      onChange={(e) => setFrameLayout(slotMode, Number(e.target.value))}
                     />
                   </div>
                 </div>
@@ -322,29 +312,38 @@ export default function SettingsPage() {
                     <div>
                       <div className="text-xs font-bold uppercase tracking-widest text-slate-500">Slot Map Capacity</div>
                       <div className="text-sm font-semibold text-slate-500">
-                        {slotMode} slots per frame × {frameCount} frame{frameCount === 1 ? "" : "s"}
+                        {slotMode} slots per frame × {frameCount} frame{frameCount === 1 ? "" : "s"}. Save to update the slot map.
                       </div>
                     </div>
                     <div className="rounded-xl bg-slate-100 px-3 py-2 text-sm font-black text-slate-700">
                       {totalSlots} active
                     </div>
                   </div>
-                  <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
-                    {slotPreview.map((enabled, index) => {
-                      const slotNumber = index + 1;
-                      return (
-                        <div
-                          key={slotNumber}
-                          className={`flex aspect-square items-center justify-center rounded-xl border text-sm font-black ${
-                            enabled
-                              ? "border-green-500/40 bg-green-50 text-green-700"
-                              : "border-slate-200 bg-slate-100 text-slate-400"
-                          }`}
-                        >
-                          {slotNumber}
+                  <div className="space-y-2">
+                    {previewFrames.map((frame, frameIndex) => (
+                      <div key={frameIndex} className="flex items-center gap-3">
+                        <div className="w-20 shrink-0 text-xs font-bold uppercase tracking-widest text-slate-500">
+                          Frame {frameIndex + 1}
                         </div>
-                      );
-                    })}
+                        <div className="grid flex-1 grid-cols-10 gap-2">
+                          {frame.slots.map((enabled, slotIndex) => {
+                            const slotNumber = frameIndex * LATCHES_PER_FRAME + slotIndex + 1;
+                            return (
+                              <div
+                                key={slotNumber}
+                                className={`flex h-10 items-center justify-center rounded-xl border text-sm font-black ${
+                                  enabled
+                                    ? "border-green-500/40 bg-green-50 text-green-700"
+                                    : "border-slate-200 bg-slate-100 text-slate-400"
+                                }`}
+                              >
+                                {slotNumber}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </section>

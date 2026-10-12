@@ -2,7 +2,35 @@
 use diesel::prelude::*;
 use diesel::{OptionalExtension, PgConnection, QueryResult};
 
+use std::collections::HashSet;
+use std::sync::RwLock;
+
 use crate::model::Slot;
+
+/// Slot numbers enabled by the current frame layout (set by apply_slot_settings).
+/// `None` until settings have been applied, in which case every slot counts as active.
+static ACTIVE_LAYOUT: RwLock<Option<HashSet<i32>>> = RwLock::new(None);
+
+pub fn set_active_layout(enabled: HashSet<i32>) {
+    *ACTIVE_LAYOUT.write().unwrap() = Some(enabled);
+}
+
+fn is_in_layout(num: i32) -> bool {
+    ACTIVE_LAYOUT
+        .read()
+        .unwrap()
+        .as_ref()
+        .map_or(true, |enabled| enabled.contains(&num))
+}
+
+/// State a slot should return to once it no longer holds a garment.
+fn freed_state(num: i32) -> &'static str {
+    if is_in_layout(num) {
+        "empty"
+    } else {
+        "blocked"
+    }
+}
 
 pub struct SlotRepo;
 
@@ -52,7 +80,7 @@ impl SlotRepo {
 
         diesel::update(slots.filter(slot_number.eq(slot_number_val)))
             .set((
-                slot_state.eq("empty"),
+                slot_state.eq(freed_state(slot_number_val)),
                 assigned_ticket.eq::<Option<String>>(None),
                 item_id.eq::<Option<String>>(None),
                 updated_at.eq(diesel::dsl::now),
@@ -134,7 +162,7 @@ impl SlotRepo {
 
         diesel::update(slots.filter(slot_number.eq(num)))
             .set((
-                slot_state.eq("empty"),
+                slot_state.eq(freed_state(num)),
                 assigned_ticket.eq::<Option<String>>(None),
                 item_id.eq::<Option<String>>(None),
                 updated_at.eq(diesel::dsl::now),
@@ -149,6 +177,39 @@ impl SlotRepo {
         diesel::update(slots.filter(slot_number.eq(num)))
             .set((slot_state.eq("blocked"), updated_at.eq(diesel::dsl::now)))
             .execute(conn)?;
+        Ok(())
+    }
+
+    /// Re-blocks empty slots outside the active layout, e.g. after a bulk reset.
+    pub fn block_outside_layout(conn: &mut PgConnection) -> QueryResult<()> {
+        use crate::schema::slots::dsl::*;
+
+        let Some(enabled) = ACTIVE_LAYOUT.read().unwrap().clone() else {
+            return Ok(());
+        };
+        let enabled: Vec<i32> = enabled.into_iter().collect();
+        diesel::update(
+            slots
+                .filter(slot_state.eq("empty"))
+                .filter(slot_number.ne_all(enabled)),
+        )
+        .set((slot_state.eq("blocked"), updated_at.eq(diesel::dsl::now)))
+        .execute(conn)?;
+        Ok(())
+    }
+
+    /// Inserts any missing slots numbered 1..=count as empty.
+    pub fn ensure_slots(conn: &mut PgConnection, count: i32) -> QueryResult<()> {
+        if count < 1 {
+            return Ok(());
+        }
+        diesel::sql_query(
+            "INSERT INTO slots (slot_number, slot_state) \
+             SELECT gs, 'empty' FROM generate_series(1, $1) AS gs \
+             ON CONFLICT (slot_number) DO NOTHING",
+        )
+        .bind::<diesel::sql_types::Integer, _>(count)
+        .execute(conn)?;
         Ok(())
     }
 }

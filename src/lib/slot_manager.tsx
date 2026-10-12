@@ -62,12 +62,14 @@ type RawSlotManagerStats = {
     occupied_slots: number;
     total_slots: number;
     occupancy_percentage: number;
+    active_slot_numbers: number[];
 };
 
 export async function getSlotManagerStatsTauri(): Promise<SlotManagerStats> {
     const raw = await invoke<RawSlotManagerStats>("get_slot_manager_stats");
     return {
         total_slots: raw.total_slots,
+        active_slot_numbers: raw.active_slot_numbers,
         slots_used: raw.occupied_slots,
         capacity_percentage: raw.occupancy_percentage,
     };

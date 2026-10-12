@@ -5,12 +5,17 @@ use tauri_plugin_store::StoreExt;
 
 use crate::settings::appsettings::{AppSettings, FrameConfig};
 
+// Keep in sync with MAX_NUM_FRAMES / LATCHES_PER_FRAME in src/lib/settings.tsx
+pub const MAX_NUM_FRAMES: u32 = 20;
+/// Every frame has 10 physical latches; 5-slot mode only enables the odd ones.
+pub const LATCHES_PER_FRAME: usize = 10;
+
 fn normalize_frames(settings: &mut AppSettings) {
     let first_frame = settings.frames.first();
     let legacy_enabled_count = first_frame
         .map(|frame| frame.slots.iter().filter(|enabled| **enabled).count())
         .unwrap_or(0);
-    let stored_slots_per_frame = if first_frame
+    let stored_slots_per_frame: u32 = if first_frame
         .map(|frame| frame.slots.len() == 10 && legacy_enabled_count == 5)
         .unwrap_or(false)
     {
@@ -23,12 +28,16 @@ fn normalize_frames(settings: &mut AppSettings) {
     let frame_count = usize::try_from(settings.numFrames)
         .ok()
         .filter(|count| *count > 0)
-        .unwrap_or_else(|| settings.frames.len().max(1));
+        .unwrap_or_else(|| settings.frames.len().max(1))
+        .min(MAX_NUM_FRAMES as usize);
 
     settings.frames = (0..frame_count)
         .map(|_| FrameConfig {
-            latches: stored_slots_per_frame as u8,
-            slots: vec![true; stored_slots_per_frame as usize],
+            latches: LATCHES_PER_FRAME as u8,
+            // 10-slot mode: every latch. 5-slot mode: latches 1, 3, 5, 7, 9.
+            slots: (0..LATCHES_PER_FRAME)
+                .map(|i| stored_slots_per_frame == 10 || i % 2 == 0)
+                .collect(),
         })
         .collect();
     settings.numFrames = u32::try_from(settings.frames.len()).unwrap_or(u32::MAX);

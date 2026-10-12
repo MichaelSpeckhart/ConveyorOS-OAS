@@ -193,7 +193,7 @@ pub fn run() {
             let slots_per_frame = settings
                 .frames
                 .first()
-                .map(|frame| i16::try_from(frame.slots.len()).unwrap_or(i16::MAX))
+                .map(|frame| i16::try_from(frame.slots.iter().filter(|on| **on).count()).unwrap_or(i16::MAX))
                 .unwrap_or(0);
 
             let opc_for_frames = opc.clone();

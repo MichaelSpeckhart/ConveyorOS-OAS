@@ -184,10 +184,7 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
     setSlotMapData(occupied);
   };
 
-  const openSlotMap = async () => {
-    const occupied = await getOccupiedSlotsTauri();
-    setSlotMapData(occupied);
-  };
+  const openSlotMap = refreshSlotMap;
 
   useEffect(() => () => {
     if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);

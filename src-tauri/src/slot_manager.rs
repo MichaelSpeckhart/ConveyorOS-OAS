@@ -8,6 +8,7 @@ pub struct SlotManagerStats {
     pub occupied_slots: i64,
     pub total_slots: i64,
     pub occupancy_percentage: f64,
+    pub active_slot_numbers: Vec<i32>,
 }
 
 pub struct Slots {
@@ -20,6 +21,7 @@ impl SlotManagerStats {
     pub fn fetch(conn: &mut PgConnection) -> diesel::QueryResult<Self> {
         let occupied = SlotManager::get_number_occupied_slots(conn)?;
         let total = SlotManager::get_total_slots(conn)?;
+        let active_slot_numbers = SlotManager::list_active_slot_numbers(conn)?;
 
         let occupancy_percentage = if total > 0 {
             (occupied as f64 / total as f64) * 100.0
@@ -31,6 +33,7 @@ impl SlotManagerStats {
             occupied_slots: occupied,
             total_slots: total,
             occupancy_percentage,
+            active_slot_numbers,
         })
     }
 }
@@ -142,6 +145,17 @@ impl SlotManager {
             .filter(slot_state.eq_any(["reserved", "occupied"]))
             .order(slot_number.asc())
             .load::<Slot>(conn)
+    }
+
+    /// Slot numbers usable by the current frame layout (not blocked or errored).
+    pub fn list_active_slot_numbers(conn: &mut PgConnection) -> diesel::QueryResult<Vec<i32>> {
+        use crate::schema::slots::dsl::*;
+        slots
+            .filter(slot_state.ne("blocked"))
+            .filter(slot_state.ne("error"))
+            .select(slot_number)
+            .order(slot_number.asc())
+            .load::<i32>(conn)
     }
 
     pub fn get_total_slots(conn: &mut PgConnection) -> diesel::QueryResult<i64> {

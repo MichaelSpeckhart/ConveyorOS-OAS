@@ -21,3 +21,11 @@ export async function opcConnected(): Promise<boolean> {
     return invoke<boolean>("check_opc_connection_tauri");
 }
 
+
+export async function setNumberOfFrames(numFrames: number): Promise<void> {
+    await invoke("set_number_of_frames", { numFrames: Math.trunc(numFrames) });
+}
+
+export async function setSlotsPerFrame(slotsPerFrame: number): Promise<void> {
+    await invoke("set_slots_per_frame", { slotsPerFrame: Math.trunc(slotsPerFrame) });
+}

@@ -62,7 +62,7 @@ pub async fn set_number_of_frames(
 #[tauri::command]
 pub async fn set_slots_per_frame(
     state: tauri::State<'_, AppState>,
-    slots_per_fame: i16,
+    slots_per_frame: i16,
 ) -> Result<(), String> {
-    opc_commands::set_slots_per_frame(&state.opc, slots_per_fame).await
+    opc_commands::set_slots_per_frame(&state.opc, slots_per_frame).await
 }
