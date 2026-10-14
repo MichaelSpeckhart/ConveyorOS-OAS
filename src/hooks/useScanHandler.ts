@@ -440,7 +440,9 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
               );
             });
 
-            setGarments(rows);
+            // Completing the ticket clears slot_number in the DB, so show the slot
+            // the garments are being unloaded from.
+            setGarments(slotNum !== null ? rows.map((g) => ({ ...g, slot_number: slotNum })) : rows);
             garmentCount = rows.length;
           } else {
             setTicketMeta(null);
