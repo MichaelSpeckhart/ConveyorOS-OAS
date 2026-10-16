@@ -4,6 +4,7 @@ import garmentRecallIcon from "../../assets/GarmentRecall.png";
 import { GarmentRail, Hanger, LaundryTag, RailUnload } from "../../components/icons/DryCleaningIcons";
 import GarmentKeyboard from "../../components/GarmentKeyboard";
 import TicketAckModal from "../../components/scan/TicketAckModal";
+import NextGarmentModal from "../../components/scan/NextGarmentModal";
 import ClearConveyorModal from "../../components/scan/ClearConveyorModal";
 import SlotMapModal from "../../components/scan/SlotMapModal";
 import RecallData from "./RecallData";
@@ -67,11 +68,13 @@ export default function GarmentScanner({
     isClearingConveyor,
     cancelableScan,
     isCancelingScan,
+    nextGarmentPrompt,
     handleScan,
     handleCancelScan,
     handleClearAndReset,
     handleNextClear,
     handleTicketAck,
+    handleNextGarment,
     refreshSlotMap,
     openSlotMap,
   } = useScanHandler({ sessionId });
@@ -298,6 +301,8 @@ export default function GarmentScanner({
       />
 
       <TicketAckModal open={ticketAckOpen} data={ticketAckData} onAck={handleTicketAck} />
+
+      <NextGarmentModal nextCode={nextGarmentPrompt} remaining={scanQueue.length} onNext={handleNextGarment} />
 
       <ClearConveyorModal open={clearOpen} onClose={closeClear} onConfirm={handleClearAndReset} />
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Minimize2, X } from "lucide-react";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+import { minimizeAppWindow } from "../lib/window";
 import logo from "../assets/Logo1.png";
 
 type NavItem = {
@@ -18,6 +18,7 @@ type SideNavLayoutProps = {
   children: React.ReactNode;
   defaultCollapsed?: boolean;
   onLogout?: () => void;
+  onExit?: () => void;
 };
 
 export const SideNavLayout: React.FC<SideNavLayoutProps> = ({
@@ -28,6 +29,7 @@ export const SideNavLayout: React.FC<SideNavLayoutProps> = ({
   children,
   defaultCollapsed = false,
   onLogout,
+  onExit,
 }) => {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
@@ -58,20 +60,12 @@ export const SideNavLayout: React.FC<SideNavLayoutProps> = ({
 
   const minimizeWindow = async () => {
     try {
-      await getCurrentWindow().minimize();
+      await minimizeAppWindow();
     } catch (e) {
       console.error("Failed to minimize window", e);
     }
   };
 
-  const closeWindow = async () => {
-    try {
-      await getCurrentWindow().close();
-    } catch (e) {
-      console.error("Failed to close window", e);
-      window.close();
-    }
-  };
 
   const windowControls = (
     <div className={`flex items-center ${collapsed ? "flex-col gap-1" : "gap-1 ml-auto"}`}>
@@ -85,7 +79,7 @@ export const SideNavLayout: React.FC<SideNavLayoutProps> = ({
       </button>
       <button
         type="button"
-        onClick={closeWindow}
+        onClick={onExit}
         title="Exit"
         className="h-8 w-8 rounded-lg grid place-items-center text-navy-muted hover:bg-red-500/90 hover:text-white transition-colors"
       >

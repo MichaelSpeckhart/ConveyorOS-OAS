@@ -545,6 +545,41 @@ pub fn increment_session_tickets(session_id: i32) -> Result<crate::model::Sessio
     sessions_repo::increment_tickets(&mut conn, session_id).map_err(|e| format!("DB Error: {}", e))
 }
 
+/// Set when the window left fullscreen to minimize, so it goes back to
+/// fullscreen once restored.
+pub static RESTORE_FULLSCREEN: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
+
+// Window commands are async so they never block the main thread, which the
+// window operations themselves need.
+#[tauri::command]
+pub async fn minimize_app_window(window: tauri::WebviewWindow) -> Result<(), String> {
+    // Minimizing a fullscreen WebView2 window leaves it frozen on restore, so
+    // drop out of fullscreen first; lib.rs re-enters it when focus returns.
+    if window.is_fullscreen().unwrap_or(false) {
+        window.set_fullscreen(false).map_err(|e| e.to_string())?;
+        RESTORE_FULLSCREEN.store(true, Ordering::SeqCst);
+    }
+    window.minimize().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn exit_app(app: tauri::AppHandle, session_id: Option<i32>) {
+    // Close the operator's session so its duration doesn't run on until their
+    // next login. A DB failure must never block the exit.
+    if let Some(id) = session_id {
+        match establish_connection() {
+            Ok(mut conn) => {
+                if let Err(e) = sessions_repo::end_session(&mut conn, id) {
+                    log::warn!("Failed to end session {id} on exit: {e}");
+                }
+            }
+            Err(e) => log::warn!("Failed to end session {id} on exit: {e}"),
+        }
+    }
+    app.exit(0);
+}
+
 #[tauri::command]
 pub fn get_session_by_id_tauri(session_id: i32) -> Result<Option<crate::model::Session>, String> {
     let mut conn = establish_connection()?;

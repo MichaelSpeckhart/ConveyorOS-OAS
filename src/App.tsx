@@ -13,6 +13,7 @@ import DataPage from "./pages/Data";
 import OperatorData from "./pages/operators/OperatorData";
 import PrintTickets from "./pages/tickets/PrintTickets";
 import { endUserSessionTauri, startUserSessionTauri } from "./lib/session_manager";
+import { exitApp } from "./lib/window";
 import SetupWizard from "./components/SetupWizard";
 import { checkSetupRequired } from "./lib/settings";
 import RegularKeyboard from "./components/RegularKeyboard";
@@ -187,6 +188,7 @@ export default function App() {
         activeKey={active}
         user={user}
         onLogout={() => setShowLogoutConfirm(true)}
+        onExit={() => exitApp(sessionId).catch((e) => console.error("Failed to exit app", e))}
       >
         {active === "dashboard" && <Home onNavigate={setActive} />}
         {active === "scan" && <GarmentScanningPage sessionId={sessionId} username={user.username} />}

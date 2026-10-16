@@ -56,6 +56,13 @@ pub fn run() {
         )
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::Focused(true) = event {
+                if tauri_commands::RESTORE_FULLSCREEN.swap(false, std::sync::atomic::Ordering::SeqCst) {
+                    let _ = window.set_fullscreen(true);
+                }
+            }
+        })
         .setup(|app| {
             let app_handle = app.handle();
 
@@ -276,6 +283,8 @@ pub fn run() {
             tauri_commands::add_conveyor_activity_unload_tauri,
             tauri_commands::get_sessions_in_range_tauri,
             tauri_commands::get_operator_stats_in_range_tauri,
+            tauri_commands::minimize_app_window,
+            tauri_commands::exit_app,
             greet
         ])
         .run(tauri::generate_context!())

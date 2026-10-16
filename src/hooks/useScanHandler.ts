@@ -89,10 +89,15 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
   const [isClearingConveyor, setIsClearingConveyor] = useState(false);
   const [cancelableScan, setCancelableScan] = useState<CancelableScanData | null>(null);
   const [isCancelingScan, setIsCancelingScan] = useState(false);
+  const [nextGarmentPrompt, setNextGarmentPrompt] = useState<string | null>(null);
 
   const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nextResolveRef = useRef<(() => void) | null>(null);
   const ticketAckResolveRef = useRef<(() => void) | null>(null);
+  const nextGarmentResolveRef = useRef<(() => void) | null>(null);
+  // Set when the operator already confirmed via the ticket ack, so the queue
+  // doesn't stack a second OK prompt on top of it.
+  const ackedThisScanRef = useRef(false);
   const scanAudioCueIdRef = useRef(0);
   const cancelableScanRef = useRef<CancelableScanToken | null>(null);
 
@@ -117,7 +122,14 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
 
   const waitForTicketAck = () =>
     new Promise<void>((resolve) => {
+      ackedThisScanRef.current = true;
       ticketAckResolveRef.current = resolve;
+    });
+
+  const waitForNextGarment = (code: string) =>
+    new Promise<void>((resolve) => {
+      nextGarmentResolveRef.current = resolve;
+      setNextGarmentPrompt(code);
     });
 
   const handleNextClear = () => {
@@ -132,6 +144,14 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
     if (ticketAckResolveRef.current) {
       ticketAckResolveRef.current();
       ticketAckResolveRef.current = null;
+    }
+  };
+
+  const handleNextGarment = () => {
+    setNextGarmentPrompt(null);
+    if (nextGarmentResolveRef.current) {
+      nextGarmentResolveRef.current();
+      nextGarmentResolveRef.current = null;
     }
   };
 
@@ -241,6 +261,9 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
     queueRef.current = [];
     setScanQueue([]);
     lastEnqueuedRef.current = null;
+    // Release the pump if it's parked on the next-garment prompt; the queue is
+    // now empty so it exits instead of advancing.
+    handleNextGarment();
 
     try {
       await handleClearConveyor();
@@ -314,7 +337,14 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
         setActiveScan(next);
 
         // processScan handles its own failures, so one bad code can't abort the drain.
+        ackedThisScanRef.current = false;
         await processScan(next);
+
+        // Hold the next queued garment until the operator confirms they're
+        // ready, unless they just acknowledged a completed ticket.
+        if (queueRef.current.length > 0 && !ackedThisScanRef.current) {
+          await waitForNextGarment(queueRef.current[0]);
+        }
       }
     } finally {
       setActiveScan(null);
@@ -593,11 +623,13 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
     isClearingConveyor,
     cancelableScan,
     isCancelingScan,
+    nextGarmentPrompt,
     handleScan: enqueueScan,
     handleCancelScan,
     handleClearAndReset,
     handleNextClear,
     handleTicketAck,
+    handleNextGarment,
     refreshSlotStats,
     refreshSlotMap,
     openSlotMap,
