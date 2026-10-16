@@ -402,9 +402,11 @@ function StatBox({
   valueSize?: string;
 }) {
   return (
-    <div className={`bg-white rounded-xl p-3 shadow-sm border border-[#ddd8d0] flex flex-col justify-center items-center ${border}`}>
+    <div className={`bg-white rounded-xl p-3 shadow-sm border border-[#ddd8d0] flex flex-col justify-center items-center min-w-0 ${border}`}>
       <span className="text-slate-900 text-base font-black uppercase tracking-widest mb-1">{label}</span>
-      <span className={`${valueSize} font-black tracking-tighter ${color} max-w-full truncate`}>{value}{suffix}</span>
+      {/* Negative tracking makes the last glyph overhang its box, so pad the
+          clip edge or truncate shaves it off. */}
+      <span className={`${valueSize} font-black tracking-tight tabular-nums ${color} max-w-full truncate px-1`}>{value}{suffix}</span>
     </div>
   );
 }

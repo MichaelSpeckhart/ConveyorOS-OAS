@@ -2,6 +2,7 @@ type TicketAckData = {
   ticketNum: string;
   customerName: string;
   garmentCount: number;
+  printError: string | null;
 };
 
 type Props = {
@@ -31,6 +32,13 @@ export default function TicketAckModal({ open, data, onAck }: Props) {
             <span className="text-sm uppercase tracking-widest font-bold text-slate-400">Garments</span>
             <span className="text-xl font-black text-slate-800">{data.garmentCount}</span>
           </div>
+          {data.printError && (
+            <div className="rounded-2xl bg-red-50 border border-red-200 px-4 py-3">
+              <div className="text-sm font-black uppercase tracking-widest text-red-600">Ticket did not print</div>
+              <div className="text-sm text-red-700 mt-1 break-words">{data.printError}</div>
+              <div className="text-xs text-red-500 mt-2 font-bold">Reprint it from Print Tickets.</div>
+            </div>
+          )}
         </div>
         <div className="px-8 pb-8">
           <button

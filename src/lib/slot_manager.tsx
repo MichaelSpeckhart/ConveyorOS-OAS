@@ -45,8 +45,14 @@ export async function getSlotNumberFromBarcodeTauri(ticket: string): Promise<num
     return invoke<number | null>("get_slot_number_from_barcode_tauri", { barcode: ticket });
 }
 
-export async function completeTicketTauri(barcode: string): Promise<number | null> {
-    return invoke<number | null>("complete_ticket_tauri", { barcode });
+export type CompleteTicketResult = {
+    slot_number: number;
+    /** Set when the ticket completed but didn't print. */
+    print_error: string | null;
+};
+
+export async function completeTicketTauri(barcode: string): Promise<CompleteTicketResult> {
+    return invoke<CompleteTicketResult>("complete_ticket_tauri", { barcode });
 }
 
 export async function garmentTicketOnConveyorTauri(ticket: string): Promise<number | string> {

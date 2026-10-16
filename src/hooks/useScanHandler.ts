@@ -26,7 +26,7 @@ import {
   incrementSessionTicketsTauri,
 } from "../lib/session_manager";
 import { slotRunRequest } from "../lib/opc";
-import { LoadItem, UnloadItem } from "../lib/pos";
+import { LoadItem } from "../lib/pos";
 
 export type ScanState =
   | "waiting"
@@ -52,6 +52,7 @@ export type TicketAckData = {
   ticketNum: string;
   customerName: string;
   garmentCount: number;
+  printError: string | null;
 };
 
 export type CancelableScanData = {
@@ -438,6 +439,7 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
           ticketNum: completedTicketNum ?? code,
           customerName: info ? `${info.first_name} ${info.last_name}` : "Unknown",
           garmentCount,
+          printError: null,
         });
         setTicketAckOpen(true);
         await waitForTicketAck();
@@ -448,7 +450,7 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
       setLastScan(code);
 
       if (isLast) {
-        const slotNum = await completeTicketTauri(code);
+        const { slot_number: slotNum, print_error: printError } = await completeTicketTauri(code);
         setState("ticketcomplete");
         emitScanAudioCue("ticket-complete");
         let completedTicketNum: string | null = null;
@@ -465,14 +467,14 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
               await addConveyorActivityUnloadTauri(
                 ticket.full_invoice_number,
                 garment.item_id,
-                slotNum ?? garment.slot_number,
+                slotNum,
                 ticket.customer_identifier,
               );
             });
 
             // Completing the ticket clears slot_number in the DB, so show the slot
             // the garments are being unloaded from.
-            setGarments(slotNum !== null ? rows.map((g) => ({ ...g, slot_number: slotNum })) : rows);
+            setGarments(rows.map((g) => ({ ...g, slot_number: slotNum })));
             garmentCount = rows.length;
           } else {
             setTicketMeta(null);
@@ -487,6 +489,7 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
           ticketNum: completedTicketNum ?? code,
           customerName: info ? `${info.first_name} ${info.last_name}` : "Unknown",
           garmentCount,
+          printError,
         });
         setTicketAckOpen(true);
         await waitForTicketAck();
@@ -504,8 +507,7 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
         }
 
         try {
-          if (slotNum !== null) await slotRunRequest(slotNum);
-          await UnloadItem(code);
+          await slotRunRequest(slotNum);
         } catch (err) {
           console.error("Hardware operation failed:", err);
         }

@@ -28,7 +28,7 @@ use crate::{
     opc::{opc_client::AppState, opc_commands::get_load_hanger_sensor},
     pos::spot::output::{
         conveyor_file_utils::{
-            self, write_load_item, write_print_invoice, write_split_invoice, write_unload_item,
+            self, write_load_item, write_split_invoice, write_unload_item,
         },
         conveyor_ops_types::ConveyorOpsTypes,
     },
@@ -375,11 +375,25 @@ pub async fn get_slot_number_from_barcode_tauri(barcode: String) -> Result<Optio
 }
 
 /// Called when the last garment on a ticket is scanned.
+#[derive(Serialize)]
+pub struct CompleteTicketResult {
+    pub slot_number: i32,
+    /// Set when the ticket completed but the printer failed, so the operator
+    /// knows to reprint it from Print Tickets.
+    pub print_error: Option<String>,
+}
+
 /// Writes load_item for the scanned garment, then unload_item for every
 /// garment on the ticket, clears the ticket's conveyor slot, marks every
-/// garment as Processed, and marks the ticket as Processed.
+/// garment as Processed, marks the ticket as Processed, and prints the ticket
+/// on the configured printer.
+///
+/// Async so a slow or unreachable printer can't freeze the UI thread.
 #[tauri::command]
-pub fn complete_ticket_tauri(barcode: String) -> Result<Option<i32>, String> {
+pub async fn complete_ticket_tauri(
+    app: tauri::AppHandle,
+    barcode: String,
+) -> Result<CompleteTicketResult, String> {
     let mut conn = establish_connection()?;
 
     let garment = garment_repo::get_garment(&mut conn, &barcode)
@@ -457,13 +471,28 @@ pub fn complete_ticket_tauri(barcode: String) -> Result<Option<i32>, String> {
     })
     .map_err(|e| format!("DB Error (complete ticket): {e}"))?;
 
-    write_print_invoice(
-        ConveyorOpsTypes::PrintInvoice,
-        &ticket.full_invoice_number,
-        1,
-    )?;
+    // The ticket is already committed as Processed, so a printer failure is
+    // reported back instead of failing the completion.
+    let settings = crate::settings::load_settings(&app);
+    let print_error = crate::io::printer::printer_details::print_ticket(
+        &ticket,
+        &all_garments,
+        &settings.printer,
+    )
+    .err();
 
-    Ok(Some(slot_number))
+    if let Some(e) = &print_error {
+        app_log::error(
+            "Ticket Print",
+            "Failed to print completed ticket",
+            Some(format!("Ticket: {}\nError: {}", ticket.full_invoice_number, e)),
+        );
+    }
+
+    Ok(CompleteTicketResult {
+        slot_number,
+        print_error,
+    })
 }
 
 #[tauri::command]
