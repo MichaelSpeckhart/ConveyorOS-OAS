@@ -66,7 +66,7 @@ type CancelableScanToken = CancelableScanData & {
 };
 
 /** Operators scan ahead of the conveyor, so pending scans buffer here. */
-const MAX_QUEUE = 8;
+const MAX_QUEUE = 10;
 /** Barcode guns commonly double-fire; ignore a repeat of the same code inside this window. */
 const DUPLICATE_WINDOW_MS = 2000;
 
@@ -96,9 +96,6 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
   const nextResolveRef = useRef<(() => void) | null>(null);
   const ticketAckResolveRef = useRef<(() => void) | null>(null);
   const nextGarmentResolveRef = useRef<(() => void) | null>(null);
-  // Set when the operator already confirmed via the ticket ack, so the queue
-  // doesn't stack a second OK prompt on top of it.
-  const ackedThisScanRef = useRef(false);
   const scanAudioCueIdRef = useRef(0);
   const cancelableScanRef = useRef<CancelableScanToken | null>(null);
 
@@ -123,7 +120,6 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
 
   const waitForTicketAck = () =>
     new Promise<void>((resolve) => {
-      ackedThisScanRef.current = true;
       ticketAckResolveRef.current = resolve;
     });
 
@@ -338,12 +334,11 @@ export function useScanHandler({ sessionId }: { sessionId?: number | null }) {
         setActiveScan(next);
 
         // processScan handles its own failures, so one bad code can't abort the drain.
-        ackedThisScanRef.current = false;
         await processScan(next);
 
-        // Hold the next queued garment until the operator confirms they're
-        // ready, unless they just acknowledged a completed ticket.
-        if (queueRef.current.length > 0 && !ackedThisScanRef.current) {
+        // A ticket acknowledgment confirms completion of the current order.
+        // Keep the next garment queued until the operator is ready for it.
+        if (queueRef.current.length > 0) {
           await waitForNextGarment(queueRef.current[0]);
         }
       }

@@ -113,22 +113,26 @@ impl SlotManager {
         };
 
         // ≥ 50% full: just take the next available slot linearly.
-        if capacity_pct >= 50.0 {
-            return empties.first().map(|s| s.slot_number);
-        }
+        // if capacity_pct >= 50.0 {
+        //     return empties.first().map(|s| s.slot_number);
+        // }
 
-        // < 50% full: find the first empty slot that is at least 5 away from
-        // every currently occupied slot.
-        if occupied.is_empty() {
-            return empties.first().map(|s| s.slot_number);
-        }
+        // < 50% full: pick any empty slot at random.
+        let pick = fastrand::usize(..empties.len());
+        Some(empties[pick].slot_number)
 
-        let candidate = empties
-            .iter()
-            .find(|s| occupied.iter().all(|&o| (s.slot_number - o).abs() >= 5));
-
-        // Fall back to first available if no 5-apart slot exists.
-        candidate.or_else(|| empties.first()).map(|s| s.slot_number)
+        // Previous spread pick: first empty slot at least 5 away from every
+        // currently occupied slot.
+        // if occupied.is_empty() {
+        //     return empties.first().map(|s| s.slot_number);
+        // }
+        //
+        // let candidate = empties
+        //     .iter()
+        //     .find(|s| occupied.iter().all(|&o| (s.slot_number - o).abs() >= 5));
+        //
+        // // Fall back to first available if no 5-apart slot exists.
+        // candidate.or_else(|| empties.first()).map(|s| s.slot_number)
     }
 
     pub fn get_number_occupied_slots(conn: &mut PgConnection) -> diesel::QueryResult<i64> {
